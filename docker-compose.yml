@@ -1,0 +1,44 @@
+version: '3.3'
+
+services:
+    postgres:
+        image: postgres:11.0
+        container_name: postgres
+        restart: always
+        ports:
+        - '5432:5432'
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER:-postgres}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-example}
+            # POSTGRES_DB: "db"
+            # POSTGRES_HOST_AUTH_METHOD: ${POSTGRES_HOST_AUTH_METHOD:-"trust"}
+
+    flask:
+        container_name: flask
+        restart: always
+        build:
+            context: ./backend/
+            dockerfile: Dockerfile
+        expose:
+            - "5000"
+        ports:
+            - "5000:5000"
+        volumes:
+            - ./backend:/app
+        depends_on: 
+            - "postgres"
+    
+    react: 
+        container_name: react
+        restart: always
+        build:
+            context: ./frontend/
+            dockerfile: Dockerfile
+        expose:
+            - "3000"
+        ports:
+            - "3000:3000"
+        stdin_open: true
+        volumes:
+            - ./frontend:/app
+            - /app/node_modules
