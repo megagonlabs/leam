@@ -10,7 +10,7 @@ services:
         environment:
             POSTGRES_USER: ${POSTGRES_USER:-postgres}
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-example}
-            # POSTGRES_DB: "db"
+            POSTGRES_DB: db
             # POSTGRES_HOST_AUTH_METHOD: ${POSTGRES_HOST_AUTH_METHOD:-"trust"}
 
     flask:
@@ -25,8 +25,6 @@ services:
             - "5000:5000"
         volumes:
             - ./backend:/app
-        depends_on: 
-            - "postgres"
     
     react: 
         container_name: react
