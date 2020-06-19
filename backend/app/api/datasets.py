@@ -4,13 +4,13 @@ from . import v1
 from .. import log
 
 CORS(v1)
-@v1.route('/v1/uploadfile', methods=(['POST']))
+@v1.route('/uploadfile', methods=(['POST']))
 def uploadfile():
     log.info("In upload file endpoint!")
-    log.info(request)
+    formKeys = request.form.keys()
+    for i in formKeys:
+        log.info(i)
+    log.info(request.form["filename"])
+    log.info(request.form["filetype"])
+    log.info(request.form["filedata"])
     return jsonify(success=True)
-
-
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'

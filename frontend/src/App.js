@@ -25,27 +25,37 @@ import './App.css';
 // }
 
 class App extends Component {
-  state = {
-    selectedFile: null
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      fileName: null,
+      fileType: null,
+      fileData: null,
+    };
+    this.fileReader = new FileReader();
+  }
+  
 
   onFileChange = event => {
     console.log("event: ", event)
-    this.setState({ selectedFile: event.target.files[0] });
+    var file = event.target.files[0]
+    this.fileReader.onloadend = this.handleFileRead;
+    this.fileReader.readAsText(file);
+    this.setState({ fileName: file.name, fileType: file.type });
   };
 
-  onFileUpload = () => {
+  handleFileRead = () => {
+    this.setState({ fileData: this.fileReader.result });
     const formData = new FormData();
-    formData.append(
-      "someFile",
-      this.state.selectedFile,
-      this.state.selectedFile.name
-    );
-
-    console.log(this.state.selectedFile);
+    formData.append('filename', this.state.fileName);
+    formData.append('filetype', this.state.fileType);
+    formData.append('filedata', this.state.fileData);
+    console.log("uploading filename: ", this.state.fileName);
+    console.log("uploading filetype: ", this.state.fileType);
+    console.log("uploading file contents: ", this.state.fileData);
     
     // TODO: implement uploadfile endpoint in Flask
-    axios.post("http://localhost:5000/api/uploadfile", formData);
+    axios.post("http://localhost:5000/v1/uploadfile", formData);
   }
 
   // content that is displayed after File Uploaded
@@ -80,9 +90,9 @@ class App extends Component {
         </h2>
         <div>
           <input type="file" onChange={this.onFileChange} />
-          <button onClick={this.onFileUpload}>
+          {/* <button onClick={this.onFileUpload}>
             Upload File!
-          </button>
+          </button> */}
         </div>
         {this.fileData()}
       </div>
