@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
+import Dropdown from 'react-bootstrap/Dropdown';
+import InputGroup from 'react-bootstrap/InputGroup';
 import axios from 'axios';
 import logo from './logo.svg';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // function App() {
 //   return (
@@ -60,23 +63,18 @@ class App extends Component {
 
   // content that is displayed after File Uploaded
   fileData  = () => {
-    if (this.state.selectedFile) {
+    if (this.state.fileName) {
       return (
         <div>
           <h2>File Details: </h2>
-            <p>File Name: { this.state.selectedFile.name }</p>
-            <p>File Type: { this.state.selectedFile.type }</p>
-            <p>
-              Last Modified: {" "}
-              { this.state.selectedFile.lastModified }
-            </p>
+            <p>File Name: { this.state.fileName }</p>
+            <p>File Type: { this.state.fileType }</p>
         </div>
       );
     } else {
       return (
         <div>
-          <br />
-          <h4>Choose Before Pressing the Upload Button</h4>
+          <h4>No File Uploaded</h4>
         </div>
       );
     }
@@ -88,12 +86,23 @@ class App extends Component {
         <h2>
           Data Ingestion View
         </h2>
-        <div>
-          <input type="file" onChange={this.onFileChange} />
-          {/* <button onClick={this.onFileUpload}>
-            Upload File!
-          </button> */}
-        </div>
+          <InputGroup className="mb-3">
+          <Dropdown>
+            <Dropdown.Toggle variant="success" id="dropdown-basic">
+              Dropdown Button
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
+              <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
+              <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+            <input type="file" onChange={this.onFileChange} />
+            {/* <button onClick={this.onFileUpload}>
+              Upload File!
+            </button> */}
+          </InputGroup>
         {this.fileData()}
       </div>
     )
