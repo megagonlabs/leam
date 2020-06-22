@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import Dropdown from 'react-bootstrap/Dropdown';
-import InputGroup from 'react-bootstrap/InputGroup';
+import { Row, Col, Container } from 'react-bootstrap';
 import axios from 'axios';
-import logo from './logo.svg';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -86,24 +85,28 @@ class App extends Component {
         <h2>
           Data Ingestion View
         </h2>
-          <InputGroup className="mb-3">
-          <Dropdown>
-            <Dropdown.Toggle variant="success" id="dropdown-basic">
-              Dropdown Button
-            </Dropdown.Toggle>
-
-            <Dropdown.Menu>
-              <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
-              <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
-              <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-            <input type="file" onChange={this.onFileChange} />
-            {/* <button onClick={this.onFileUpload}>
-              Upload File!
-            </button> */}
-          </InputGroup>
-        {this.fileData()}
+        <Container>
+        <Row className="justify-content-start" id="dataview">
+            <Col md={3}  sm={4} id="dataview-dropdown">
+              <div className="dropdown">
+                <Dropdown>
+                  <Dropdown.Toggle variant="info" id="dropdown-basic">
+                    Dropdown Button
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
+                    <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
+                    <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
+            </Col>
+            <Col md={5} sm={5} className="pr-3" id="dataview-file-upload">
+              <input type="file" onChange={this.onFileChange} />
+              {this.fileData()}
+            </Col>
+        </Row>
+        </Container>
       </div>
     )
   }

@@ -11,3 +11,24 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.dropdown {
+  margin-right: 10%;
+}
+
+#dataview-dropdown {
+  border-left: 5px solid black;
+  border-top: 5px solid black;
+  border-bottom: 5px solid black;
+}
+
+#dataview-file-upload {
+  border-right: 5px solid black;
+  border-top: 5px solid black;
+  border-bottom: 5px solid black;
+}
+
+#dataview {
+  padding: 20 px;
+}
+
