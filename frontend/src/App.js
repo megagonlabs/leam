@@ -47,10 +47,16 @@ class App extends Component {
 
   // content that is displayed after File Uploaded
   fileData  = () => {
+    // let columns = "[";
+    var columns = Object.assign([], this.state.fileHeaders);
+    if (columns.length > 6) {
+      columns = columns.slice(0, 6);
+      columns.push("...");
+    }
     return (
           <div>
               <p>File Name: { this.state.fileName }</p>
-              <p>Columns: { this.state.fileHeaders }</p>
+              <p>Columns: { JSON.stringify(columns) }</p>
               <p># Rows: { this.state.fileNumRows }</p>
           </div>
     );
