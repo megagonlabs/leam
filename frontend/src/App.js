@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Row, Col, Container } from 'react-bootstrap';
 import axios from 'axios';
-import DatasetView from './DatasetView.js';
+import DatasetDropdown from './DatasetDropdown.js';
+import DatasetUpload from './DatasetUpload.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -42,7 +43,6 @@ class App extends Component {
     
     // TODO: implement uploadfile endpoint in Flask
     axios.post("http://localhost:5000/v1/upload-file", formData);
-    this.getFiles();
   };
 
   // content that is displayed after File Uploaded
@@ -71,8 +71,6 @@ class App extends Component {
         for (let key in allDatasets) {
           console.log(key);
           let datasetInfo = allDatasets[key];
-          // let datasetName = datasetInfo["name"];
-          // newDatasets[datasetName] = datasetInfo;
           newDatasets.push(datasetInfo);
         }
         this.setState({ "datasets": newDatasets });
@@ -100,13 +98,12 @@ class App extends Component {
         fileHeader = datasetInfo["header"];
       }
     }
-
-    const datasetInfo = this.state.datasets[fileName];
     this.setState({
       fileName: fileName,
       fileNumRows: fileRows,
       fileHeaders: fileHeader,
     });
+    this.getFiles();
   }
 
   // getDropdownFiles = () => {
@@ -133,7 +130,12 @@ class App extends Component {
         </h2>
         <Container>
         <Row className="justify-content-start" id="dataview">
-            <DatasetView key="dataset-view" datasets={this.state.datasets} loadFile={this.loadFile} onFileChange={this.onFileChange} fileData={this.fileData}/>
+          <Col md={3}  sm={4} id="dataview-dropdown">
+            <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} loadFile={this.loadFile} />
+          </Col>
+          <Col md={5} sm={5} className="pr-3" id="dataview-file-upload">
+            <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
+          </Col>
         </Row>
         </Container>
       </div>
