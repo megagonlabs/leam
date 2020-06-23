@@ -8,8 +8,8 @@ from ..models import Dataset
 from app import db
 
 CORS(v1)
-@v1.route('/uploadfile', methods=(['POST']))
-def uploadfile():
+@v1.route('/upload-file', methods=(['POST']))
+def upload_file():
   log.info("In upload file endpoint!")
   formKeys = request.form.keys()
   for i in formKeys:
@@ -29,6 +29,15 @@ def uploadfile():
   db.session.commit()
 
   return jsonify(success=True)
+
+@v1.route('/get-datasets', methods=(['GET']))
+def get_datasets():
+  log.info("In get datsets endpoint!")
+  datasets = Dataset.query.all()
+  log.info(datasets)
+  ds = datasets[0]
+  log.info(ds.name)
+  return jsonify({ 'datasets': [dataset.to_json() for dataset in datasets] })
 
 
 def extract_header(header_text):

@@ -5,27 +5,6 @@ import axios from 'axios';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Hello World! And some other stuff!
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -33,10 +12,15 @@ class App extends Component {
       fileName: null,
       fileType: null,
       fileData: null,
+      fileNumRows: null,
+      fileHeaders: [],
+      datasets: {},
     };
     this.fileReader = new FileReader();
+    this.getDropdownFiles = this.getDropdownFiles.bind(this);
+    this.loadFile = this.loadFile.bind(this);
+    this.getFiles = this.getFiles.bind(this);
   }
-  
 
   onFileChange = event => {
     console.log("event: ", event)
@@ -57,27 +41,71 @@ class App extends Component {
     console.log("uploading file contents: ", this.state.fileData);
     
     // TODO: implement uploadfile endpoint in Flask
-    axios.post("http://localhost:5000/v1/uploadfile", formData);
-  }
+    axios.post("http://localhost:5000/v1/upload-file", formData);
+    this.getFiles();
+  };
 
   // content that is displayed after File Uploaded
   fileData  = () => {
-    if (this.state.fileName) {
-      return (
-        <div>
-          <h2>File Details: </h2>
-            <p>File Name: { this.state.fileName }</p>
-            <p>File Type: { this.state.fileType }</p>
-        </div>
-      );
-    } else {
-      return (
-        <div>
-          <h4>No File Uploaded</h4>
-        </div>
-      );
-    }
+    return (
+          <div>
+              <p>File Name: { this.state.fileName }</p>
+              <p>Columns: { this.state.fileHeaders }</p>
+              <p># Rows: { this.state.fileNumRows }</p>
+          </div>
+    );
   };
+
+  getFiles = () => {
+    axios.get("http://localhost:5000/v1/get-datasets")
+      .then((response) => {
+        let allDatasets = response.data["datasets"];
+        let newDatasets = Object.assign({}, this.state.datasets);
+        for (let key in allDatasets) {
+          console.log(key);
+          let datasetInfo = allDatasets[key];
+          let datasetName = datasetInfo["name"];
+          newDatasets[datasetName] = datasetInfo;
+        }
+        this.setState({ "datasets": newDatasets });
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+      // .then(function () {
+      //   // always executed
+      // }); 
+  }
+
+  componentDidMount() {
+    this.getFiles();
+  }
+
+  loadFile = (event) => {
+    const fileName = event.target.id;
+    const datasetInfo = this.state.datasets[fileName];
+    this.setState({
+      fileName: fileName,
+      fileNumRows: datasetInfo["num_rows"],
+      fileHeaders: datasetInfo["header"],
+    });
+  }
+
+  getDropdownFiles = () => {
+    let dropDownItems = [];
+    for (let key in this.state.datasets) {
+      const datasetInfo = this.state.datasets[key];
+      const datasetName = datasetInfo["name"];
+      dropDownItems.push(<Dropdown.Item onClick={this.loadFile} id={datasetName}>{datasetName}</Dropdown.Item>);
+      console.log("dataset element with name: ", datasetName);
+    }
+
+    return (
+      <Dropdown.Menu>
+        {dropDownItems}
+      </Dropdown.Menu>
+    )
+  }
 
   render() {
     return (
@@ -93,11 +121,12 @@ class App extends Component {
                   <Dropdown.Toggle variant="info" id="dropdown-basic">
                     Dropdown Button
                   </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
+                  {/* <Dropdown.Menu>
+                    <Dropdown.Item onClick={this.handleChange} id="something">Action</Dropdown.Item>
                     <Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
                     <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
-                  </Dropdown.Menu>
+                  </Dropdown.Menu> */}
+                  {this.getDropdownFiles()}
                 </Dropdown>
               </div>
             </Col>
@@ -108,8 +137,8 @@ class App extends Component {
         </Row>
         </Container>
       </div>
-    )
+    );
   }
-}
+};
 
 export default App;
