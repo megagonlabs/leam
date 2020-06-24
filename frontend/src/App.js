@@ -49,14 +49,14 @@ class App extends Component {
   fileData  = () => {
     // let columns = "[";
     var columns = Object.assign([], this.state.fileHeaders);
-    if (columns.length > 6) {
-      columns = columns.slice(0, 6);
-      columns.push("...");
-    }
+    // if (columns.length > 6) {
+    //   columns = columns.slice(0, 6);
+    //   columns.push("...");
+    // }
     return (
           <div>
               <p>File Name: { this.state.fileName }</p>
-              <p>Columns: { JSON.stringify(columns) }</p>
+              <p id="columns-list" style={{overflow: 'wrap'}}>Columns: { JSON.stringify(columns) }</p>
               <p># Rows: { this.state.fileNumRows }</p>
           </div>
     );
@@ -69,7 +69,6 @@ class App extends Component {
         // let newDatasets = Object.assign({}, this.state.datasets);
         let newDatasets = [];
         for (let key in allDatasets) {
-          console.log(key);
           let datasetInfo = allDatasets[key];
           newDatasets.push(datasetInfo);
         }
@@ -125,16 +124,21 @@ class App extends Component {
   render() {
     return (
       <div>
-        <h2>
-          Data Ingestion View
-        </h2>
         <Container>
+        <Row>
+          <h2>
+            TEX (Text EXplorer)
+          </h2>
+        </Row>
         <Row className="justify-content-start" id="dataview">
-          <Col md={3}  sm={4} id="dataview-dropdown">
+          <Col md={3}  sm={6} id="dataview-dropdown">
             <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} loadFile={this.loadFile} />
           </Col>
-          <Col md={5} sm={5} className="pr-3" id="dataview-file-upload">
+          <Col md={4} sm={6} className="pr-3" id="dataview-file-upload">
             <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
+          </Col>
+          <Col md={5} sm={6} id="operator-view">
+            <div></div>
           </Col>
         </Row>
         </Container>

@@ -15,8 +15,8 @@ class DatasetDropdown extends Component {
   render() {
     return (
       <div className="dropdown">
-      <Dropdown>
-        <Dropdown.Toggle variant="info" id="dropdown-basic">
+      <Dropdown size="sm">
+        <Dropdown.Toggle variant="info" id="dropdown-basic" size={"md"}>
           Dropdown Button
         </Dropdown.Toggle>
         {/* <Dropdown.Menu>

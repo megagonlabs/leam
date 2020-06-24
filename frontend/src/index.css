@@ -12,6 +12,12 @@ code {
     monospace;
 }
 
+#columns-list {
+  overflow: scroll;
+  text-overflow:ellipsis;
+  width: 25vw;
+}
+
 .dropdown {
   margin-right: 10%;
 }
@@ -20,6 +26,8 @@ code {
   border-left: 2px solid black;
   border-top: 2px solid black;
   border-bottom: 2px solid black;
+  width: auto;
+  height: auto;
 }
 
 #dataview-file-upload {
@@ -31,4 +39,9 @@ code {
 #dataview {
   padding: 20 px;
 }
+
+#operator-view {
+  border: 2px solid black;
+}
+
 
