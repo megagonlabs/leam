@@ -42,7 +42,10 @@ class App extends Component {
     console.log("uploading file contents: ", this.state.fileData);
     
     // TODO: implement uploadfile endpoint in Flask
-    axios.post("http://localhost:5000/v1/upload-file", formData);
+    axios.post("http://localhost:5000/v1/upload-file", formData)
+      .then(() => {
+        this.getFiles();
+      })
   };
 
   // content that is displayed after File Uploaded
@@ -102,7 +105,6 @@ class App extends Component {
       fileNumRows: fileRows,
       fileHeaders: fileHeader,
     });
-    this.getFiles();
   }
 
   // getDropdownFiles = () => {
@@ -132,7 +134,7 @@ class App extends Component {
         </Row>
         <Row className="justify-content-start" id="dataview">
           <Col md={3}  sm={6} id="dataview-dropdown">
-            <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} loadFile={this.loadFile} />
+            <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} loadFile={this.loadFile} getFiles={this.getFiles} />
           </Col>
           <Col md={4} sm={6} className="pr-3" id="dataview-file-upload">
             <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
