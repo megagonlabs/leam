@@ -3,6 +3,7 @@ import { Row, Col, Container } from 'react-bootstrap';
 import axios from 'axios';
 import DatasetDropdown from './DatasetDropdown.js';
 import DatasetUpload from './DatasetUpload.js';
+import TableView from './TableView.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -32,11 +33,11 @@ class App extends Component {
   };
 
   handleFileRead = () => {
-    this.setState({ fileData: this.fileReader.result });
+    const fileData = this.fileReader.result;
     const formData = new FormData();
     formData.append('filename', this.state.fileName);
     formData.append('filetype', this.state.fileType);
-    formData.append('filedata', this.state.fileData);
+    formData.append('filedata', fileData);
     console.log("uploading filename: ", this.state.fileName);
     console.log("uploading filetype: ", this.state.fileType);
     console.log("uploading file contents: ", this.state.fileData);
@@ -132,7 +133,7 @@ class App extends Component {
             TEX (Text EXplorer)
           </h2>
         </Row>
-        <Row className="justify-content-start" id="dataview">
+        <Row className="justify-content-start">
           <Col md={3}  sm={6} id="dataview-dropdown">
             <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} loadFile={this.loadFile} getFiles={this.getFiles} />
           </Col>
@@ -140,7 +141,15 @@ class App extends Component {
             <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
           </Col>
           <Col md={5} sm={6} id="operator-view">
-            <div></div>
+            <h1>Operator View</h1>
+          </Col>
+        </Row>
+        <Row className="justify-content-start">
+          <Col md={5} sm={7} id="dataviz-view">
+            <h1>Data-Viz View</h1>
+          </Col>
+          <Col md={7} sm={11} id="table-view">
+            <TableView key="table-view" />
           </Col>
         </Row>
         </Container>

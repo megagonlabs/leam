@@ -1,16 +1,10 @@
 import React, { Component } from 'react';
 import Dropdown from 'react-bootstrap/Dropdown';
-import { Row, Col, Container } from 'react-bootstrap';
 
 class DatasetDropdown extends Component {
   constructor(props) {
     super(props);
-    // this.state = {datasets: this.props.datasets};
   }
-
-  // componentWillReceiveProps(newProps) {
-  //   this.setState({datasets: newProps.datasets});
-  // }
 
   render() {
     return (

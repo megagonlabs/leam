@@ -2,7 +2,8 @@ import re, json, uuid, csv
 from io import StringIO
 from flask import jsonify, request
 from flask_cors import CORS
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
+from sqlalchemy.orm import sessionmaker
 from . import v1
 from .. import log
 from ..models import Dataset
@@ -18,8 +19,34 @@ POSTGRES = {
 
 SQLALCHEMY_DATABASE_URI = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
-
 CORS(v1)
+
+@v1.route('/get-datasets', methods=(['GET']))
+def get_datasets():
+  log.info("In get datsets endpoint!")
+  datasets = Dataset.query.all()
+  return jsonify({ 'datasets': [dataset.to_json() for dataset in datasets] })
+
+
+@v1.route('/get-datasets/<string:name>')
+def get_dataset(name):
+  log.info("Getting single dataset with name: {}".format(name))
+  engine = create_engine(SQLALCHEMY_DATABASE_URI)
+  Session = sessionmaker()
+  Session.configure(bind=engine)
+  session = Session()
+  query = session.query(Dataset).filter(Dataset.name == name)
+  dataset_row = query.first()
+  table_name = dataset_row.table_name
+  table_header = dataset_row.header
+  log.info("Got table name -> {}".format(table_name))
+  
+  # got current table name, now load data from it
+  # table = Table(table_name, Base.metadata, autoload=True, autoload_with=engine)
+  # first_row = table.query().first()
+  # log.info(first_row)
+  return jsonify(success=True)
+
 @v1.route('/upload-file', methods=(['POST']))
 def upload_file():
   log.info("In upload file endpoint!")
@@ -79,12 +106,6 @@ def upload_file():
   conn.execute(datasetTable.insert(), insert_data)
 
   return jsonify(success=True)
-
-@v1.route('/get-datasets', methods=(['GET']))
-def get_datasets():
-  log.info("In get datsets endpoint!")
-  datasets = Dataset.query.all()
-  return jsonify({ 'datasets': [dataset.to_json() for dataset in datasets] })
 
 
 # def extract_header(header_text):

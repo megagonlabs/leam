@@ -15,7 +15,7 @@ code {
 #columns-list {
   overflow: scroll;
   text-overflow:ellipsis;
-  width: 25vw;
+  width: 20vw;
 }
 
 .dropdown {
@@ -36,11 +36,15 @@ code {
   border-bottom: 2px solid black;
 }
 
-#dataview {
-  padding: 20 px;
+#operator-view {
+  border: 2px solid black;
 }
 
-#operator-view {
+#dataviz-view {
+  border: 2px solid black;
+}
+
+#table-view {
   border: 2px solid black;
 }
 

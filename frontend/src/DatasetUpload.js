@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import Dropdown from 'react-bootstrap/Dropdown';
-import { Row, Col, Container } from 'react-bootstrap';
 
 class DatasetUpload extends Component {
   constructor(props) {
