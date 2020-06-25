@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "postcss": "^7.0.32"
+  }
+}

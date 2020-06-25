@@ -3,7 +3,7 @@ import { Row, Col, Container } from 'react-bootstrap';
 import axios from 'axios';
 import DatasetDropdown from './DatasetDropdown.js';
 import DatasetUpload from './DatasetUpload.js';
-import TableView from './TableView.js';
+import TableView from './GridExample.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
