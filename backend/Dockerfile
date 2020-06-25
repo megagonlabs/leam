@@ -1,5 +1,8 @@
 FROM python:3
 
+RUN apt-get update \
+  && apt-get install -y postgresql-client
+
 ENV FLASK_APP explorer.py
 
 WORKDIR /app
@@ -9,4 +12,3 @@ RUN pip install -r /app/requirements.txt
 
 # RUN chmod +x ./entrypoint.sh
 # ENTRYPOINT ["./entrypoint.sh"]
-CMD ["sh", "-c", "chmod 777 /app/entrypoint.sh && /app/entrypoint.sh"]

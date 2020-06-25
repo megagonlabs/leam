@@ -34,25 +34,19 @@ def upload_file():
   reader = csv.reader(file, delimiter=',')
   file_lines = [row for row in reader]
   file_rows = len(file_lines) - 1 # to account for header
-  # header = extract_header(file_lines[0])
   header = file_lines[0]
-  newHeader = []
-  i = 0
+  include_header = []
+  ignore_header = []
   for col in header:
-    newCol = col
-    if col == "id":
-      newCol = "oldId"
-    elif col == "" or col == " ":
-      newCol = "un-named-" + str(i)
-    newHeader.append(newCol)
-    i += 1
-  header = newHeader
+    if col == "id" or col == "" or col == " ":
+      ignore_header.append(col)
+    else:
+      include_header.append(col)
 
-
-  log.info("header of file -> {}".format(header))
+  log.info("header of file -> {}".format(include_header))
   
   # Encoding Dataset object to insert into postgres 
-  encoded_header = json.dumps(header)
+  encoded_header = json.dumps(include_header)
   pg_table_name = generate_pg_tablename(file_name, 0)
   dataset = Dataset(name=file_name, type=file_type, num_rows=file_rows, table_name=pg_table_name, header=encoded_header)
   db.session.add(dataset)
@@ -63,7 +57,7 @@ def upload_file():
   column_types = [Integer]
   primary_key_flags = [True]
   nullable_flags = [False]
-  for col in header:
+  for col in include_header:
     column_names.append(col)
     column_types.append(String)
     primary_key_flags.append(False)
@@ -81,7 +75,7 @@ def upload_file():
 
   # insert the dataset data in the Postgres table
   conn = engine.connect()
-  insert_data = generate_insert_statements(file_lines[1:], header)
+  insert_data = generate_insert_statements(file_lines[1:], header, ignore_header)
   conn.execute(datasetTable.insert(), insert_data)
 
   return jsonify(success=True)
@@ -93,15 +87,15 @@ def get_datasets():
   return jsonify({ 'datasets': [dataset.to_json() for dataset in datasets] })
 
 
-def extract_header(header_text):
-  fields = []
-  field_list = header_text.split(',')
-  for f in field_list:
-    stripped = f.lower()
-    stripped.replace(" ", "")
-    if len(stripped) > 0:
-      fields.append(stripped)
-  return fields
+# def extract_header(header_text):
+#   fields = []
+#   field_list = header_text.split(',')
+#   for f in field_list:
+#     stripped = f.lower()
+#     stripped.replace(" ", "")
+#     if len(stripped) > 0:
+#       fields.append(stripped)
+#   return fields
 
 def generate_pg_tablename(file_name, version):
   id = uuid.uuid4()
@@ -109,7 +103,7 @@ def generate_pg_tablename(file_name, version):
   pg_table_id = "table_" + pg_table_id + "_" + str(version)
   return pg_table_id
 
-def generate_insert_statements(dataset_rows, header):
+def generate_insert_statements(dataset_rows, header, ignore_header):
   inserts = []
   count = 0
   for row in dataset_rows:
@@ -123,7 +117,8 @@ def generate_insert_statements(dataset_rows, header):
       continue
     
     for i, cell in enumerate(row):
-      pg_row[header[i]] = row[i]
+      if header[i] not in ignore_header:
+        pg_row[header[i]] = row[i]
     
     if count == 0:
       log.info(pg_row)
