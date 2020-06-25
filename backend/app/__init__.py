@@ -18,7 +18,7 @@ class Config(object):
     DEBUG = True
 
 # set up logging
-logging.basicConfig(format='[%(filename)s:%(lineno)d%(message)s]\t')
+logging.basicConfig(format='[%(filename)s:%(lineno)d]\t %(message)s')
 log = logging.getLogger(__name__)
 log.setLevel('INFO')
 
