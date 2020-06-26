@@ -191,7 +191,7 @@ export default class GridExample extends React.Component {
 
 
     return (
-      <div className={classNames} key={key} style={style}>
+      <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
         {content}
       </div>
     );
