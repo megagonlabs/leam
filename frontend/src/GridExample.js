@@ -1,9 +1,6 @@
 import Immutable from 'immutable';
-import PropTypes from 'prop-types';
 import * as React from 'react';
 import {Grid, AutoSizer} from 'react-virtualized';
-import {ContentBox, ContentBoxHeader, ContentBoxParagraph} from './ContentBox.js';
-import {InputRow, LabeledInput} from './LabeledInput.js';
 import clsx from 'clsx';
 import './Grid.example.css';
 import {generateRandomList} from './utils.js';
