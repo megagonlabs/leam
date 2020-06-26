@@ -40,6 +40,10 @@
   font-size: small;
   overflow: hidden;
 }
+/* .cell:hover {
+  background-color: lightblue;
+} */
+
 .headerCell {
   font-weight: bold;
   border-right: 1px solid #e0e0e0;
@@ -66,4 +70,8 @@
   justify-content: center;
   font-size: 1em;
   color: #bdbdbd;
+}
+
+.rowSelected {
+  background-color: lightblue;
 }

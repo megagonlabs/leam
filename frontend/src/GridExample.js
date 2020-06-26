@@ -2,6 +2,7 @@ import Immutable from 'immutable';
 import * as React from 'react';
 import PropTypes from "prop-types";
 import {Grid, AutoSizer} from 'react-virtualized';
+import * as ReactVirtualized from 'react-virtualized';
 import clsx from 'clsx';
 import './Grid.example.css';
 import {generateRandomList} from './utils.js';
@@ -24,6 +25,7 @@ export default class GridExample extends React.Component {
       scrollToColumn: undefined,
       scrollToRow: undefined,
       useDynamicRowHeight: false,
+      highlightedRow: -1,
     };
 
     this._cellRenderer = this._cellRenderer.bind(this);
@@ -36,6 +38,8 @@ export default class GridExample extends React.Component {
     this._onScrollToColumnChange = this._onScrollToColumnChange.bind(this);
     this._onScrollToRowChange = this._onScrollToRowChange.bind(this);
     this._renderBodyCell = this._renderBodyCell.bind(this);
+    this._highlightRow = this._highlightRow.bind(this);
+    this._unHighlightRow = this._unHighlightRow.bind(this);
     // this._renderLeftSideCell = this._renderLeftSideCell.bind(this);
 
     this.list = Immutable.List(generateRandomList());
@@ -55,7 +59,7 @@ export default class GridExample extends React.Component {
     } = this.state;
 
     return (
-        <AutoSizer disableHeight>
+        <AutoSizer disableHeight ref="AutoSizer">
           {({width}) => (
             <Grid
               cellRenderer={this._cellRenderer}
@@ -71,10 +75,15 @@ export default class GridExample extends React.Component {
               scrollToColumn={scrollToColumn}
               scrollToRow={scrollToRow}
               width={width}
+              ref="Grid"
             />
           )}
         </AutoSizer>
     );
+  }
+
+  componentDidMount() {
+    this.grid = this.refs.AutoSizer.refs.Grid;
   }
 
   _cellRenderer({columnIndex, key, rowIndex, style}) {
@@ -116,6 +125,15 @@ export default class GridExample extends React.Component {
     return <div className="noCells">No cells</div>;
   }
 
+  _highlightRow = event => {
+    this.setState({ highlightedRow: event.target.id });
+    this.grid.forceUpdate();
+  }
+
+  _unHighlightRow = event => {
+    this.setState({ highlightedRow: -1 });
+  }
+
   _renderBodyCell({columnIndex, key, rowIndex, style}) {
     const rowClass = this._getRowClassName(rowIndex);
     const datum = this._getDatum(rowIndex);
@@ -139,10 +157,15 @@ export default class GridExample extends React.Component {
     const classNames = clsx(rowClass, "cell", {
       ["centeredCell"]: columnIndex > 2,
       ["headerCell"]: rowIndex == 0,
+      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex != 0),
     });
 
+    style = {
+      ...style, 
+    }
+
     return (
-      <div className={classNames} key={key} style={style}>
+      <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
         {content}
       </div>
     );
@@ -155,6 +178,7 @@ export default class GridExample extends React.Component {
 
     const classNames = clsx(rowClass, "cell", {
       ["headerCell"]: rowIndex == 0,
+      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex != 0),
     });
 
     // Don't modify styles.
