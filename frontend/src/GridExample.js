@@ -21,7 +21,7 @@ export default class GridExample extends React.Component {
       height: 300,
       overscanColumnCount: 0,
       overscanRowCount: 10,
-      rowHeight: 40,
+      rowHeight: 50,
       rowCount: 1000,
       scrollToColumn: undefined,
       scrollToRow: undefined,
@@ -57,7 +57,6 @@ export default class GridExample extends React.Component {
     } = this.state;
 
     return (
-      <ContentBox>
         <AutoSizer disableHeight>
           {({width}) => (
             <Grid
@@ -77,7 +76,6 @@ export default class GridExample extends React.Component {
             />
           )}
         </AutoSizer>
-      </ContentBox>
     );
   }
 
