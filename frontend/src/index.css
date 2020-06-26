@@ -23,29 +23,31 @@ code {
 }
 
 #dataview-dropdown {
-  border-left: 2px solid black;
-  border-top: 2px solid black;
-  border-bottom: 2px solid black;
-  width: auto;
-  height: auto;
-}
-
-#dataview-file-upload {
-  border-right: 2px solid black;
-  border-top: 2px solid black;
-  border-bottom: 2px solid black;
+  border-left: 2px solid grey;
+  border-top: 2px solid grey;
+  border-bottom: 1px solid grey;
+  border-right: 1px solid grey;
 }
 
 #operator-view {
-  border: 2px solid black;
+  border-left: 1px solid grey;
+  border-bottom: 1px solid grey;
+  border-top: 2px solid grey;
+  border-right: 2px solid grey;
 }
 
 #dataviz-view {
-  border: 2px solid black;
+  border-left: 2px solid grey;
+  border-bottom: 2px solid grey;
+  border-top: 1px solid grey;
+  border-right: 1px solid grey;
 }
 
 #table-view {
-  border: 2px solid black;
+  border-left: 1px solid grey;
+  border-bottom: 2px solid grey;
+  border-top: 1px solid grey;
+  border-right: 2px solid grey;
 }
 
 

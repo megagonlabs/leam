@@ -11,7 +11,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      fileName: null,
+      fileName: "No Dataset Selected",
       fileType: null,
       fileData: null,
       fileNumRows: null,
@@ -129,27 +129,27 @@ class App extends Component {
       <div>
         <Container>
         <Row>
-          <h2>
-            TEX (Text EXplorer)
-          </h2>
+          <h1>
+            Text Explorer
+          </h1>
         </Row>
         <Row className="justify-content-start">
-          <Col md={3}  sm={6} id="dataview-dropdown">
-            <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} loadFile={this.loadFile} getFiles={this.getFiles} />
+          <Col md={5}  sm={6} id="dataview-dropdown">
+            <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} onFileChange={this.onFileChange} fileName={this.state.fileName} loadFile={this.loadFile} getFiles={this.getFiles} />
           </Col>
-          <Col md={4} sm={6} className="pr-3" id="dataview-file-upload">
+          {/* <Col md={4} sm={6} className="pr-3" id="dataview-file-upload">
             <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
-          </Col>
-          <Col md={5} sm={6} id="operator-view">
-            <h1>Operator View</h1>
+          </Col> */}
+          <Col md={7} sm={6} id="operator-view">
+            <h2>Operator View</h2>
           </Col>
         </Row>
         <Row className="justify-content-start">
           <Col md={5} sm={7} id="dataviz-view">
-            <h1>Data-Viz View</h1>
+            <h2>Data-Viz View</h2>
           </Col>
           <Col md={7} sm={11} id="table-view">
-            <h1>Table View</h1><br />
+            <h2>Table View</h2><br />
             <TableView key="table-view" />
           </Col>
         </Row>

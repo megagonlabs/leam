@@ -75,3 +75,8 @@
 .rowSelected {
   background-color: lightblue;
 }
+
+.file-upload {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
