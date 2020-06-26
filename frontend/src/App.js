@@ -149,6 +149,7 @@ class App extends Component {
             <h1>Data-Viz View</h1>
           </Col>
           <Col md={7} sm={11} id="table-view">
+            <h1>Table View</h1><br />
             <TableView key="table-view" />
           </Col>
         </Row>

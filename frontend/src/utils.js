@@ -1,27 +1,47 @@
+
+import news from './abcnews-date-text.json';
+// let news = require('./abcnews-date-text.json');
+
 /**
  * Generate random data for use in examples.
  */
 export function generateRandomList() {
   const list = [];
 
-  for (var i = 0; i < 1000; i++) {
-    const random = loremIpsum[i % loremIpsum.length];
-    const randoms = [random];
+  // for (var i = 0; i < 1000; i++) {
+  //   const random = loremIpsum[i % loremIpsum.length];
+  //   const randoms = [random];
 
-    for (let j = Math.round(Math.random() * 10); j--; ) {
-      randoms.push(loremIpsum[(i * j) % loremIpsum.length]);
-    }
+  //   for (let j = Math.round(Math.random() * 10); j--; ) {
+  //     randoms.push(loremIpsum[(i * j) % loremIpsum.length]);
+  //   }
 
+  //   list.push({
+  //     color: BADGE_COLORS[i % BADGE_COLORS.length],
+  //     index: i,
+  //     name: NAMES[i % NAMES.length],
+  //     random,
+  //     randomLong: randoms.join(' '),
+  //     size: ROW_HEIGHTS[Math.floor(Math.random() * ROW_HEIGHTS.length)],
+  //   });
+  // }
+
+  for (var i = 0; i < news.length; i++) {
+    // const random = loremIpsum[i % loremIpsum.length];
+    // const randoms = [random];
+
+    // for (let j = Math.round(Math.random() * 10); j--; ) {
+    //   randoms.push(loremIpsum[(i * j) % loremIpsum.length]);
+    // }
+    const newsArticle = news[i];
     list.push({
-      color: BADGE_COLORS[i % BADGE_COLORS.length],
       index: i,
-      name: NAMES[i % NAMES.length],
-      random,
-      randomLong: randoms.join(' '),
-      size: ROW_HEIGHTS[Math.floor(Math.random() * ROW_HEIGHTS.length)],
+      id: newsArticle["id"],
+      publishDate: newsArticle["publish_date"],
+      text: newsArticle["headline_text"],
+      size: 75,
     });
   }
-
   return list;
 }
 

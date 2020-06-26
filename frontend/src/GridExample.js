@@ -1,5 +1,6 @@
 import Immutable from 'immutable';
 import * as React from 'react';
+import PropTypes from "prop-types";
 import {Grid, AutoSizer} from 'react-virtualized';
 import clsx from 'clsx';
 import './Grid.example.css';
@@ -7,19 +8,19 @@ import {generateRandomList} from './utils.js';
 
 export default class GridExample extends React.Component {
   // static contextTypes = {
-  //   list: PropTypes.instanceOf(Immutable.List).isRequired,
+  //   list: PropTypes.instanceOf(Immutable.List),
   // };
 
   constructor(props, context) {
     super(props, context);
 
     this.state = {
-      columnCount: 1000,
+      columnCount: 3,
       height: 300,
       overscanColumnCount: 0,
       overscanRowCount: 10,
       rowHeight: 50,
-      rowCount: 1000,
+      rowCount: 1186017,
       scrollToColumn: undefined,
       scrollToRow: undefined,
       useDynamicRowHeight: false,
@@ -35,7 +36,7 @@ export default class GridExample extends React.Component {
     this._onScrollToColumnChange = this._onScrollToColumnChange.bind(this);
     this._onScrollToRowChange = this._onScrollToRowChange.bind(this);
     this._renderBodyCell = this._renderBodyCell.bind(this);
-    this._renderLeftSideCell = this._renderLeftSideCell.bind(this);
+    // this._renderLeftSideCell = this._renderLeftSideCell.bind(this);
 
     this.list = Immutable.List(generateRandomList());
   }
@@ -87,7 +88,7 @@ export default class GridExample extends React.Component {
   _getColumnWidth({index}) {
     switch (index) {
       case 0:
-        return 50;
+        return 80;
       case 1:
         return 100;
       case 2:
@@ -122,11 +123,13 @@ export default class GridExample extends React.Component {
     let content;
 
     switch (columnIndex) {
+      case 0:
+        content = (rowIndex == 0) ? "" : datum.id;
       case 1:
-        content = datum.name;
+        content = datum.publishDate;
         break;
       case 2:
-        content = datum.random;
+        content = datum.text;
         break;
       default:
         content = `r:${rowIndex}, c:${columnIndex}`;
@@ -135,6 +138,7 @@ export default class GridExample extends React.Component {
 
     const classNames = clsx(rowClass, "cell", {
       ["centeredCell"]: columnIndex > 2,
+      ["headerCell"]: rowIndex == 0,
     });
 
     return (
@@ -146,20 +150,25 @@ export default class GridExample extends React.Component {
 
   _renderLeftSideCell({key, rowIndex, style}) {
     const datum = this._getDatum(rowIndex);
+    const content = (rowIndex == 0) ? "id" : datum.id;
+    const rowClass = this._getRowClassName(rowIndex);
 
-    const classNames = clsx("cell", "letterCell");
+    const classNames = clsx(rowClass, "cell", {
+      ["headerCell"]: rowIndex == 0,
+    });
 
     // Don't modify styles.
     // These are frozen by React now (as of 16.0.0).
     // Since Grid caches and re-uses them, they aren't safe to modify.
     style = {
       ...style,
-      backgroundColor: datum.color,
+      // backgroundColor: "Thistle",
     };
+
 
     return (
       <div className={classNames} key={key} style={style}>
-        {datum.name.charAt(0)}
+        {content}
       </div>
     );
   }
