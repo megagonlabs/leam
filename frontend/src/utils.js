@@ -1,6 +1,5 @@
 
-import news from './abcnews-date-text.json';
-// let news = require('./abcnews-date-text.json');
+import news from './abcnews.json';
 
 /**
  * Generate random data for use in examples.

@@ -20,7 +20,7 @@ export default class GridExample extends React.Component {
       overscanColumnCount: 0,
       overscanRowCount: 10,
       rowHeight: 50,
-      rowCount: 1186017,
+      rowCount: 10000,
       scrollToColumn: undefined,
       scrollToRow: undefined,
       useDynamicRowHeight: false,
