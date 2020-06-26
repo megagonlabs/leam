@@ -5,7 +5,7 @@ import {Grid, AutoSizer} from 'react-virtualized';
 import {ContentBox, ContentBoxHeader, ContentBoxParagraph} from './ContentBox.js';
 import {InputRow, LabeledInput} from './LabeledInput.js';
 import clsx from 'clsx';
-import styles from './Grid.example.css';
+import './Grid.example.css';
 import {generateRandomList} from './utils.js';
 
 export default class GridExample extends React.Component {
@@ -58,107 +58,11 @@ export default class GridExample extends React.Component {
 
     return (
       <ContentBox>
-        <ContentBoxHeader
-          text="Grid"
-          sourceLink="https://github.com/bvaughn/react-virtualized/blob/master/source/Grid/Grid.example.js"
-          docsLink="https://github.com/bvaughn/react-virtualized/blob/master/docs/Grid.md"
-        />
-
-        <ContentBoxParagraph>
-          Renders tabular data with virtualization along the vertical and
-          horizontal axes. Row heights and column widths must be calculated
-          ahead of time and specified as a fixed size or returned by a getter
-          function.
-        </ContentBoxParagraph>
-
-        <ContentBoxParagraph>
-          <label className={styles.checkboxLabel}>
-            <input
-              aria-label="Use dynamic row height?"
-              className={styles.checkbox}
-              type="checkbox"
-              value={useDynamicRowHeight}
-              onChange={event =>
-                this._updateUseDynamicRowHeights(event.target.checked)
-              }
-            />
-            Use dynamic row height?
-          </label>
-        </ContentBoxParagraph>
-
-        <InputRow>
-          <LabeledInput
-            label="Num columns"
-            name="columnCount"
-            onChange={this._onColumnCountChange}
-            value={columnCount}
-          />
-          <LabeledInput
-            label="Num rows"
-            name="rowCount"
-            onChange={this._onRowCountChange}
-            value={rowCount}
-          />
-          <LabeledInput
-            label="Scroll to column"
-            name="onScrollToColumn"
-            placeholder="Index..."
-            onChange={this._onScrollToColumnChange}
-            value={scrollToColumn || ''}
-          />
-          <LabeledInput
-            label="Scroll to row"
-            name="onScrollToRow"
-            placeholder="Index..."
-            onChange={this._onScrollToRowChange}
-            value={scrollToRow || ''}
-          />
-          <LabeledInput
-            label="List height"
-            name="height"
-            onChange={event =>
-              this.setState({height: parseInt(event.target.value, 10) || 1})
-            }
-            value={height}
-          />
-          <LabeledInput
-            disabled={useDynamicRowHeight}
-            label="Row height"
-            name="rowHeight"
-            onChange={event =>
-              this.setState({
-                rowHeight: parseInt(event.target.value, 10) || 1,
-              })
-            }
-            value={rowHeight}
-          />
-          <LabeledInput
-            label="Overscan columns"
-            name="overscanColumnCount"
-            onChange={event =>
-              this.setState({
-                overscanColumnCount: parseInt(event.target.value, 10) || 0,
-              })
-            }
-            value={overscanColumnCount}
-          />
-          <LabeledInput
-            label="Overscan rows"
-            name="overscanRowCount"
-            onChange={event =>
-              this.setState({
-                overscanRowCount: parseInt(event.target.value, 10) || 0,
-              })
-            }
-            value={overscanRowCount}
-          />
-        </InputRow>
-
         <AutoSizer disableHeight>
           {({width}) => (
             <Grid
               cellRenderer={this._cellRenderer}
-              className={styles.BodyGrid}
+              className="BodyGrid"
               columnWidth={this._getColumnWidth}
               columnCount={columnCount}
               height={height}
@@ -205,7 +109,7 @@ export default class GridExample extends React.Component {
   }
 
   _getRowClassName(row) {
-    return row % 2 === 0 ? styles.evenRow : styles.oddRow;
+    return row % 2 === 0 ? "evenRow" : "oddRow";
   }
 
   _getRowHeight({index}) {
@@ -213,7 +117,7 @@ export default class GridExample extends React.Component {
   }
 
   _noContentRenderer() {
-    return <div className={styles.noCells}>No cells</div>;
+    return <div className="noCells">No cells</div>;
   }
 
   _renderBodyCell({columnIndex, key, rowIndex, style}) {
@@ -234,8 +138,8 @@ export default class GridExample extends React.Component {
         break;
     }
 
-    const classNames = clsx(rowClass, styles.cell, {
-      [styles.centeredCell]: columnIndex > 2,
+    const classNames = clsx(rowClass, "cell", {
+      ["centeredCell"]: columnIndex > 2,
     });
 
     return (
@@ -248,7 +152,7 @@ export default class GridExample extends React.Component {
   _renderLeftSideCell({key, rowIndex, style}) {
     const datum = this._getDatum(rowIndex);
 
-    const classNames = clsx(styles.cell, styles.letterCell);
+    const classNames = clsx("cell", "letterCell");
 
     // Don't modify styles.
     // These are frozen by React now (as of 16.0.0).
