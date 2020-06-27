@@ -8,8 +8,7 @@ class DatasetUpload extends Component {
   render() {
     return (
       <div>
-        <input type="file" onChange={this.props.onFileChange} />
-        {this.props.fileData()}
+        {/* {this.props.fileData()} */}
       </div>
     );
   }
