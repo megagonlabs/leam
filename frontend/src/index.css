@@ -1,3 +1,7 @@
+:root {
+  --main-border-color: grey;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -23,31 +27,31 @@ code {
 }
 
 #dataview-dropdown {
-  border-left: 2px solid grey;
-  border-top: 2px solid grey;
-  border-bottom: 1px solid grey;
-  border-right: 1px solid grey;
+  border-left: 2px solid var(--main-border-color);
+  border-top: 2px solid var(--main-border-color);
+  border-bottom: 1px solid var(--main-border-color);
+  border-right: 1px solid var(--main-border-color);
 }
 
 #operator-view {
-  border-left: 1px solid grey;
-  border-bottom: 1px solid grey;
-  border-top: 2px solid grey;
-  border-right: 2px solid grey;
+  border-left: 1px solid var(--main-border-color);
+  border-bottom: 1px solid var(--main-border-color);
+  border-top: 2px solid var(--main-border-color);
+  border-right: 2px solid var(--main-border-color);
 }
 
 #dataviz-view {
-  border-left: 2px solid grey;
-  border-bottom: 2px solid grey;
-  border-top: 1px solid grey;
-  border-right: 1px solid grey;
+  border-left: 2px solid var(--main-border-color);
+  border-bottom: 2px solid var(--main-border-color);
+  border-top: 1px solid var(--main-border-color);
+  border-right: 1px solid var(--main-border-color);
 }
 
 #table-view {
-  border-left: 1px solid grey;
-  border-bottom: 2px solid grey;
-  border-top: 1px solid grey;
-  border-right: 2px solid grey;
+  border-left: 1px solid var(--main-border-color);
+  border-bottom: 2px solid var(--main-border-color);
+  border-top: 1px solid var(--main-border-color);
+  border-right: 2px solid var(--main-border-color);
 }
 
 

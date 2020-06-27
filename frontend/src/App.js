@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Row, Col, Container } from 'react-bootstrap';
 import axios from 'axios';
 import DatasetDropdown from './DatasetDropdown.js';
-import DatasetUpload from './DatasetUpload.js';
+import OperatorView from './OperatorView.js';
 import TableView from './GridExample.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -141,11 +141,11 @@ class App extends Component {
             <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
           </Col> */}
           <Col md={7} sm={6} id="operator-view">
-            <h2>Operator View</h2>
+            <OperatorView key="operator-view" />
           </Col>
         </Row>
         <Row className="justify-content-start">
-          <Col md={5} sm={7} id="dataviz-view">
+          <Col md={3} sm={7} id="dataviz-view">
             <h2>Data-Viz View</h2>
           </Col>
           <Col md={7} sm={11} id="table-view">
