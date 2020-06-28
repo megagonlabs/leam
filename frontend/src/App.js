@@ -17,6 +17,8 @@ class App extends Component {
       fileNumRows: null,
       fileHeaders: [],
       datasets: [],
+      datasetRows: [],
+      numColumns: 5,
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -106,6 +108,28 @@ class App extends Component {
       fileNumRows: fileRows,
       fileHeaders: fileHeader,
     });
+
+    const url = "http://localhost:5000/v1/get-datasets/" + fileName;
+    // fetch the actual rows
+    axios.get(url, {
+      headers: {
+        numrows: 1000
+      }
+    })
+      .then((response) => {
+        let rows = [];
+        let idRow = {};
+        idRow["id"] = "id";
+        for (let key in this.state.fileHeaders) {
+          idRow[this.state.fileHeaders[key]] = this.state.fileHeaders[key];
+        }
+        rows.push(idRow);
+        rows.push(...JSON.parse(response.data["rows"]));
+        this.setState({ "datasetRows": rows });
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
   }
 
   // getDropdownFiles = () => {
@@ -150,7 +174,7 @@ class App extends Component {
           </Col>
           <Col md={7} sm={11} id="table-view">
             <h2>Table View</h2><br />
-            <TableView key="table-view" />
+            <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} />
           </Col>
         </Row>
         </Container>

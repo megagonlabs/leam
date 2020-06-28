@@ -3,11 +3,13 @@ from io import StringIO
 from flask import jsonify, request
 from flask_cors import CORS
 from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from . import v1
 from .. import log
 from ..models import Dataset
 from app import db
+
 
 POSTGRES = {
     'user': 'postgres',
@@ -28,9 +30,10 @@ def get_datasets():
   return jsonify({ 'datasets': [dataset.to_json() for dataset in datasets] })
 
 
-@v1.route('/get-datasets/<string:name>')
+@v1.route('/get-datasets/<string:name>', methods=(['GET']))
 def get_dataset(name):
-  log.info("Getting single dataset with name: {}".format(name))
+  num_rows = int(request.headers.get('numrows'))
+  log.info("Getting single dataset with name: {} and numrows: {}".format(name, num_rows))
   engine = create_engine(SQLALCHEMY_DATABASE_URI)
   Session = sessionmaker()
   Session.configure(bind=engine)
@@ -42,10 +45,27 @@ def get_dataset(name):
   log.info("Got table name -> {}".format(table_name))
   
   # got current table name, now load data from it
-  # table = Table(table_name, Base.metadata, autoload=True, autoload_with=engine)
-  # first_row = table.query().first()
-  # log.info(first_row)
-  return jsonify(success=True)
+  Base = declarative_base()
+  table = Table(table_name, Base.metadata, autoload=True, autoload_with=engine)
+  rows = []
+  if num_rows >= dataset_row.num_rows:
+    rows = session.query(table).all()
+  else:
+    rows = session.query(table).limit(num_rows).all()
+
+  result = []
+  for row in rows:
+    rowData = {}
+    for i, item in enumerate(row):
+      if i == 0:
+        rowData['id'] = item
+      else:
+        col = table_header[i-1] # should add one b/c of id col
+        rowData[col] = item
+    result.append(rowData)
+
+  result = json.dumps(result)
+  return jsonify({ 'rows': result })
 
 @v1.route('/upload-file', methods=(['POST']))
 def upload_file():
