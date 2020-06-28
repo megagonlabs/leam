@@ -1,11 +1,33 @@
 import React, { Component } from 'react';
 import { Row, Col, Container } from 'react-bootstrap';
+import { withStyles } from '@material-ui/core/styles';
+import { Grid, Paper, AppBar, Toolbar, IconButton, Typography } from "@material-ui/core";
+import { Menu } from "@material-ui/icons";
 import axios from 'axios';
+import classNames from "classnames";
 import DatasetDropdown from './DatasetDropdown.js';
 import OperatorView from './OperatorView.js';
 import TableView from './GridExample.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'fontsource-roboto';
+
+const useStyles = (theme) => ({
+  root: {
+    flexGrow: 1,
+  },
+  paper: {
+    padding: theme.spacing(2),
+    textAlign: 'start',
+    color: theme.palette.text.secondary,
+  },
+  button: {
+    display: 'block',
+  },
+  formControl: {
+    minWidth: 200,
+  },
+});
 
 class App extends Component {
   constructor(props) {
@@ -25,6 +47,7 @@ class App extends Component {
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
+    this.classes = this.props.classes;
   }
 
   onFileChange = event => {
@@ -93,8 +116,8 @@ class App extends Component {
     this.getFiles();
   }
 
-  loadFile = (event) => {
-    const fileName = event.target.id;
+  loadFile = (name) => {
+    const fileName = name;
     let fileRows = 0;
     let fileHeader = [];
     for (let i = 0; i < this.state.datasets.length; i++) {
@@ -168,37 +191,40 @@ class App extends Component {
 
   render() {
     return (
-      <div>
-        <Container>
-        <Row>
-          <h1>
-            Text Explorer
-          </h1>
-        </Row>
-        <Row className="justify-content-start">
-          <Col md={5}  sm={6} id="dataview-dropdown">
-            <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} onFileChange={this.onFileChange} fileName={this.state.fileName} loadFile={this.loadFile} getFiles={this.getFiles} />
-          </Col>
-          {/* <Col md={4} sm={6} className="pr-3" id="dataview-file-upload">
-            <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
-          </Col> */}
-          <Col md={7} sm={6} id="operator-view">
-            <OperatorView key="operator-view" />
-          </Col>
-        </Row>
-        <Row className="justify-content-start">
-          <Col md={3} sm={7} id="dataviz-view">
-            <h2>Data-Viz View</h2>
-          </Col>
-          <Col md={7} sm={11} id="table-view">
-            <h2>Table View</h2><br />
-            <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
-          </Col>
-        </Row>
-        </Container>
+      <div className={this.classes.root}>
+        <AppBar position="static" color="primary">
+          <Toolbar variant="dense">
+            <IconButton edge="start" color="inherit" aria-label="menu">
+              <Menu />
+            </IconButton>
+            <Typography variant="h5" color="inherit">
+              Text Explorer
+            </Typography>
+          </Toolbar>
+        </AppBar>
+        <Grid container className={this.classes.root} spacing={2}>
+          <Grid item xs={5}>
+            <Paper className={this.classes.paper}>
+              <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} 
+              onFileChange={this.onFileChange} fileName={this.state.fileName} 
+              loadFile={this.loadFile} getFiles={this.getFiles} classes={this.classes} />
+            </Paper>
+          </Grid>
+          <Grid item xs={7}>
+            <Paper className={this.classes.paper}>
+              <OperatorView key="operator-view" />
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper className={this.classes.paper}>
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
+            </Paper>
+          </Grid>
+        </Grid>
       </div>
     );
   }
 };
 
-export default App;
+export default withStyles(useStyles)(App);
+
