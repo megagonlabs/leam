@@ -17,6 +17,9 @@ class App extends Component {
       fileNumRows: null,
       fileHeaders: [],
       datasets: [],
+      datasetRows: [],
+      numColumns: 5,
+      columnSizes: [],
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -105,7 +108,46 @@ class App extends Component {
       fileName: fileName,
       fileNumRows: fileRows,
       fileHeaders: fileHeader,
+      numColumns: fileHeader.length + 1,
     });
+
+    const url = "http://localhost:5000/v1/get-datasets/" + fileName;
+    // fetch the actual rows
+    axios.get(url, {
+      headers: {
+        numrows: 500
+      }
+    })
+      .then((response) => {
+        let rows = [];
+        let idRow = {};
+        idRow["id"] = "id";
+        for (let key in this.state.fileHeaders) {
+          idRow[this.state.fileHeaders[key]] = this.state.fileHeaders[key];
+        }
+        rows.push(idRow);
+        rows.push(...JSON.parse(response.data["rows"]));
+
+        // determining correct widths of the columns
+        let columnWidths = new Array(this.state.fileHeaders.length+1).fill(0);
+        columnWidths[0] = 100; // fixed size column
+        // determine column widths by taking average of lengths over first 20 rows
+        for (let i = 0; i < 20; i++) {
+          const rowData = rows[i];
+          for (let j = 0; j < this.state.fileHeaders.length; j++) {
+            const colLength = rowData[this.state.fileHeaders[j]].length;
+            console.log(`col ${this.state.fileHeaders[j]} has length: ${colLength}`);
+            columnWidths[j+1] += colLength;
+          }
+        }
+        console.log("columns widths before: ", columnWidths);
+        columnWidths = columnWidths.map((val) => { return val / 20; });
+        console.log("columns widths: ", columnWidths);
+        this.setState({ "datasetRows": rows, "columnSizes": columnWidths });
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
   }
 
   // getDropdownFiles = () => {
@@ -150,7 +192,7 @@ class App extends Component {
           </Col>
           <Col md={7} sm={11} id="table-view">
             <h2>Table View</h2><br />
-            <TableView key="table-view" />
+            <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
           </Col>
         </Row>
         </Container>

@@ -16,12 +16,12 @@ export default class GridExample extends React.Component {
     super(props, context);
 
     this.state = {
-      columnCount: 3,
+      columnCount: props.numCols,
       height: 300,
       overscanColumnCount: 0,
       overscanRowCount: 10,
       rowHeight: 50,
-      rowCount: 10000,
+      rowCount: 500,
       scrollToColumn: undefined,
       scrollToRow: undefined,
       useDynamicRowHeight: false,
@@ -42,7 +42,7 @@ export default class GridExample extends React.Component {
     this._unHighlightRow = this._unHighlightRow.bind(this);
     // this._renderLeftSideCell = this._renderLeftSideCell.bind(this);
 
-    this.list = Immutable.List(generateRandomList());
+    // this.list = Immutable.List(generateRandomList());
   }
 
   render() {
@@ -65,7 +65,7 @@ export default class GridExample extends React.Component {
               cellRenderer={this._cellRenderer}
               className="BodyGrid"
               columnWidth={this._getColumnWidth}
-              columnCount={columnCount}
+              columnCount={this.props.numCols}
               height={height}
               noContentRenderer={this._noContentRenderer}
               overscanColumnCount={overscanColumnCount}
@@ -86,6 +86,12 @@ export default class GridExample extends React.Component {
     this.grid = this.refs.AutoSizer.refs.Grid;
   }
 
+  componentWillReceiveProps(props) {
+    // this.grid.forceUpdate();
+    // this.grid.measureAllCells();
+    this.grid.recomputeGridSize();
+  }
+
   _cellRenderer({columnIndex, key, rowIndex, style}) {
     if (columnIndex === 0) {
       return this._renderLeftSideCell({columnIndex, key, rowIndex, style});
@@ -95,22 +101,33 @@ export default class GridExample extends React.Component {
   }
 
   _getColumnWidth({index}) {
-    switch (index) {
-      case 0:
-        return 80;
-      case 1:
-        return 100;
-      case 2:
-        return 300;
-      default:
-        return 80;
+    // switch (index) {
+    //   case 0:
+    //     return 80;
+    //   case 1:
+    //     return 100;
+    //   case 2:
+    //     return 300;
+    //   default:
+    //     return 80;
+    // }
+    if (this.props.colSizes.length == 0) {
+      return 150;
+    } else {
+      const preWidth = this.props.colSizes[index];
+      console.log(`prewidth of index ${index} -> ${preWidth}`);
+      return 10*preWidth;
     }
   }
 
   _getDatum(index) {
     // const {list} = this.context;
-  
-    return this.list.get(index % this.list.size);
+    if (this.props.numRows == 0) {
+      return "";
+    } 
+    const datum = this.props.datasetRows[index % 501];
+    // console.log("datum is -> ", datum);
+    return datum;
   }
 
   _getRowClassName(row) {
@@ -118,7 +135,8 @@ export default class GridExample extends React.Component {
   }
 
   _getRowHeight({index}) {
-    return this._getDatum(index).size;
+    // return this._getDatum(index).size;
+    return 75;
   }
 
   _noContentRenderer() {
@@ -140,18 +158,16 @@ export default class GridExample extends React.Component {
 
     let content;
 
-    switch (columnIndex) {
-      case 0:
-        content = (rowIndex == 0) ? "" : datum.id;
-      case 1:
-        content = datum.publishDate;
-        break;
-      case 2:
-        content = datum.text;
-        break;
-      default:
-        content = `r:${rowIndex}, c:${columnIndex}`;
-        break;
+    if (datum == "" || datum == null) {
+      content = "";
+    } else if (rowIndex == 0) {
+      if (columnIndex == 0) {
+        content = "id";
+      } else {
+        content = this.props.datasetHeader[columnIndex - 1];
+      }
+    } else {
+      content = datum[this.props.datasetHeader[columnIndex - 1]];
     }
 
     const classNames = clsx(rowClass, "cell", {
@@ -173,7 +189,12 @@ export default class GridExample extends React.Component {
 
   _renderLeftSideCell({key, rowIndex, style}) {
     const datum = this._getDatum(rowIndex);
-    const content = (rowIndex == 0) ? "id" : datum.id;
+    let content;
+    if (datum == "" || datum == null) {
+      content = rowIndex;
+    } else {
+      content = (rowIndex == 0) ? "id" : datum.id;
+    }
     const rowClass = this._getRowClassName(rowIndex);
 
     const classNames = clsx(rowClass, "cell", {
