@@ -121,11 +121,15 @@ class App extends Component {
       .then((response) => {
         let rows = [];
         let idRow = {};
+        let chartRow = {}
         idRow["id"] = "id";
+        chartRow["id"] = "";
         for (let key in this.state.fileHeaders) {
           idRow[this.state.fileHeaders[key]] = this.state.fileHeaders[key];
+          chartRow[this.state.fileHeaders[key]] = "";
         }
         rows.push(idRow);
+        rows.push(chartRow);
         rows.push(...JSON.parse(response.data["rows"]));
 
         // determining correct widths of the columns
