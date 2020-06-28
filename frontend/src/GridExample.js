@@ -65,7 +65,7 @@ export default class GridExample extends React.Component {
               cellRenderer={this._cellRenderer}
               className="BodyGrid"
               columnWidth={this._getColumnWidth}
-              columnCount={columnCount}
+              columnCount={this.props.numCols}
               height={height}
               noContentRenderer={this._noContentRenderer}
               overscanColumnCount={overscanColumnCount}
@@ -85,6 +85,10 @@ export default class GridExample extends React.Component {
   componentDidMount() {
     this.grid = this.refs.AutoSizer.refs.Grid;
   }
+
+  // componentWillReceiveProps(props) {
+  //   this.grid.forceUpdate();
+  // }
 
   _cellRenderer({columnIndex, key, rowIndex, style}) {
     if (columnIndex === 0) {

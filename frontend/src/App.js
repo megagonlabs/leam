@@ -107,6 +107,7 @@ class App extends Component {
       fileName: fileName,
       fileNumRows: fileRows,
       fileHeaders: fileHeader,
+      numColumns: fileHeader.length + 1,
     });
 
     const url = "http://localhost:5000/v1/get-datasets/" + fileName;
