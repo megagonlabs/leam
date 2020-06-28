@@ -53,6 +53,7 @@ def get_dataset(name):
   else:
     rows = session.query(table).limit(num_rows).all()
 
+  Session.close_all()
   result = []
   for row in rows:
     rowData = {}

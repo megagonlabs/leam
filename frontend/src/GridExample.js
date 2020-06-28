@@ -21,7 +21,7 @@ export default class GridExample extends React.Component {
       overscanColumnCount: 0,
       overscanRowCount: 10,
       rowHeight: 50,
-      rowCount: 1000,
+      rowCount: 500,
       scrollToColumn: undefined,
       scrollToRow: undefined,
       useDynamicRowHeight: false,
@@ -86,9 +86,11 @@ export default class GridExample extends React.Component {
     this.grid = this.refs.AutoSizer.refs.Grid;
   }
 
-  // componentWillReceiveProps(props) {
-  //   this.grid.forceUpdate();
-  // }
+  componentWillReceiveProps(props) {
+    // this.grid.forceUpdate();
+    // this.grid.measureAllCells();
+    this.grid.recomputeGridSize();
+  }
 
   _cellRenderer({columnIndex, key, rowIndex, style}) {
     if (columnIndex === 0) {
@@ -99,15 +101,22 @@ export default class GridExample extends React.Component {
   }
 
   _getColumnWidth({index}) {
-    switch (index) {
-      case 0:
-        return 80;
-      case 1:
-        return 100;
-      case 2:
-        return 300;
-      default:
-        return 80;
+    // switch (index) {
+    //   case 0:
+    //     return 80;
+    //   case 1:
+    //     return 100;
+    //   case 2:
+    //     return 300;
+    //   default:
+    //     return 80;
+    // }
+    if (this.props.colSizes.length == 0) {
+      return 150;
+    } else {
+      const preWidth = this.props.colSizes[index];
+      console.log(`prewidth of index ${index} -> ${preWidth}`);
+      return 10*preWidth;
     }
   }
 
@@ -116,7 +125,7 @@ export default class GridExample extends React.Component {
     if (this.props.numRows == 0) {
       return "";
     } 
-    const datum = this.props.datasetRows[index % 1000];
+    const datum = this.props.datasetRows[index % 501];
     // console.log("datum is -> ", datum);
     return datum;
   }
