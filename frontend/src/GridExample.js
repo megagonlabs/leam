@@ -123,11 +123,14 @@ export default class GridExample extends React.Component {
       return 150;
     } else {
       const preWidth = this.props.colSizes[index];
+      // console.log(`prewidth of index ${index} -> ${preWidth}`);
       if (preWidth == null) {
         return 100;
+      } else if (10*preWidth > 80) {
+        return 10*preWidth;
+      } else {
+        return 80;
       }
-      // console.log(`prewidth of index ${index} -> ${preWidth}`);
-      return 10*preWidth;
     }
 
   }
@@ -240,7 +243,7 @@ export default class GridExample extends React.Component {
     }
     const rowClass = this._getRowClassName(rowIndex);
 
-    const classNames = clsx(rowClass, "cell", {
+    const classNames = clsx(rowClass, "cell", "centeredCell", {
       ["headerCell"]: rowIndex == 0,
       ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex > 1),
     });
