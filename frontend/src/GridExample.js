@@ -6,6 +6,8 @@ import * as ReactVirtualized from 'react-virtualized';
 import clsx from 'clsx';
 import './Grid.example.css';
 import {generateRandomList} from './utils.js';
+import HeaderChart from './HeaderChart';
+import headerImage from './barsample.png';
 
 export default class GridExample extends React.Component {
   // static contextTypes = {
@@ -95,7 +97,12 @@ export default class GridExample extends React.Component {
   _cellRenderer({columnIndex, key, rowIndex, style}) {
     if (columnIndex === 0) {
       return this._renderLeftSideCell({columnIndex, key, rowIndex, style});
-    } else {
+    } 
+    else if (rowIndex == 1)
+    {
+      return this._renderHeaderChartCell({columnIndex, key, rowIndex, style});
+    }
+    else {
       return this._renderBodyCell({columnIndex, key, rowIndex, style});
     }
   }
@@ -173,7 +180,7 @@ export default class GridExample extends React.Component {
     const classNames = clsx(rowClass, "cell", {
       ["centeredCell"]: columnIndex > 2,
       ["headerCell"]: rowIndex == 0,
-      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex != 0),
+      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex > 1),
     });
 
     style = {
@@ -199,7 +206,7 @@ export default class GridExample extends React.Component {
 
     const classNames = clsx(rowClass, "cell", {
       ["headerCell"]: rowIndex == 0,
-      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex != 0),
+      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex > 1),
     });
 
     // Don't modify styles.
@@ -214,6 +221,37 @@ export default class GridExample extends React.Component {
     return (
       <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
         {content}
+      </div>
+    );
+  }
+
+  _renderHeaderChartCell({key, rowIndex, style}) {
+    const datum = this._getDatum(rowIndex);
+    let content;
+    if (datum == "" || datum == null) {
+      content = rowIndex;
+    } else {
+      content = (rowIndex == 0) ? "id" : datum.id;
+    }
+    const rowClass = this._getRowClassName(rowIndex);
+
+    const classNames = clsx(rowClass, "cell", {
+      ["headerCell"]: rowIndex == 0,
+      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex > 1),
+    });
+
+    // Don't modify styles.
+    // These are frozen by React now (as of 16.0.0).
+    // Since Grid caches and re-uses them, they aren't safe to modify.
+    style = {
+      ...style,
+      // backgroundColor: "Thistle",
+    };
+
+
+    return (
+      <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
+        <HeaderChart src={headerImage} height={this.state.rowHeight} mode='fit' />
       </div>
     );
   }
