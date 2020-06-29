@@ -50,7 +50,7 @@ class DatasetDropdown extends Component {
               {this.props.datasets.map((value, index) => {
                 const datasetName = value["name"];
                 return (
-                  <MenuItem id={datasetName} value={datasetName}>{datasetName}</MenuItem>
+                  <MenuItem id={datasetName} value={datasetName} key={index}>{datasetName}</MenuItem>
                 );
               })}
             </Select>

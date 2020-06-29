@@ -111,13 +111,18 @@ export default class GridExample extends React.Component {
     //   default:
     //     return 80;
     // }
+
     if (this.props.colSizes.length == 0) {
       return 150;
     } else {
       const preWidth = this.props.colSizes[index];
-      console.log(`prewidth of index ${index} -> ${preWidth}`);
+      if (preWidth == null) {
+        return 100;
+      }
+      // console.log(`prewidth of index ${index} -> ${preWidth}`);
       return 10*preWidth;
     }
+
   }
 
   _getDatum(index) {

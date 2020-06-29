@@ -6,13 +6,14 @@ export default class OperatorView extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      operator: "Choose Operator",
-      action: "Choose Action",
-      column: "Choose Column",
+      operator: "",
+      action: "",
+      column: "",
     };
     this.changeOperator = this.changeOperator.bind(this);
     this.changeAction = this.changeAction.bind(this);
     this.changeColumn = this.changeColumn.bind(this);
+    this.cleanColumn = this.cleanColumn.bind(this);
     this.classes = this.props.classes;
   }
 
@@ -26,6 +27,13 @@ export default class OperatorView extends Component {
 
   changeColumn = (event) => {
     this.setState({ column: event.target.value });
+  }
+
+  cleanColumn = () => {
+    const colName = this.state.column;
+    const actionName = this.state.action;
+    console.log(`[OperatorView] cleaning col name: ${colName} with op: ${actionName}`);
+    this.props.cleanFunction(colName, actionName);
   }
 
   render() {
@@ -88,7 +96,7 @@ export default class OperatorView extends Component {
             </FormControl>
           </Grid>
           <Grid item xs={5}>
-            <IconButton color="inherit" aria-label="execute">
+            <IconButton color="inherit" aria-label="execute" onClick={this.cleanColumn}>
               <PlayArrow />
             </IconButton>
           </Grid>

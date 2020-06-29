@@ -11,6 +11,7 @@ import TableView from './GridExample.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'fontsource-roboto';
+import stopwords from "./stopwords.json";
 
 const useStyles = (theme) => ({
   root: {
@@ -57,11 +58,49 @@ class App extends Component {
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
+    this.cleanFunction = this.cleanFunction.bind(this);
+    this.removeStopWords = this.removeStopWords.bind(this);
     this.classes = this.props.classes;
   }
 
+  removeStopWords = (text) => {
+    let filteredWords = [];
+    const words = text.split(" ");
+    for (let key in words) {
+      const word = words[key].split(".").join(""); // in case this is the last word in a sentence
+      if (!stopwords.includes(word)) {
+        filteredWords.push(word);
+      }
+    }
+    return filteredWords.join(' ')
+  }
+
+  cleanFunction = (columnName, actionName) => {
+    console.log(`cleaning column -> ${columnName} with action -> ${actionName}`);
+    let newDatasetRows = [];
+    for (let key in this.state.datasetRows) {
+      let row = this.state.datasetRows[key];
+      if (key > 0) {
+        switch (actionName) {
+          case "Lowercase":
+            row[columnName] = row[columnName].toLowerCase();
+            break;
+          case "Remove Stopwords":
+            row[columnName] = this.removeStopWords(row[columnName]);
+            break;
+          default:
+            // default is Lowercase action
+            row[columnName] = row[columnName].toLowerCase();
+        }
+      }
+      newDatasetRows.push(row);
+    }
+    this.setState({ datasetRows: newDatasetRows });
+  }
+
+
   onFileChange = event => {
-    console.log("event: ", event)
+    // console.log("event: ", event)
     var file = event.target.files[0]
     this.fileReader.onloadend = this.handleFileRead;
     this.fileReader.readAsText(file);
@@ -74,9 +113,9 @@ class App extends Component {
     formData.append('filename', this.state.fileName);
     formData.append('filetype', this.state.fileType);
     formData.append('filedata', fileData);
-    console.log("uploading filename: ", this.state.fileName);
-    console.log("uploading filetype: ", this.state.fileType);
-    console.log("uploading file contents: ", this.state.fileData);
+    // console.log("uploading filename: ", this.state.fileName);
+    // console.log("uploading filetype: ", this.state.fileType);
+    // console.log("uploading file contents: ", this.state.fileData);
     
     // TODO: implement uploadfile endpoint in Flask
     axios.post("http://localhost:5000/v1/upload-file", formData)
@@ -169,13 +208,10 @@ class App extends Component {
           const rowData = rows[i];
           for (let j = 0; j < this.state.fileHeaders.length; j++) {
             const colLength = rowData[this.state.fileHeaders[j]].length;
-            console.log(`col ${this.state.fileHeaders[j]} has length: ${colLength}`);
             columnWidths[j+1] += colLength;
           }
         }
-        console.log("columns widths before: ", columnWidths);
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        console.log("columns widths: ", columnWidths);
         this.setState({ "datasetRows": rows, "columnSizes": columnWidths });
       })
       .catch(function (error) {
@@ -224,7 +260,7 @@ class App extends Component {
           </Grid>
           <Grid item xs={7}>
             <Paper className={this.classes.paper}>
-              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} />
+              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} cleanFunction={this.cleanFunction} />
             </Paper>
           </Grid>
           <Grid item xs={12}>
