@@ -1,11 +1,44 @@
 import React, { Component } from 'react';
 import { Row, Col, Container } from 'react-bootstrap';
+import { withStyles } from '@material-ui/core/styles';
+import { Grid, Paper, AppBar, Toolbar, IconButton, Typography } from "@material-ui/core";
+import { Menu } from "@material-ui/icons";
 import axios from 'axios';
+import classNames from "classnames";
 import DatasetDropdown from './DatasetDropdown.js';
 import OperatorView from './OperatorView.js';
 import TableView from './GridExample.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'fontsource-roboto';
+import stopwords from "./stopwords.json";
+
+const useStyles = (theme) => ({
+  root: {
+    flexGrow: 1,
+    height: '200px',
+  },
+  paper: {
+    // marginTop: theme.spacing(1),
+    padding: theme.spacing(2),
+    textAlign: 'start',
+    color: theme.palette.text.secondary,
+  },
+  button: {
+    display: 'block',
+  },
+  formControl: {
+    minWidth: 200,
+  },
+  grid: {
+    margin: theme.spacing(2),
+    flexGrow: 1,
+  },
+  largeIcon: {
+    width: 80,
+    height: 80,
+  },
+});
 
 class App extends Component {
   constructor(props) {
@@ -25,10 +58,49 @@ class App extends Component {
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
+    this.cleanFunction = this.cleanFunction.bind(this);
+    this.removeStopWords = this.removeStopWords.bind(this);
+    this.classes = this.props.classes;
   }
 
+  removeStopWords = (text) => {
+    let filteredWords = [];
+    const words = text.split(" ");
+    for (let key in words) {
+      const word = words[key].split(".").join(""); // in case this is the last word in a sentence
+      if (!stopwords.includes(word)) {
+        filteredWords.push(word);
+      }
+    }
+    return filteredWords.join(' ')
+  }
+
+  cleanFunction = (columnName, actionName) => {
+    console.log(`cleaning column -> ${columnName} with action -> ${actionName}`);
+    let newDatasetRows = [];
+    for (let key in this.state.datasetRows) {
+      let row = this.state.datasetRows[key];
+      if (key > 0) {
+        switch (actionName) {
+          case "Lowercase":
+            row[columnName] = row[columnName].toLowerCase();
+            break;
+          case "Remove Stopwords":
+            row[columnName] = this.removeStopWords(row[columnName]);
+            break;
+          default:
+            // default is Lowercase action
+            row[columnName] = row[columnName].toLowerCase();
+        }
+      }
+      newDatasetRows.push(row);
+    }
+    this.setState({ datasetRows: newDatasetRows });
+  }
+
+
   onFileChange = event => {
-    console.log("event: ", event)
+    // console.log("event: ", event)
     var file = event.target.files[0]
     this.fileReader.onloadend = this.handleFileRead;
     this.fileReader.readAsText(file);
@@ -41,9 +113,9 @@ class App extends Component {
     formData.append('filename', this.state.fileName);
     formData.append('filetype', this.state.fileType);
     formData.append('filedata', fileData);
-    console.log("uploading filename: ", this.state.fileName);
-    console.log("uploading filetype: ", this.state.fileType);
-    console.log("uploading file contents: ", this.state.fileData);
+    // console.log("uploading filename: ", this.state.fileName);
+    // console.log("uploading filetype: ", this.state.fileType);
+    // console.log("uploading file contents: ", this.state.fileData);
     
     // TODO: implement uploadfile endpoint in Flask
     axios.post("http://localhost:5000/v1/upload-file", formData)
@@ -93,8 +165,8 @@ class App extends Component {
     this.getFiles();
   }
 
-  loadFile = (event) => {
-    const fileName = event.target.id;
+  loadFile = (name) => {
+    const fileName = name;
     let fileRows = 0;
     let fileHeader = [];
     for (let i = 0; i < this.state.datasets.length; i++) {
@@ -140,13 +212,10 @@ class App extends Component {
           const rowData = rows[i];
           for (let j = 0; j < this.state.fileHeaders.length; j++) {
             const colLength = rowData[this.state.fileHeaders[j]].length;
-            console.log(`col ${this.state.fileHeaders[j]} has length: ${colLength}`);
             columnWidths[j+1] += colLength;
           }
         }
-        console.log("columns widths before: ", columnWidths);
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        console.log("columns widths: ", columnWidths);
         this.setState({ "datasetRows": rows, "columnSizes": columnWidths });
       })
       .catch(function (error) {
@@ -172,37 +241,42 @@ class App extends Component {
 
   render() {
     return (
-      <div>
-        <Container>
-        <Row>
-          <h1>
-            Text Explorer
-          </h1>
-        </Row>
-        <Row className="justify-content-start">
-          <Col md={5}  sm={6} id="dataview-dropdown">
-            <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} onFileChange={this.onFileChange} fileName={this.state.fileName} loadFile={this.loadFile} getFiles={this.getFiles} />
-          </Col>
-          {/* <Col md={4} sm={6} className="pr-3" id="dataview-file-upload">
-            <DatasetUpload key="dataset-upload" onFileChange={this.onFileChange} fileData={this.fileData} />
-          </Col> */}
-          <Col md={7} sm={6} id="operator-view">
-            <OperatorView key="operator-view" />
-          </Col>
-        </Row>
-        <Row className="justify-content-start">
-          <Col md={3} sm={7} id="dataviz-view">
-            <h2>Data-Viz View</h2>
-          </Col>
-          <Col md={7} sm={11} id="table-view">
-            <h2>Table View</h2><br />
-            <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
-          </Col>
-        </Row>
-        </Container>
+      <div className={this.classes.root}>
+        <Grid container className={this.classes.root} spacing={2}>
+          <Grid item xs={12}>
+            <AppBar position="static" color="primary">
+              <Toolbar variant="dense">
+                <IconButton edge="start" color="inherit" aria-label="menu">
+                  <Menu />
+                </IconButton>
+                <Typography variant="h5" color="inherit">
+                  Text Explorer
+                </Typography>
+              </Toolbar>
+            </AppBar>
+          </Grid>
+          <Grid item xs={5}>
+            <Paper className={this.classes.paper}>
+              <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} 
+              onFileChange={this.onFileChange} fileName={this.state.fileName} 
+              loadFile={this.loadFile} getFiles={this.getFiles} classes={this.classes} />
+            </Paper>
+          </Grid>
+          <Grid item xs={7}>
+            <Paper className={this.classes.paper}>
+              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} cleanFunction={this.cleanFunction} />
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper className={this.classes.paper}>
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
+            </Paper>
+          </Grid>
+        </Grid>
       </div>
     );
   }
 };
 
-export default App;
+export default withStyles(useStyles)(App);
+
