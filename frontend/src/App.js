@@ -15,8 +15,10 @@ import 'fontsource-roboto';
 const useStyles = (theme) => ({
   root: {
     flexGrow: 1,
+    height: '200px',
   },
   paper: {
+    // marginTop: theme.spacing(1),
     padding: theme.spacing(2),
     textAlign: 'start',
     color: theme.palette.text.secondary,
@@ -26,6 +28,14 @@ const useStyles = (theme) => ({
   },
   formControl: {
     minWidth: 200,
+  },
+  grid: {
+    margin: theme.spacing(2),
+    flexGrow: 1,
+  },
+  largeIcon: {
+    width: 80,
+    height: 80,
   },
 });
 
@@ -192,17 +202,19 @@ class App extends Component {
   render() {
     return (
       <div className={this.classes.root}>
-        <AppBar position="static" color="primary">
-          <Toolbar variant="dense">
-            <IconButton edge="start" color="inherit" aria-label="menu">
-              <Menu />
-            </IconButton>
-            <Typography variant="h5" color="inherit">
-              Text Explorer
-            </Typography>
-          </Toolbar>
-        </AppBar>
         <Grid container className={this.classes.root} spacing={2}>
+          <Grid item xs={12}>
+            <AppBar position="static" color="primary">
+              <Toolbar variant="dense">
+                <IconButton edge="start" color="inherit" aria-label="menu">
+                  <Menu />
+                </IconButton>
+                <Typography variant="h5" color="inherit">
+                  Text Explorer
+                </Typography>
+              </Toolbar>
+            </AppBar>
+          </Grid>
           <Grid item xs={5}>
             <Paper className={this.classes.paper}>
               <DatasetDropdown key="dataset-dropdown" datasets={this.state.datasets} 
@@ -212,7 +224,7 @@ class App extends Component {
           </Grid>
           <Grid item xs={7}>
             <Paper className={this.classes.paper}>
-              <OperatorView key="operator-view" />
+              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} />
             </Paper>
           </Grid>
           <Grid item xs={12}>
