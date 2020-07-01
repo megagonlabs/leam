@@ -1,10 +1,13 @@
 FROM node:10-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY . /app/
-COPY package.json /app/package.json
-COPY yarn.lock /app/yarn.lock
-ENV PATH /app/node_modules/.bin:$PATH
+COPY package.json ./
+
+COPY yarn.lock ./
+
 RUN yarn install
+
+COPY . .
+
 CMD ["yarn", "start"]
