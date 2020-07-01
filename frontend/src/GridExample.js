@@ -126,6 +126,8 @@ export default class GridExample extends React.Component {
       // console.log(`prewidth of index ${index} -> ${preWidth}`);
       if (preWidth == null) {
         return 100;
+      } else if (10*preWidth > 400) {
+        return 400;
       } else if (10*preWidth > 80) {
         return 10*preWidth;
       } else {
