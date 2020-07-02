@@ -59,43 +59,77 @@ class App extends Component {
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
     this.cleanFunction = this.cleanFunction.bind(this);
-    this.removeStopWords = this.removeStopWords.bind(this);
+    // this.removeStopWords = this.removeStopWords.bind(this);
     this.classes = this.props.classes;
   }
 
-  removeStopWords = (text) => {
-    let filteredWords = [];
-    const words = text.split(" ");
-    for (let key in words) {
-      const word = words[key].split(".").join(""); // in case this is the last word in a sentence
-      if (!stopwords.includes(word)) {
-        filteredWords.push(word);
-      }
-    }
-    return filteredWords.join(' ')
-  }
+//   removeStopWords = (text) => {
+//     let filteredWords = [];
+//     const words = text.split(" ");
+//     for (let key in words) {
+//       const word = words[key].split(".").join(""); // in case this is the last word in a sentence
+//       if (!stopwords.includes(word)) {
+//         filteredWords.push(word);
+//       }
+//     }
+//     return filteredWords.join(' ')
+//   }
 
   cleanFunction = (columnName, actionName) => {
     console.log(`cleaning column -> ${columnName} with action -> ${actionName}`);
-    let newDatasetRows = [];
-    for (let key in this.state.datasetRows) {
-      let row = this.state.datasetRows[key];
-      if (key > 0) {
-        switch (actionName) {
-          case "Lowercase":
-            row[columnName] = row[columnName].toLowerCase();
+    // for (let key in this.state.datasetRows) {
+    //   let row = this.state.datasetRows[key];
+    //   if (key > 0) {
+    //     switch (actionName) {
+    //       case "Lowercase":
+    //         row[columnName] = row[columnName].toLowerCase();
+    //         break;
+    //       case "Remove Stopwords":
+    //         row[columnName] = this.removeStopWords(row[columnName]);
+    //         break;
+    //       default:
+    //         // default is Lowercase action
+    //         row[columnName] = row[columnName].toLowerCase();
+    //     }
+    //   }
+    //   newDatasetRows.push(row);
+    // }
+
+    const datasetName = this.state.fileName;
+    const operator = "clean";
+    let action;
+    switch (actionName) {
+        case "Lowercase":
+            action = "lowercase";
             break;
-          case "Remove Stopwords":
-            row[columnName] = this.removeStopWords(row[columnName]);
+        case "Remove Stopwords":
+            action = "stopword";
             break;
-          default:
-            // default is Lowercase action
-            row[columnName] = row[columnName].toLowerCase();
-        }
-      }
-      newDatasetRows.push(row);
+        default:
+            // default is lowercase action
+            action = "lowercase";
     }
-    this.setState({ datasetRows: newDatasetRows });
+
+    const url = "http://localhost:5000/v1/run-operator";
+    // fetch the actual rows
+    axios.post(url, null, {
+        params: {
+            name: operator,
+            action: action,
+            dataset: datasetName,
+            column: columnName, 
+        }
+    })
+      .then((response) => {
+        console.log(`operator response body is ${response.body}`);
+      })
+      .then(() => {
+        this.loadFile(datasetName);
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+
   }
 
 
@@ -264,7 +298,7 @@ class App extends Component {
           </Grid>
           <Grid item xs={7}>
             <Paper className={this.classes.paper}>
-              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} cleanFunction={this.cleanFunction} />
+              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} cleanFunction={this.cleanFunction}/>
             </Paper>
           </Grid>
           <Grid item xs={12}>
