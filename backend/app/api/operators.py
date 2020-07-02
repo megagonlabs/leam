@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from . import v1
-from .clean import lowercase
+from .clean import lowercase, remove_stopwords, generate_tf_idf_features
 from .. import db
 from .. import log
 from ..models import Dataset
@@ -40,7 +40,7 @@ def run_operator():
     log.info('In run operator endpoint!')
     operator, action = request.args.get('operator'), request.args.get('action')
     dataset, column = request.args.get('dataset'), request.args.get('column')
-    log.info('operator -> %s , action -> %s,', operator, action)
+    log.info('operator -> %s , action -> %s', operator, action)
     log.info(' dataset -> %s , column -> %s', dataset, column)
 
     # get unique table name from dataset table
@@ -68,8 +68,20 @@ def run_operator():
         # log.info(r[column])
         row_data.append(row2dict(r, columns))
 
+    # do some error handling here
+    if operator == "clean":
+        if action == "lowercase":
+            cleaned_rows = lowercase(row_data, column)
+        elif action == "stopword":
+            cleaned_rows = remove_stopwords(row_data, column)
+    else:
+        # for now this means featurize
+        if action == "tfidf":
+            cleaned_rows = generate_tf_idf_features(row_data, column)
+
+    assert(len(cleaned_rows) > 0)
+
     # transform data using operator 
-    cleaned_rows = lowercase(row_data, column)
 
     # delete * from table
     conn.execute(table.delete())
