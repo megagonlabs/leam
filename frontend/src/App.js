@@ -114,7 +114,7 @@ class App extends Component {
     // fetch the actual rows
     axios.post(url, null, {
         params: {
-            name: operator,
+            operator: operator,
             action: action,
             dataset: datasetName,
             column: columnName, 
@@ -225,27 +225,26 @@ class App extends Component {
       }
     })
       .then((response) => {
-        let rows = [];
-        let idRow = {};
-        let chartRow = {}
-        idRow["id"] = "id";
-        chartRow["id"] = "";
-        for (let key in this.state.fileHeaders) {
-          idRow[this.state.fileHeaders[key]] = this.state.fileHeaders[key];
-          chartRow[this.state.fileHeaders[key]] = "";
+        let rows = []; 
+        let idRow = [];
+        let chartRow = [];
+        chartRow.push("");
+        const columns = JSON.parse(response.data["columns"]);
+        this.setState({ fileHeaders: columns });
+        for (let key in columns) {
+          chartRow.push("");
         }
-        rows.push(idRow);
         rows.push(chartRow);
         rows.push(...JSON.parse(response.data["rows"]));
 
         // determining correct widths of the columns
-        let columnWidths = new Array(this.state.fileHeaders.length+1).fill(0);
+        let columnWidths = new Array(this.state.fileHeaders.length).fill(0);
         columnWidths[0] = 100; // fixed size column
         // determine column widths by taking average of lengths over first 20 rows
         for (let i = 0; i < 20; i++) {
           const rowData = rows[i];
           for (let j = 0; j < this.state.fileHeaders.length; j++) {
-            const colLength = rowData[this.state.fileHeaders[j]].length;
+            const colLength = rowData[j].length;
             columnWidths[j+1] += colLength;
           }
         }

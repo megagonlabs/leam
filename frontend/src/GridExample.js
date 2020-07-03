@@ -95,10 +95,10 @@ export default class GridExample extends React.Component {
   }
 
   _cellRenderer({columnIndex, key, rowIndex, style}) {
-    if (columnIndex === 0) {
-      return this._renderLeftSideCell({columnIndex, key, rowIndex, style});
-    } 
-    else if (rowIndex == 1)
+    // if (columnIndex === 0) {
+    //   return this._renderLeftSideCell({columnIndex, key, rowIndex, style});
+    // } 
+    if (rowIndex == 1)
     {
       return this._renderHeaderChartCell({columnIndex, key, rowIndex, style});
     }
@@ -170,21 +170,17 @@ export default class GridExample extends React.Component {
   }
 
   _renderBodyCell({columnIndex, key, rowIndex, style}) {
-    const rowClass = this._getRowClassName(rowIndex);
-    const datum = this._getDatum(rowIndex);
+    const rowClass = this._getRowClassName(rowIndex-1);
+    const datum = (rowIndex >= 2) ? this._getDatum(rowIndex-1) : this._getDatum(rowIndex);
 
     let content;
 
     if (datum == "" || datum == null) {
       content = "";
     } else if (rowIndex == 0) {
-      if (columnIndex == 0) {
-        content = "id";
-      } else {
-        content = this.props.datasetHeader[columnIndex - 1];
-      }
+      content = this.props.datasetHeader[columnIndex];
     } else {
-      content = datum[this.props.datasetHeader[columnIndex - 1]];
+      content = datum[columnIndex];
     }
 
     const classNames = clsx(rowClass, "cell", {

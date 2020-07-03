@@ -2,6 +2,8 @@
 related to running operators on dataset columns."""
 
 import json
+import pandas as pd
+import os
 from flask import jsonify, request
 from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -23,18 +25,6 @@ POSTGRES = {
 SQLALCHEMY_DATABASE_URI = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
-def row2dict(row, columns):
-    d = {}
-    for column in columns:
-        d[column] = str(getattr(row, column))
-
-    return d
-
-def extract_version(table_name):
-    # pg table name is something like: table_235234_1
-    tokens = table_name.split('_')
-    return tokens[2]
-
 @v1.route('/run-operator', methods=(['POST']))
 def run_operator():
     log.info('In run operator endpoint!')
@@ -45,54 +35,37 @@ def run_operator():
 
     # get unique table name from dataset table
     dataset_info = Dataset.query.filter(Dataset.name == dataset).first()
-    raw_headers = dataset_info.header
-    log.info(raw_headers)
-    columns = ["id"]
-    columns.extend(raw_headers)
     log.info('dataset unique table -> %s', dataset_info.table_name)
-    log.info('dataset headers are: ')
-    log.info(columns)
 
-    # db setup
-    engine = create_engine(SQLALCHEMY_DATABASE_URI)
-    conn = engine.connect()
+    # check if we have table dataframe stored
+    dataframe_pkl_file = "/app/" + dataset.split('.')[0] + ".pkl"
+    log.info("dataframe pickle file path: ")
+    log.info(dataframe_pkl_file)
+    if os.path.exists(dataframe_pkl_file):
+        log.info("reading pickled dataframe")
+        df = pd.read_pickle(dataframe_pkl_file)
+    else:
+        df = pd.read_sql_table(dataset_info.table_name, SQLALCHEMY_DATABASE_URI)
 
-    # get column(s) data from the unique table
-    Base = declarative_base()
-    table = Table(dataset_info.table_name, Base.metadata, autoload=True, autoload_with=engine)
-
-    rows = conn.execute(select([table]))
-    # log.info('first row of column -> %s has vlue -> %s', column, rows)
-    row_data = []
-    for r in rows:
-        # log.info(r[column])
-        row_data.append(row2dict(r, columns))
+    log.info('first row of table df is: ')
+    df_list = df.values.tolist()
+    log.info(df_list[0])
 
     # do some error handling here
     if operator == "clean":
         if action == "lowercase":
-            cleaned_rows = lowercase(row_data, column)
+            log.info("is in lowercasing branch on column %s", column)
+            df[column] = df[column].str.lower()
         elif action == "stopword":
-            cleaned_rows = remove_stopwords(row_data, column)
+            remove_stopwords(df, column)
     else:
         # for now this means featurize
         if action == "tfidf":
-            cleaned_rows = generate_tf_idf_features(row_data, column)
+            generate_tf_idf_features(df, column)
 
-    assert(len(cleaned_rows) > 0)
-
-    # transform data using operator 
-
-    # delete * from table
-    conn.execute(table.delete())
-
-    # write modified column back to data table
-    # table.insert().values(name='foo')
-    log.info(cleaned_rows[0])
-    conn.execute(table.insert(), cleaned_rows)
-
-
-    # Session.close_all()
+    log.info('after first row of table df is: ')
+    log.info(df.values.tolist()[0])
+    df.to_pickle(dataframe_pkl_file)
 
     return jsonify({})
 
