@@ -9,7 +9,7 @@ spacy_nlp = spacy.load('en_core_web_sm')
 class TfIdf(object):
     def __init__(self, df):
         self.df = df
-        self.features = []
+        self.tf_vectors = []
         # something like {"topword": "fridge", "count": 53}
         self.top_words = {}
     
@@ -27,12 +27,11 @@ class TfIdf(object):
     def generate_features(self, column):
         vectorizer = TfidfVectorizer(tokenizer = self.basic_tokenizer)
         vectors = vectorizer.fit_transform(self.df[column])
-        self.df[column] = [v.toarray().tolist() for v in vectors]
+        self.tf_vectors = [v.toarray().tolist() for v in vectors]
         feature_array = np.array(vectorizer.get_feature_names())
         tfidf_sorting = np.argsort(vectors.toarray()).flatten()[::-1]
-        tw_list = feature_array[tfidf_sorting][:10]
         self.top_words = {i: 0 for i in feature_array[tfidf_sorting][:10]}
-        for row in self.df[column]:
+        for row in self.tf_vectors:
             for i, val in enumerate(row[0]):
                 if val > 0 and feature_array[i] in self.top_words.keys():
                     self.top_words[feature_array[i]] = val

@@ -74,7 +74,7 @@ def run_operator():
             tdf_idf = TfIdf(df)
             tdf_idf.generate_features(column)
             df_types.loc[df_types['column'] == column, ['type']] = 'tfidf'
-            tdfidf_pkl_file = dataframe_pkl_file = "/app/%s-tfidf.pkl" % (dataset_name)
+            tdfidf_pkl_file = "/app/" + dataset_name + "-tfidf.pkl"
             pickle.dump(tdf_idf, open(tdfidf_pkl_file, 'wb'))
 
 

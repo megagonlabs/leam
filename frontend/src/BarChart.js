@@ -1,14 +1,53 @@
 import React, { PropTypes } from 'react';
-import { createClassFromSpec } from 'react-vega';
+import { VegaLite } from 'react-vega';
 
-export default createClassFromSpec('BarChart', {
-  "width": 100,
-  "height": 100,
-  "data": [{ "topword": "regret", "score": 0.7071067811865475 },
-           { "topword": "favorite", "score":  0.4472135954999579},
-           { "topword": "floor", "score": 0.6738746490004381}],
-  "encoding": {
-    "x": {"field": "topword", "type": "ordinal", "axis": {"labelAngle": 0}},
-    "y": {"field": "score", "type": "quantitative"}
+
+
+
+export default class BarChart extends React.Component {
+  constructor(props, context) {
+    super(props, context);
+    this.spec = {
+      width: 100,
+      height: 100,
+      mark: 'bar',
+      encoding: {
+        x: { field: 'a', type: 'ordinal' },
+        y: { field: 'b', type: 'quantitative' },
+      },
+      data: { name: 'table' }
+    };
+
+    this.data = {
+      table: [
+        { a: 'A', b: 28 },
+        { a: 'B', b: 55 },
+        { a: 'C', b: 43 },
+        { a: 'D', b: 91 },
+        { a: 'E', b: 81 },
+        { a: 'F', b: 53 },
+        { a: 'G', b: 19 },
+        { a: 'H', b: 87 },
+        { a: 'I', b: 52 },
+      ],
+    };
   }
-});
+
+  render() {
+    let {mode, src, height, width, style, ...props} = this.props;
+    let modes = {
+      'fill': 'cover',
+      'fit': 'contain'
+    };
+    let size = modes[mode] || 'contain';
+    let defaults = {
+      height: 100,
+      width: 100,
+    };
+
+    return (
+        <VegaLite spec={this.spec} data={this.data} />
+    );
+  }
+
+}

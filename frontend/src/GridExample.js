@@ -10,6 +10,19 @@ import HeaderChart from './HeaderChart';
 import BarChart from './BarChart';
 import headerImage from './barsample.png';
 
+const data = {
+    table: [
+      { category: 'A', amount: 28 },
+      { category: 'B', amount: 55 },
+      { category: 'C', amount: 43 },
+      { category: 'D', amount: 91 },
+      { category: 'E', amount: 81 },
+      { category: 'F', amount: 53 },
+      { category: 'G', amount: 19 },
+      { category: 'H', amount: 87 },
+    ],
+  };
+
 export default class GridExample extends React.Component {
   // static contextTypes = {
   //   list: PropTypes.instanceOf(Immutable.List),
@@ -27,7 +40,7 @@ export default class GridExample extends React.Component {
       rowCount: 500,
       scrollToColumn: undefined,
       scrollToRow: undefined,
-      useDynamicRowHeight: false,
+      useDynamicRowHeight: true,
       highlightedRow: -1,
     };
 
@@ -153,8 +166,11 @@ export default class GridExample extends React.Component {
   }
 
   _getRowHeight({index}) {
-    // return this._getDatum(index).size;
-    return 75;
+    if (index == 1) {
+      return 150;
+    } else {
+      return 70;
+    }
   }
 
   _noContentRenderer() {
@@ -224,7 +240,6 @@ export default class GridExample extends React.Component {
       // backgroundColor: "Thistle",
     };
 
-
     return (
       <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
         {content}
@@ -259,7 +274,7 @@ export default class GridExample extends React.Component {
     return (
       <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
         {/* <HeaderChart src={headerImage} height={this.state.rowHeight} mode='fit' /> */}
-        <BarChart />
+        <BarChart data={data} height={this.state.rowHeight} mode='fit' />
       </div>
     );
   }

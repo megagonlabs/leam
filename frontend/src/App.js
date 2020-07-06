@@ -6,6 +6,7 @@ import { Menu } from "@material-ui/icons";
 import axios from 'axios';
 import classNames from "classnames";
 import DatasetDropdown from './DatasetDropdown.js';
+import BarChart from "./BarChart";
 import OperatorView from './OperatorView.js';
 import TableView from './GridExample.js';
 import './App.css';
@@ -62,6 +63,8 @@ class App extends Component {
     // this.removeStopWords = this.removeStopWords.bind(this);
     this.classes = this.props.classes;
   }
+
+
 
 //   removeStopWords = (text) => {
 //     let filteredWords = [];

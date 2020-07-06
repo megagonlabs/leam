@@ -72,7 +72,7 @@ def get_dataset(name):
         log.info(row)
         if row[2] == 'tfidf':
             # read in pickled object 
-            tfidf_pkl_file = "/app/%s-tfidf.pkl" % (name)
+            tfidf_pkl_file = "/app/%s-tfidf.pkl" % (dataset_name)
             log.info('reading in pickled tf-idf at path %s', tfidf_pkl_file)
             tf_idf = pickle.load(open(tfidf_pkl_file, 'rb'))
 
