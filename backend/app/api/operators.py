@@ -3,13 +3,15 @@ related to running operators on dataset columns."""
 
 import json
 import pandas as pd
+import pickle
 import os
 from flask import jsonify, request
 from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from . import v1
-from .clean import lowercase, remove_stopwords, generate_tf_idf_features
+from .clean import lowercase, remove_stopwords
+from .tfidf import TfIdf
 from .. import db
 from .. import log
 from ..models import Dataset
@@ -38,14 +40,24 @@ def run_operator():
     log.info('dataset unique table -> %s', dataset_info.table_name)
 
     # check if we have table dataframe stored
-    dataframe_pkl_file = "/app/" + dataset.split('.')[0] + ".pkl"
-    log.info("dataframe pickle file path: ")
-    log.info(dataframe_pkl_file)
+    dataset_name = dataset.split('.')[0]
+    dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
+    dataframe_types = "/app/" + dataset_name + "-types.pkl"
+    log.info('dataframe pickle file path: %s', dataframe_pkl_file)
+    log.info('dataframe types pickle file path: %s', dataframe_types)
     if os.path.exists(dataframe_pkl_file):
         log.info("reading pickled dataframe")
         df = pd.read_pickle(dataframe_pkl_file)
     else:
         df = pd.read_sql_table(dataset_info.table_name, SQLALCHEMY_DATABASE_URI)
+
+    if os.path.exists(dataframe_types):
+        log.info("reading pickled dataframe column types!")
+        df_types = pd.read_pickle(dataframe_pkl_file)
+    else:
+        column_types = {"column": [i for i in df.columns], "type": ["string" for i in df.columns] }
+        df_types = pd.DataFrame(column_types)
+
 
     log.info('first row of table df is: ')
     df_list = df.values.tolist()
@@ -54,18 +66,27 @@ def run_operator():
     # do some error handling here
     if operator == "clean":
         if action == "lowercase":
-            log.info("is in lowercasing branch on column %s", column)
-            df[column] = df[column].str.lower()
+            lowercase(df, column)
         elif action == "stopword":
             remove_stopwords(df, column)
-    else:
-        # for now this means featurize
+    elif operator == "featurize":
         if action == "tfidf":
-            generate_tf_idf_features(df, column)
+            tdf_idf = TfIdf(df)
+            tdf_idf.generate_features(column)
+            df_types.loc[df_types['column'] == column, ['type']] = 'tfidf'
+            tdfidf_pkl_file = dataframe_pkl_file = "/app/%s-tfidf.pkl" % (dataset_name)
+            pickle.dump(tdf_idf, open(tdfidf_pkl_file, 'wb'))
+
+
+    else:
+        raise Exception('unknown operator: %s', operator)
 
     log.info('after first row of table df is: ')
     log.info(df.values.tolist()[0])
+    
     df.to_pickle(dataframe_pkl_file)
+    df_types.to_pickle(dataframe_types)
+
 
     return jsonify({})
 

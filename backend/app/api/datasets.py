@@ -1,6 +1,8 @@
 import re, json, uuid, csv
 import os
 import pandas as pd
+import pickle
+import scipy
 from io import StringIO
 from flask import jsonify, request
 from flask_cors import CORS
@@ -46,7 +48,9 @@ def get_dataset(name):
     log.info("Got table name -> {}".format(table_name))
   
     # check if session dataframe has been stored
-    dataframe_pkl_file = "/app/" + name.split('.')[0] + ".pkl"
+    dataset_name = name.split('.')[0]
+    dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
+    dataframe_types = "/app/" + dataset_name + "-types.pkl"
     if os.path.exists(dataframe_pkl_file):
         log.info("reading pickle file from fs")
         result = pd.read_pickle(dataframe_pkl_file)
@@ -54,13 +58,34 @@ def get_dataset(name):
         result = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
         result.to_pickle(dataframe_pkl_file)
 
+    if os.path.exists(dataframe_types):
+        log.info("reading pickled dataframe column types!")
+        df_types = pd.read_pickle(dataframe_types)
+    else:
+        column_types = {"column": [i for i in result.columns], "type": ["string" for i in result.columns] }
+        df_types = pd.DataFrame(column_types)
+
+    tf_idf = None
+    for row in df_types.itertuples():
+        # rules for pre-processing arrays and such
+        log.info("row of df type: ")
+        log.info(row)
+        if row[2] == 'tfidf':
+            # read in pickled object 
+            tfidf_pkl_file = "/app/%s-tfidf.pkl" % (name)
+            log.info('reading in pickled tf-idf at path %s', tfidf_pkl_file)
+            tf_idf = pickle.load(open(tfidf_pkl_file, 'rb'))
+
+    tw_list = []
+    if tf_idf != None:
+        tw_list = json.dumps(tf_idf.get_top_words())
     columns = result.columns
     result = result.values.tolist()
     log.info("first row of df: ")
     log.info(result[0])
     result = json.dumps(result)
     columns = json.dumps([i for i in columns])
-    return jsonify({ 'rows': result, 'columns': columns })
+    return jsonify({ 'rows': result, 'columns': columns, 'tfidf': tw_list })
 
 @v1.route('/upload-file', methods=(['POST']))
 def upload_file():

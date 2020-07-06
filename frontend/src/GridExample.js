@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import './Grid.example.css';
 import {generateRandomList} from './utils.js';
 import HeaderChart from './HeaderChart';
+import BarChart from './BarChart';
 import headerImage from './barsample.png';
 
 export default class GridExample extends React.Component {
@@ -257,7 +258,8 @@ export default class GridExample extends React.Component {
 
     return (
       <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
-        <HeaderChart src={headerImage} height={this.state.rowHeight} mode='fit' />
+        {/* <HeaderChart src={headerImage} height={this.state.rowHeight} mode='fit' /> */}
+        <BarChart />
       </div>
     );
   }

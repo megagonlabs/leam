@@ -58,7 +58,7 @@ class App extends Component {
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
-    this.cleanFunction = this.cleanFunction.bind(this);
+    this.applyOperator = this.applyOperator.bind(this);
     // this.removeStopWords = this.removeStopWords.bind(this);
     this.classes = this.props.classes;
   }
@@ -75,28 +75,23 @@ class App extends Component {
 //     return filteredWords.join(' ')
 //   }
 
-  cleanFunction = (columnName, actionName) => {
-    console.log(`cleaning column -> ${columnName} with action -> ${actionName}`);
-    // for (let key in this.state.datasetRows) {
-    //   let row = this.state.datasetRows[key];
-    //   if (key > 0) {
-    //     switch (actionName) {
-    //       case "Lowercase":
-    //         row[columnName] = row[columnName].toLowerCase();
-    //         break;
-    //       case "Remove Stopwords":
-    //         row[columnName] = this.removeStopWords(row[columnName]);
-    //         break;
-    //       default:
-    //         // default is Lowercase action
-    //         row[columnName] = row[columnName].toLowerCase();
-    //     }
-    //   }
-    //   newDatasetRows.push(row);
-    // }
-
+  applyOperator = (operatorName, columnName, actionName) => {
+    console.log(`doing operator: ${operatorName} column -> ${columnName} with action -> ${actionName}`);
     const datasetName = this.state.fileName;
-    const operator = "clean";
+    let operator;
+    switch (operatorName) {
+        case "Clean":
+            operator = "clean";
+            break;
+        case "Featurize":
+            operator = "featurize";
+            break;
+        case "Select":
+            operator = "select";
+            break;
+        default:
+            operator = "clean";
+    }
     let action;
     switch (actionName) {
         case "Lowercase":
@@ -104,6 +99,12 @@ class App extends Component {
             break;
         case "Remove Stopwords":
             action = "stopword";
+            break;
+        case "Stemming":
+            action = "stemming";
+            break;
+        case "tf-idf":
+            action = "tfidf";
             break;
         default:
             // default is lowercase action
@@ -297,7 +298,7 @@ class App extends Component {
           </Grid>
           <Grid item xs={7}>
             <Paper className={this.classes.paper}>
-              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} cleanFunction={this.cleanFunction}/>
+              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} applyOperator={this.applyOperator}/>
             </Paper>
           </Grid>
           <Grid item xs={12}>
