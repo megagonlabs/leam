@@ -153,6 +153,10 @@ class App extends Component {
       .then(() => {
         this.getFiles();
       })
+      .then(() => {
+        console.log(`loading file ${this.state.fileName}`);
+        this.loadFile(this.state.fileName);  
+      })
   };
 
   // content that is displayed after File Uploaded

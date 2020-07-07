@@ -12,7 +12,7 @@ def lowercase(df, column_name):
 def remove_stopwords_helper(text):
     doc = spacy_nlp(text)
     toks = [token.text for token in doc if not token.is_stop]
-    return toks
+    return " ".join(toks)
 
 def remove_stopwords(df, column_name):
     df[column_name] = df[column_name].map(lambda r: remove_stopwords_helper(r))

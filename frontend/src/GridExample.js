@@ -32,7 +32,7 @@ export default class GridExample extends React.Component {
     super(props, context);
 
     this.state = {
-      columnCount: props.numCols,
+      columnCount: props.datasetHeader.length,
       height: 300,
       overscanColumnCount: 0,
       overscanRowCount: 10,
@@ -83,7 +83,7 @@ export default class GridExample extends React.Component {
               cellRenderer={this._cellRenderer}
               className="BodyGrid"
               columnWidth={this._getColumnWidth}
-              columnCount={this.props.numCols}
+              columnCount={this.props.datasetHeader.length}
               height={height}
               noContentRenderer={this._noContentRenderer}
               overscanColumnCount={overscanColumnCount}
