@@ -42,6 +42,7 @@ export default class GridExample extends React.Component {
       scrollToRow: undefined,
       useDynamicRowHeight: true,
       highlightedRow: -1,
+      isCollapsed: true,
     };
 
     this._cellRenderer = this._cellRenderer.bind(this);
@@ -56,6 +57,7 @@ export default class GridExample extends React.Component {
     this._renderBodyCell = this._renderBodyCell.bind(this);
     this._highlightRow = this._highlightRow.bind(this);
     this._unHighlightRow = this._unHighlightRow.bind(this);
+    this._collapseCell = this._collapseCell.bind(this);
     // this._renderLeftSideCell = this._renderLeftSideCell.bind(this);
 
     // this.list = Immutable.List(generateRandomList());
@@ -167,7 +169,7 @@ export default class GridExample extends React.Component {
 
   _getRowHeight({index}) {
     if (index == 1) {
-      return 150;
+      return (this.state.isCollapsed) ? 0 : 150;
     } else {
       return 70;
     }
@@ -184,6 +186,15 @@ export default class GridExample extends React.Component {
 
   _unHighlightRow = event => {
     this.setState({ highlightedRow: -1 });
+  }
+
+  _collapseCell = event => {
+    if (event.target.id == "0") {
+      const collapse = (this.state.isCollapsed) ? false : true; 
+      this.setState({isCollapsed: collapse});
+      this.grid.recomputeGridSize();
+      this.grid.forceUpdate();
+    }  
   }
 
   _renderBodyCell({columnIndex, key, rowIndex, style}) {
@@ -211,7 +222,7 @@ export default class GridExample extends React.Component {
     }
 
     return (
-      <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
+      <div id={rowIndex} onMouseOver={this._highlightRow} onClick={this._collapseCell} className={classNames} key={key} style={style}>
         {content}
       </div>
     );
@@ -247,8 +258,9 @@ export default class GridExample extends React.Component {
     );
   }
 
-  _renderHeaderChartCell({key, rowIndex, style}) {
+  _renderHeaderChartCell({columnIndex, key, rowIndex, style}) {
     const datum = this._getDatum(rowIndex);
+    const colName = this.props.datasetHeader[columnIndex];
     let content;
     if (datum == "" || datum == null) {
       content = rowIndex;
@@ -270,13 +282,18 @@ export default class GridExample extends React.Component {
       // backgroundColor: "Thistle",
     };
 
-
-    return (
-      <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
-        {/* <HeaderChart src={headerImage} height={this.state.rowHeight} mode='fit' /> */}
-        <BarChart data={data} height={this.state.rowHeight} mode='fit' />
-      </div>
-    );
+    if (colName == "review" || colName == "text") {
+      return (
+        <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
+          <BarChart data={data} height={this.state.rowHeight} mode='fit' />
+        </div>
+      );
+    } else {
+      return (
+        <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
+        </div>
+      );
+    }
   }
 
   _updateUseDynamicRowHeights(value) {
