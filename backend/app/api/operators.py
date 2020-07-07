@@ -53,7 +53,7 @@ def run_operator():
 
     if os.path.exists(dataframe_types):
         log.info("reading pickled dataframe column types!")
-        df_types = pd.read_pickle(dataframe_pkl_file)
+        df_types = pd.read_pickle(dataframe_types)
     else:
         column_types = {"column": [i for i in df.columns], "type": ["string" for i in df.columns] }
         df_types = pd.DataFrame(column_types)

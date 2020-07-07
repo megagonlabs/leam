@@ -192,6 +192,8 @@ export default class GridExample extends React.Component {
     if (event.target.id == "0") {
       const collapse = (this.state.isCollapsed) ? false : true; 
       this.setState({isCollapsed: collapse});
+      const clickedColName = event.target.innerText
+      console.log(`clicked header cell of column ${clickedColName}`);
       this.grid.recomputeGridSize();
       this.grid.forceUpdate();
     }  
@@ -285,7 +287,7 @@ export default class GridExample extends React.Component {
     if (colName == "review" || colName == "text") {
       return (
         <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
-          <BarChart data={data} height={this.state.rowHeight} mode='fit' />
+          <BarChart data={this.props.tfidfVectors} height={this.state.rowHeight} mode='fit' />
         </div>
       );
     } else {

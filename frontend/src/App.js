@@ -8,6 +8,7 @@ import classNames from "classnames";
 import DatasetDropdown from './DatasetDropdown.js';
 import BarChart from "./BarChart";
 import OperatorView from './OperatorView.js';
+import DatavisView from "./DatavisView.js";
 import TableView from './GridExample.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -52,8 +53,10 @@ class App extends Component {
       fileHeaders: [],
       datasets: [],
       datasetRows: [],
+      tfidfVectors: {"topwords": []},
       numColumns: 5,
       columnSizes: [],
+      selectedColumn: null,
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -63,20 +66,6 @@ class App extends Component {
     // this.removeStopWords = this.removeStopWords.bind(this);
     this.classes = this.props.classes;
   }
-
-
-
-//   removeStopWords = (text) => {
-//     let filteredWords = [];
-//     const words = text.split(" ");
-//     for (let key in words) {
-//       const word = words[key].split(".").join(""); // in case this is the last word in a sentence
-//       if (!stopwords.includes(word)) {
-//         filteredWords.push(word);
-//       }
-//     }
-//     return filteredWords.join(' ')
-//   }
 
   applyOperator = (operatorName, columnName, actionName) => {
     console.log(`doing operator: ${operatorName} column -> ${columnName} with action -> ${actionName}`);
@@ -134,6 +123,10 @@ class App extends Component {
         console.log(error);
       })
 
+  }
+
+  selectColumn = (colName) => {
+    this.setState({ selectedColumn: colName });
   }
 
 
@@ -234,6 +227,13 @@ class App extends Component {
         let chartRow = [];
         chartRow.push("");
         const columns = JSON.parse(response.data["columns"]);
+        let tfidf;
+        if (response.data["tfidf"].length == 0) {
+          console.log("no tfidf entry in http response!");
+          tfidf = {"topwords": []};
+        } else {
+          tfidf = {"topwords": JSON.parse(response.data["tfidf"])};
+        }
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
           chartRow.push("");
@@ -253,7 +253,7 @@ class App extends Component {
           }
         }
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        this.setState({ "datasetRows": rows, "columnSizes": columnWidths });
+        this.setState({ datasetRows: rows, columnSizes: columnWidths, tfidfVectors: tfidf });
       })
       .catch(function (error) {
         console.log(error);
@@ -304,9 +304,14 @@ class App extends Component {
               <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} applyOperator={this.applyOperator}/>
             </Paper>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={5}>
             <Paper className={this.classes.paper}>
-              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
+              <DatavisView key="datavis-view" data={this.state.tfidfVectors}   width={300} height={300} />
+            </Paper>
+          </Grid>
+          <Grid item xs={7}>
+            <Paper className={this.classes.paper}>
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} tfidfVectors={this.state.tfidfVectors} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
             </Paper>
           </Grid>
         </Grid>
