@@ -6,7 +6,9 @@ import { Menu } from "@material-ui/icons";
 import axios from 'axios';
 import classNames from "classnames";
 import DatasetDropdown from './DatasetDropdown.js';
+import BarChart from "./BarChart";
 import OperatorView from './OperatorView.js';
+import DatavisView from "./DatavisView.js";
 import TableView from './GridExample.js';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -51,51 +53,83 @@ class App extends Component {
       fileHeaders: [],
       datasets: [],
       datasetRows: [],
-      numColumns: 5,
+      visualEncodings: {},
+      columnTypes: {},
       columnSizes: [],
+      selectedColumn: null,
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
-    this.cleanFunction = this.cleanFunction.bind(this);
-    this.removeStopWords = this.removeStopWords.bind(this);
+    this.applyOperator = this.applyOperator.bind(this);
+    this.selectColumn = this.selectColumn.bind(this);
     this.classes = this.props.classes;
   }
 
-  removeStopWords = (text) => {
-    let filteredWords = [];
-    const words = text.split(" ");
-    for (let key in words) {
-      const word = words[key].split(".").join(""); // in case this is the last word in a sentence
-      if (!stopwords.includes(word)) {
-        filteredWords.push(word);
-      }
+  applyOperator = (operatorName, columnName, actionName) => {
+    console.log(`doing operator: ${operatorName} column -> ${columnName} with action -> ${actionName}`);
+    const datasetName = this.state.fileName;
+    let operator;
+    switch (operatorName) {
+        case "Clean":
+            operator = "clean";
+            break;
+        case "Featurize":
+            operator = "featurize";
+            break;
+        case "Select":
+            operator = "select";
+            break;
+        default:
+            operator = "clean";
     }
-    return filteredWords.join(' ')
+    let action;
+    switch (actionName) {
+        case "Lowercase":
+            action = "lowercase";
+            break;
+        case "Remove Stopwords":
+            action = "stopword";
+            break;
+        case "Stemming":
+            action = "stemming";
+            break;
+        case "Remove Punctuation":
+            action = "punctuation";
+            break;
+        case "tf-idf":
+            action = "tfidf";
+            break;
+        default:
+            // default is lowercase action
+            action = "lowercase";
+    }
+
+    const url = "http://localhost:5000/v1/run-operator";
+    // fetch the actual rows
+    axios.post(url, null, {
+        params: {
+            operator: operator,
+            action: action,
+            dataset: datasetName,
+            column: columnName, 
+        }
+    })
+      .then((response) => {
+        console.log(`operator response body is ${response.body}`);
+      })
+      .then(() => {
+        this.loadFile(datasetName);
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+
   }
 
-  cleanFunction = (columnName, actionName) => {
-    console.log(`cleaning column -> ${columnName} with action -> ${actionName}`);
-    let newDatasetRows = [];
-    for (let key in this.state.datasetRows) {
-      let row = this.state.datasetRows[key];
-      if (key > 0) {
-        switch (actionName) {
-          case "Lowercase":
-            row[columnName] = row[columnName].toLowerCase();
-            break;
-          case "Remove Stopwords":
-            row[columnName] = this.removeStopWords(row[columnName]);
-            break;
-          default:
-            // default is Lowercase action
-            row[columnName] = row[columnName].toLowerCase();
-        }
-      }
-      newDatasetRows.push(row);
-    }
-    this.setState({ datasetRows: newDatasetRows });
+  selectColumn = (colName) => {
+    this.setState({ selectedColumn: colName });
   }
 
 
@@ -121,6 +155,10 @@ class App extends Component {
     axios.post("http://localhost:5000/v1/upload-file", formData)
       .then(() => {
         this.getFiles();
+      })
+      .then(() => {
+        console.log(`loading file ${this.state.fileName}`);
+        this.loadFile(this.state.fileName);  
       })
   };
 
@@ -168,19 +206,15 @@ class App extends Component {
   loadFile = (name) => {
     const fileName = name;
     let fileRows = 0;
-    let fileHeader = [];
     for (let i = 0; i < this.state.datasets.length; i++) {
       let datasetInfo = this.state.datasets[i];
       if (datasetInfo["name"] === fileName) {
         fileRows = datasetInfo["num_rows"];
-        fileHeader = datasetInfo["header"];
       }
     }
     this.setState({
       fileName: fileName,
       fileNumRows: fileRows,
-      fileHeaders: fileHeader,
-      numColumns: fileHeader.length + 1,
     });
 
     const url = "http://localhost:5000/v1/get-datasets/" + fileName;
@@ -191,53 +225,49 @@ class App extends Component {
       }
     })
       .then((response) => {
-        let rows = [];
-        let idRow = {};
-        let chartRow = {}
-        idRow["id"] = "id";
-        chartRow["id"] = "";
-        for (let key in this.state.fileHeaders) {
-          idRow[this.state.fileHeaders[key]] = this.state.fileHeaders[key];
-          chartRow[this.state.fileHeaders[key]] = "";
+        let rows = []; 
+        let idRow = [];
+        let chartRow = [];
+        chartRow.push("");
+        const columns = JSON.parse(response.data["columns"]);
+        const columnTypes = JSON.parse(response.data["columnTypes"]);
+        const visualEncodings = JSON.parse(response.data["encodings"]);
+        this.setState({ fileHeaders: columns });
+        for (let key in columns) {
+          chartRow.push("");
         }
-        rows.push(idRow);
         rows.push(chartRow);
         rows.push(...JSON.parse(response.data["rows"]));
 
+        let processedVisualEncodings = {...visualEncodings};
+        // set visual encoding data
+        for (let key in columnTypes) {
+            if (columnTypes[key] === "tfidf") {
+                const tfIdfEncoding = {
+                    "topwords": visualEncodings[key]
+                };
+                processedVisualEncodings[key] = tfIdfEncoding;
+            }
+        }
+
         // determining correct widths of the columns
-        let columnWidths = new Array(this.state.fileHeaders.length+1).fill(0);
+        let columnWidths = new Array(this.state.fileHeaders.length).fill(0);
         columnWidths[0] = 100; // fixed size column
         // determine column widths by taking average of lengths over first 20 rows
         for (let i = 0; i < 20; i++) {
           const rowData = rows[i];
           for (let j = 0; j < this.state.fileHeaders.length; j++) {
-            const colLength = rowData[this.state.fileHeaders[j]].length;
+            const colLength = rowData[j].length;
             columnWidths[j+1] += colLength;
           }
         }
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        this.setState({ "datasetRows": rows, "columnSizes": columnWidths });
+        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings: processedVisualEncodings });
       })
       .catch(function (error) {
         console.log(error);
       })
   }
-
-  // getDropdownFiles = () => {
-  //   let dropDownItems = [];
-  //   for (let key in this.state.datasets) {
-  //     const datasetInfo = this.state.datasets[key];
-  //     const datasetName = datasetInfo["name"];
-  //     dropDownItems.push(<Dropdown.Item onClick={this.loadFile} id={datasetName}>{datasetName}</Dropdown.Item>);
-  //     console.log("dataset element with name: ", datasetName);
-  //   }
-
-  //   return (
-  //     <Dropdown.Menu>
-  //       {dropDownItems}
-  //     </Dropdown.Menu>
-  //   )
-  // }
 
   render() {
     return (
@@ -264,12 +294,17 @@ class App extends Component {
           </Grid>
           <Grid item xs={7}>
             <Paper className={this.classes.paper}>
-              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} cleanFunction={this.cleanFunction} />
+              <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} applyOperator={this.applyOperator}/>
             </Paper>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={5}>
             <Paper className={this.classes.paper}>
-              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
+              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} selectedColumn={this.state.selectedColumn} width={300} height={300} />
+            </Paper>
+          </Grid>
+          <Grid item xs={7}>
+            <Paper className={this.classes.paper}>
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} />
             </Paper>
           </Grid>
         </Grid>

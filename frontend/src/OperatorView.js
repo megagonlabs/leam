@@ -8,17 +8,30 @@ export default class OperatorView extends Component {
     this.state = {
       operator: "",
       action: "",
+      actionList: [], 
       column: "",
     };
     this.changeOperator = this.changeOperator.bind(this);
     this.changeAction = this.changeAction.bind(this);
     this.changeColumn = this.changeColumn.bind(this);
-    this.cleanColumn = this.cleanColumn.bind(this);
+    this.applyOperator = this.applyOperator.bind(this);
     this.classes = this.props.classes;
   }
 
   changeOperator = (event) => {
-    this.setState({ operator: event.target.value });
+    let actions;
+    const newOperator = event.target.value;
+    if (newOperator == "Clean") {
+        // Clean
+        actions = ["Lemmatize", "Lowercase", "Remove Stopwords", "Remove Punctuation"];
+    } else if (newOperator == "Featurize") {
+        // Featurize
+        actions = ["tf-idf", "k-means"];
+    } else {
+        // Select
+        actions = ["Filter", "Sort"];
+    }
+    this.setState({ operator: event.target.value, actionList: actions });
   }
 
   changeAction = (event) => {
@@ -29,11 +42,11 @@ export default class OperatorView extends Component {
     this.setState({ column: event.target.value });
   }
 
-  cleanColumn = () => {
+  applyOperator = () => {
     const colName = this.state.column;
     const actionName = this.state.action;
-    console.log(`[OperatorView] cleaning col name: ${colName} with op: ${actionName}`);
-    this.props.cleanFunction(colName, actionName);
+    const operatorName = this.state.operator;
+    this.props.applyOperator(operatorName, colName, actionName);
   }
 
   render() {
@@ -55,8 +68,8 @@ export default class OperatorView extends Component {
                 onChange={this.changeOperator}
               >
                 <MenuItem value={"Clean"}>Clean</MenuItem>
-                <MenuItem value={"Filter"}>Filter</MenuItem>
-                <MenuItem value={"Add Features"}>Add Features</MenuItem>
+                <MenuItem value={"Select"}>Select</MenuItem>
+                <MenuItem value={"Featurize"}>Add Features</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -69,9 +82,11 @@ export default class OperatorView extends Component {
                 value={this.state.action}
                 onChange={this.changeAction}
               >
-                <MenuItem value={"Lemmatize"}>Lemmatize</MenuItem>
-                <MenuItem value={"Lowercase"}>Lowercase</MenuItem>
-                <MenuItem value={"Remove Stopwords"}>Remove Stopwords</MenuItem>
+                {this.state.actionList.map((action, index) => {
+                    return (
+                        <MenuItem value={action} key={index}>{action}</MenuItem>
+                    ); 
+                })}
               </Select>
             </FormControl>
           </Grid>
@@ -96,7 +111,7 @@ export default class OperatorView extends Component {
             </FormControl>
           </Grid>
           <Grid item xs={5}>
-            <IconButton color="inherit" aria-label="execute" onClick={this.cleanColumn}>
+            <IconButton color="inherit" aria-label="execute" onClick={this.applyOperator}>
               <PlayArrow />
             </IconButton>
           </Grid>

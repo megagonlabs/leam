@@ -7,7 +7,21 @@ import clsx from 'clsx';
 import './Grid.example.css';
 import {generateRandomList} from './utils.js';
 import HeaderChart from './HeaderChart';
+import BarChart from './BarChart';
 import headerImage from './barsample.png';
+
+const data = {
+    table: [
+      { category: 'A', amount: 28 },
+      { category: 'B', amount: 55 },
+      { category: 'C', amount: 43 },
+      { category: 'D', amount: 91 },
+      { category: 'E', amount: 81 },
+      { category: 'F', amount: 53 },
+      { category: 'G', amount: 19 },
+      { category: 'H', amount: 87 },
+    ],
+  };
 
 export default class GridExample extends React.Component {
   // static contextTypes = {
@@ -18,7 +32,7 @@ export default class GridExample extends React.Component {
     super(props, context);
 
     this.state = {
-      columnCount: props.numCols,
+      columnCount: props.datasetHeader.length,
       height: 300,
       overscanColumnCount: 0,
       overscanRowCount: 10,
@@ -26,8 +40,9 @@ export default class GridExample extends React.Component {
       rowCount: 500,
       scrollToColumn: undefined,
       scrollToRow: undefined,
-      useDynamicRowHeight: false,
+      useDynamicRowHeight: true,
       highlightedRow: -1,
+      isCollapsed: true,
     };
 
     this._cellRenderer = this._cellRenderer.bind(this);
@@ -42,6 +57,7 @@ export default class GridExample extends React.Component {
     this._renderBodyCell = this._renderBodyCell.bind(this);
     this._highlightRow = this._highlightRow.bind(this);
     this._unHighlightRow = this._unHighlightRow.bind(this);
+    this._collapseCell = this._collapseCell.bind(this);
     // this._renderLeftSideCell = this._renderLeftSideCell.bind(this);
 
     // this.list = Immutable.List(generateRandomList());
@@ -67,7 +83,7 @@ export default class GridExample extends React.Component {
               cellRenderer={this._cellRenderer}
               className="BodyGrid"
               columnWidth={this._getColumnWidth}
-              columnCount={this.props.numCols}
+              columnCount={this.props.datasetHeader.length}
               height={height}
               noContentRenderer={this._noContentRenderer}
               overscanColumnCount={overscanColumnCount}
@@ -95,10 +111,10 @@ export default class GridExample extends React.Component {
   }
 
   _cellRenderer({columnIndex, key, rowIndex, style}) {
-    if (columnIndex === 0) {
-      return this._renderLeftSideCell({columnIndex, key, rowIndex, style});
-    } 
-    else if (rowIndex == 1)
+    // if (columnIndex === 0) {
+    //   return this._renderLeftSideCell({columnIndex, key, rowIndex, style});
+    // } 
+    if (rowIndex == 1)
     {
       return this._renderHeaderChartCell({columnIndex, key, rowIndex, style});
     }
@@ -152,8 +168,11 @@ export default class GridExample extends React.Component {
   }
 
   _getRowHeight({index}) {
-    // return this._getDatum(index).size;
-    return 75;
+    if (index == 1) {
+      return (this.state.isCollapsed) ? 0 : 150;
+    } else {
+      return 70;
+    }
   }
 
   _noContentRenderer() {
@@ -169,22 +188,30 @@ export default class GridExample extends React.Component {
     this.setState({ highlightedRow: -1 });
   }
 
+  _collapseCell = event => {
+    if (event.target.id == "0") {
+      const collapse = (this.state.isCollapsed) ? false : true; 
+      this.setState({isCollapsed: collapse});
+      const clickedColName = event.target.innerText
+      console.log(`clicked header cell of column ${clickedColName}`);
+      this.grid.recomputeGridSize();
+      this.grid.forceUpdate();
+      this.props.selectColumn(clickedColName);
+    }  
+  }
+
   _renderBodyCell({columnIndex, key, rowIndex, style}) {
-    const rowClass = this._getRowClassName(rowIndex);
-    const datum = this._getDatum(rowIndex);
+    const rowClass = this._getRowClassName(rowIndex-1);
+    const datum = (rowIndex >= 2) ? this._getDatum(rowIndex-1) : this._getDatum(rowIndex);
 
     let content;
 
     if (datum == "" || datum == null) {
       content = "";
     } else if (rowIndex == 0) {
-      if (columnIndex == 0) {
-        content = "id";
-      } else {
-        content = this.props.datasetHeader[columnIndex - 1];
-      }
+      content = this.props.datasetHeader[columnIndex];
     } else {
-      content = datum[this.props.datasetHeader[columnIndex - 1]];
+      content = datum[columnIndex];
     }
 
     const classNames = clsx(rowClass, "cell", {
@@ -198,7 +225,7 @@ export default class GridExample extends React.Component {
     }
 
     return (
-      <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
+      <div id={rowIndex} onMouseOver={this._highlightRow} onClick={this._collapseCell} className={classNames} key={key} style={style}>
         {content}
       </div>
     );
@@ -227,7 +254,6 @@ export default class GridExample extends React.Component {
       // backgroundColor: "Thistle",
     };
 
-
     return (
       <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
         {content}
@@ -235,8 +261,9 @@ export default class GridExample extends React.Component {
     );
   }
 
-  _renderHeaderChartCell({key, rowIndex, style}) {
+  _renderHeaderChartCell({columnIndex, key, rowIndex, style}) {
     const datum = this._getDatum(rowIndex);
+    const colName = this.props.datasetHeader[columnIndex];
     let content;
     if (datum == "" || datum == null) {
       content = rowIndex;
@@ -258,12 +285,18 @@ export default class GridExample extends React.Component {
       // backgroundColor: "Thistle",
     };
 
-
-    return (
-      <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
-        <HeaderChart src={headerImage} height={this.state.rowHeight} mode='fit' />
-      </div>
-    );
+    if (this.props.colTypes[colName] == "tfidf") {
+      return (
+        <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
+          <BarChart data={this.props.visualData[colName]} height={this.state.rowHeight} mode='fit' />
+        </div>
+      );
+    } else {
+      return (
+        <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
+        </div>
+      );
+    }
   }
 
   _updateUseDynamicRowHeights(value) {

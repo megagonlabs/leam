@@ -43,5 +43,5 @@ services:
         ports:
             - "3000:3000"
         stdin_open: true
-        # volumes:
-        #     - ./frontend:/app
+        volumes:
+            - ./frontend:/usr/src/app
