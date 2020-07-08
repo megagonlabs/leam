@@ -11,7 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from . import v1
 from .clean import lowercase, remove_stopwords
-from .tfidf import TfIdf
+from .tex_df import TexDF
 from .. import db
 from .. import log
 from ..models import Dataset
@@ -42,51 +42,22 @@ def run_operator():
     # check if we have table dataframe stored
     dataset_name = dataset.split('.')[0]
     dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
-    dataframe_types = "/app/" + dataset_name + "-types.pkl"
     log.info('dataframe pickle file path: %s', dataframe_pkl_file)
-    log.info('dataframe types pickle file path: %s', dataframe_types)
     if os.path.exists(dataframe_pkl_file):
         log.info("reading pickled dataframe")
-        df = pd.read_pickle(dataframe_pkl_file)
+        tex_dataframe = pickle.load(open(dataframe_pkl_file, 'rb'))
     else:
         df = pd.read_sql_table(dataset_info.table_name, SQLALCHEMY_DATABASE_URI)
-
-    if os.path.exists(dataframe_types):
-        log.info("reading pickled dataframe column types!")
-        df_types = pd.read_pickle(dataframe_types)
-    else:
-        column_types = {"column": [i for i in df.columns], "type": ["string" for i in df.columns] }
-        df_types = pd.DataFrame(column_types)
+        tex_dataframe = TexDF(df)
 
 
     log.info('first row of table df is: ')
-    df_list = df.values.tolist()
-    log.info(df_list[0])
+    log.info(tex_dataframe.get_df_values()[0])
 
-    # do some error handling here
-    if operator == "clean":
-        if action == "lowercase":
-            lowercase(df, column)
-        elif action == "stopword":
-            remove_stopwords(df, column)
-    elif operator == "featurize":
-        if action == "tfidf":
-            tdf_idf = TfIdf(df)
-            tdf_idf.generate_features(column)
-            df_types.loc[df_types['column'] == column, ['type']] = 'tfidf'
-            tdfidf_pkl_file = "/app/" + dataset_name + "-tfidf.pkl"
-            pickle.dump(tdf_idf, open(tdfidf_pkl_file, 'wb'))
-
-
-    else:
-        raise Exception('unknown operator: %s', operator)
+    tex_dataframe.run_operator(column, operator, action)
 
     log.info('after first row of table df is: ')
-    log.info(df.values.tolist()[0])
-    
-    df.to_pickle(dataframe_pkl_file)
-    df_types.to_pickle(dataframe_types)
-
-
+    log.info(tex_dataframe.get_df_values()[0])
+ 
+    pickle.dump(tex_dataframe, open(dataframe_pkl_file, 'wb'))
     return jsonify({})
-

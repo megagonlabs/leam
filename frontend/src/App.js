@@ -53,8 +53,8 @@ class App extends Component {
       fileHeaders: [],
       datasets: [],
       datasetRows: [],
-      tfidfVectors: {"topwords": []},
-      numColumns: 5,
+      visualEncodings: {},
+      columnTypes: {},
       columnSizes: [],
       selectedColumn: null,
     };
@@ -63,7 +63,7 @@ class App extends Component {
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
     this.applyOperator = this.applyOperator.bind(this);
-    // this.removeStopWords = this.removeStopWords.bind(this);
+    this.selectColumn = this.selectColumn.bind(this);
     this.classes = this.props.classes;
   }
 
@@ -203,19 +203,15 @@ class App extends Component {
   loadFile = (name) => {
     const fileName = name;
     let fileRows = 0;
-    let fileHeader = [];
     for (let i = 0; i < this.state.datasets.length; i++) {
       let datasetInfo = this.state.datasets[i];
       if (datasetInfo["name"] === fileName) {
         fileRows = datasetInfo["num_rows"];
-        fileHeader = datasetInfo["header"];
       }
     }
     this.setState({
       fileName: fileName,
       fileNumRows: fileRows,
-      fileHeaders: fileHeader,
-      numColumns: fileHeader.length + 1,
     });
 
     const url = "http://localhost:5000/v1/get-datasets/" + fileName;
@@ -231,19 +227,25 @@ class App extends Component {
         let chartRow = [];
         chartRow.push("");
         const columns = JSON.parse(response.data["columns"]);
-        let tfidf;
-        if (response.data["tfidf"].length == 0) {
-          console.log("no tfidf entry in http response!");
-          tfidf = {"topwords": []};
-        } else {
-          tfidf = {"topwords": JSON.parse(response.data["tfidf"])};
-        }
+        const columnTypes = JSON.parse(response.data["columnTypes"]);
+        const visualEncodings = JSON.parse(response.data["encodings"]);
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
           chartRow.push("");
         }
         rows.push(chartRow);
         rows.push(...JSON.parse(response.data["rows"]));
+
+        let processedVisualEncodings = {...visualEncodings};
+        // set visual encoding data
+        for (let key in columnTypes) {
+            if (columnTypes[key] === "tfidf") {
+                const tfIdfEncoding = {
+                    "topwords": visualEncodings[key]
+                };
+                processedVisualEncodings[key] = tfIdfEncoding;
+            }
+        }
 
         // determining correct widths of the columns
         let columnWidths = new Array(this.state.fileHeaders.length).fill(0);
@@ -257,28 +259,12 @@ class App extends Component {
           }
         }
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        this.setState({ datasetRows: rows, columnSizes: columnWidths, tfidfVectors: tfidf });
+        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings: processedVisualEncodings });
       })
       .catch(function (error) {
         console.log(error);
       })
   }
-
-  // getDropdownFiles = () => {
-  //   let dropDownItems = [];
-  //   for (let key in this.state.datasets) {
-  //     const datasetInfo = this.state.datasets[key];
-  //     const datasetName = datasetInfo["name"];
-  //     dropDownItems.push(<Dropdown.Item onClick={this.loadFile} id={datasetName}>{datasetName}</Dropdown.Item>);
-  //     console.log("dataset element with name: ", datasetName);
-  //   }
-
-  //   return (
-  //     <Dropdown.Menu>
-  //       {dropDownItems}
-  //     </Dropdown.Menu>
-  //   )
-  // }
 
   render() {
     return (
@@ -310,12 +296,12 @@ class App extends Component {
           </Grid>
           <Grid item xs={5}>
             <Paper className={this.classes.paper}>
-              <DatavisView key="datavis-view" data={this.state.tfidfVectors}   width={300} height={300} />
+              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} selectedColumn={this.state.selectedColumn} width={300} height={300} />
             </Paper>
           </Grid>
           <Grid item xs={7}>
             <Paper className={this.classes.paper}>
-              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} tfidfVectors={this.state.tfidfVectors} numCols={this.state.numColumns} colSizes={this.state.columnSizes} />
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} />
             </Paper>
           </Grid>
         </Grid>

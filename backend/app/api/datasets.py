@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from . import v1
 from .. import log
 from ..models import Dataset
+from .tex_df import TexDF
 from app import db
 
 
@@ -50,42 +51,23 @@ def get_dataset(name):
     # check if session dataframe has been stored
     dataset_name = name.split('.')[0]
     dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
-    dataframe_types = "/app/" + dataset_name + "-types.pkl"
     if os.path.exists(dataframe_pkl_file):
         log.info("reading pickle file from fs")
-        result = pd.read_pickle(dataframe_pkl_file)
+        tex_dataframe = pickle.load(open(dataframe_pkl_file, 'rb'))
     else:
-        result = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
-        result.to_pickle(dataframe_pkl_file)
-
-    if os.path.exists(dataframe_types):
-        log.info("reading pickled dataframe column types!")
-        df_types = pd.read_pickle(dataframe_types)
-    else:
-        column_types = {"column": [i for i in result.columns], "type": ["string" for i in result.columns] }
-        df_types = pd.DataFrame(column_types)
-
-    tf_idf = None
-    for row in df_types.itertuples():
-        # rules for pre-processing arrays and such
-        log.info("row of df type: ")
-        log.info(row)
-        if row[2] == 'tfidf':
-            # read in pickled object 
-            tfidf_pkl_file = "/app/%s-tfidf.pkl" % (dataset_name)
-            log.info('reading in pickled tf-idf at path %s', tfidf_pkl_file)
-            tf_idf = pickle.load(open(tfidf_pkl_file, 'rb'))
-
-    tw_list = []
-    if tf_idf != None:
-        tw_list = json.dumps(tf_idf.get_top_words())
-    columns = result.columns
-    result = result.values.tolist()
+        df = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
+        tex_dataframe = TexDF(df)
+        pickle.dump(tex_dataframe, open(dataframe_pkl_file, 'wb'))
+    
+    tex_df_values = tex_dataframe.get_df_values()
+    tex_df_columns = json.dumps(tex_dataframe.get_df_columns())
+    tex_df_visual_encodings = json.dumps(tex_dataframe.get_visual_encodings())
+    tex_df_types = json.dumps(tex_dataframe.get_df_types())
     log.info("first row of df: ")
-    log.info(result[0])
-    result = json.dumps(result)
-    columns = json.dumps([i for i in columns])
-    return jsonify({ 'rows': result, 'columns': columns, 'tfidf': tw_list })
+    log.info(tex_df_values[0])
+    tex_df_rows = json.dumps(tex_df_values)
+
+    return jsonify({ 'rows': tex_df_rows, 'columns': tex_df_columns, 'columnTypes': tex_df_types, 'encodings': tex_df_visual_encodings})
 
 @v1.route('/upload-file', methods=(['POST']))
 def upload_file():

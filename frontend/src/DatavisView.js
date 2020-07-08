@@ -1,36 +1,29 @@
 import React, { PropTypes } from 'react';
 import { VegaLite } from 'react-vega';
+import BarChart from "./BarChart.js";
 
 export default class DatavisView extends React.Component {
     constructor(props, context) {
       super(props, context);
-      this.spec = {
-        width: props.width || 100,
-        height: props.height || 100,
-        mark: 'bar',
-        encoding: {
-          y: { field: 'topword', type: 'ordinal' },
-          x: { field: 'score', type: 'quantitative' },
-        },
-        data: { name: 'topwords' }
-      };
-  
+      this.state = {
+          width: props.width,
+          height: props.height,
+      }
     }
   
     render() {
-      let {mode, src, height, width, style, ...props} = this.props;
-      let modes = {
-        'fill': 'cover',
-        'fit': 'contain'
-      };
-      let size = modes[mode] || 'contain';
-      let defaults = {
-        height: 100,
-        width: 100,
-      };
-  
-      return (
-          <VegaLite spec={this.spec} data={this.props.data} />
-      );
+      if (this.props.selectedColumn == null) {
+          let defaults = {
+            height: 300,
+            width: 300,
+          };
+          return (
+            <div style={{...defaults}}></div>
+          );
+      } else {
+          return (
+            <BarChart data={this.props.visualData[this.props.selectedColumn]} height={this.state.height} width={this.state.width} mode='fit' />
+          );
+      }
     }
   }

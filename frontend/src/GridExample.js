@@ -196,6 +196,7 @@ export default class GridExample extends React.Component {
       console.log(`clicked header cell of column ${clickedColName}`);
       this.grid.recomputeGridSize();
       this.grid.forceUpdate();
+      this.props.selectColumn(clickedColName);
     }  
   }
 
@@ -284,10 +285,10 @@ export default class GridExample extends React.Component {
       // backgroundColor: "Thistle",
     };
 
-    if (colName == "review" || colName == "text") {
+    if (this.props.colTypes[colName] == "tfidf") {
       return (
         <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
-          <BarChart data={this.props.tfidfVectors} height={this.state.rowHeight} mode='fit' />
+          <BarChart data={this.props.visualData[colName]} height={this.state.rowHeight} mode='fit' />
         </div>
       );
     } else {
