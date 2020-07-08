@@ -95,6 +95,9 @@ class App extends Component {
         case "Stemming":
             action = "stemming";
             break;
+        case "Remove Punctuation":
+            action = "punctuation";
+            break;
         case "tf-idf":
             action = "tfidf";
             break;

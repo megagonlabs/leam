@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from .. import log
 from .featurize import generate_tfidf_features, get_top_words
-from .clean import lowercase, remove_stopwords
+from .clean import lowercase, remove_stopwords, remove_punctuation
 
 spacy_nlp = spacy.load('en_core_web_sm')
 
@@ -35,6 +35,8 @@ class TexDF(object):
                 lowercase(self.df, column)
             elif action == "stopword":
                 remove_stopwords(self.df, column)
+            elif action == "punctuation":
+                remove_punctuation(self.df, column)
         elif operator == "featurize":
             if action == "tfidf":
                 top_words = generate_tfidf_features(self.df, column)

@@ -9,6 +9,15 @@ def lowercase(df, column_name):
     df[column_name] = df[column_name].str.lower()
     return
 
+def remove_punctuation_helper(text):
+    doc = spacy_nlp(text)
+    toks = [token.text for token in doc if not token.is_punct]
+    return " ".join(toks)
+
+def remove_punctuation(df, column_name):
+    df[column_name] = df[column_name].map(remove_punctuation_helper)
+    return
+
 def remove_stopwords_helper(text):
     doc = spacy_nlp(text)
     toks = [token.text for token in doc if not token.is_stop]

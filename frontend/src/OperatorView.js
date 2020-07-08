@@ -23,7 +23,7 @@ export default class OperatorView extends Component {
     const newOperator = event.target.value;
     if (newOperator == "Clean") {
         // Clean
-        actions = ["Lemmatize", "Lowercase", "Remove Stopwords"];
+        actions = ["Lemmatize", "Lowercase", "Remove Stopwords", "Remove Punctuation"];
     } else if (newOperator == "Featurize") {
         // Featurize
         actions = ["tf-idf", "k-means"];
