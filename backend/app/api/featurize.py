@@ -18,10 +18,15 @@ def basic_tokenizer(sentence):
 #     return vectorizer.get_feature_names()
 
 def get_top_words(top_words):
-    tw_list = []
-    for k,v in top_words.items():
-        tw_list.append({'topword': k, 'score': v})
-    return tw_list
+    tw_final_list = []
+    tw_list = [(k,v) for k,v in top_words.items()]
+    tw_list = sorted(tw_list, key=lambda word: word[1], reverse=True)
+    tw_list = [(v[0], v[1], i+1) for i,v in enumerate(tw_list)]
+    log.info("top words list:")
+    log.info(tw_list)
+    for v in tw_list:
+        tw_final_list.append({'topword': v[0], 'score': v[1], 'order': v[2]})
+    return tw_final_list
 
 def generate_tfidf_visualization(df, column, labels):
     vectors, names = df[column], labels

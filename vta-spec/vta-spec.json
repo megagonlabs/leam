@@ -1,3 +1,5 @@
+
+
 {
     "dataset": "test-reviews-small.csv",
     "column": "reviews",
@@ -5,7 +7,9 @@
     "action": "render",
     "visualization_spec": {
         "vis_type": "distribution",
-        
+        "labels": "metadata.feature_names",
+        "num_labels": 30,
+        "aggregate": "max"
     } 
-
 }
+
