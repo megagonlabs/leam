@@ -12,17 +12,19 @@ export default class DatavisView extends React.Component {
     }
   
     render() {
-      if (this.props.selectedColumn == null) {
-          let defaults = {
+      const col = this.props.selectedColumn;
+      const visType = (col == null) ? null : this.props.visTypes[col];
+      if (visType == "distribution") {
+        return (
+            <BarChart data={this.props.visualData[this.props.selectedColumn]} height={this.state.height} width={this.state.width} mode='fit' />
+        );  
+      } else {
+        let defaults = {
             height: 300,
             width: 300,
           };
           return (
             <div style={{...defaults}}></div>
-          );
-      } else {
-          return (
-            <BarChart data={this.props.visualData[this.props.selectedColumn]} height={this.state.height} width={this.state.width} mode='fit' />
           );
       }
     }

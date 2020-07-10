@@ -58,7 +58,7 @@ def get_dataset(name):
         df = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
         tex_dataframe = TexDF(df)
         pickle.dump(tex_dataframe, open(dataframe_pkl_file, 'wb'))
-    
+
     tex_df_values = tex_dataframe.get_df_values()
     tex_df_columns = json.dumps(tex_dataframe.get_df_columns())
     tex_df_visual_encodings = json.dumps(tex_dataframe.get_visual_encodings())

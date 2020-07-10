@@ -12,7 +12,7 @@ export default class BarChart extends React.Component {
         y: { field: 'topword', type: 'ordinal' },
         x: { field: 'score', type: 'quantitative' },
       },
-      data: { name: 'topwords' }
+      data: { name: 'distribution' }
     };
   }
 

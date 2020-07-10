@@ -1,0 +1,11 @@
+{
+    "dataset": "test-reviews-small.csv",
+    "column": "reviews",
+    "operator": "visualize",
+    "action": "render",
+    "visualization_spec": {
+        "vis_type": "distribution",
+        
+    } 
+
+}
