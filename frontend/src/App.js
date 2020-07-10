@@ -309,7 +309,7 @@ class App extends Component {
           </Grid>
           <Grid item xs={4}>
             <Paper className={this.classes.paper}>
-              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={300} height={300} />
+              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={200} height={400} />
             </Paper>
           </Grid>
           <Grid item xs={8}>
