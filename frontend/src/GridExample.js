@@ -34,7 +34,7 @@ export default class GridExample extends React.Component {
 
     this.state = {
       columnCount: props.datasetHeader.length,
-      height: 300,
+      height: 500,
       overscanColumnCount: 0,
       overscanRowCount: 10,
       rowHeight: 50,
@@ -217,7 +217,6 @@ export default class GridExample extends React.Component {
      //   content = "<vector>";
       content = <Tooltip title={datum[columnIndex]}><p>Vector</p></Tooltip>;
     } else {
-      console.log(`cell column index is: ${columnIndex} and type is ${this.props.colTypes[columnIndex]}`);
       content = datum[columnIndex];
     }
 

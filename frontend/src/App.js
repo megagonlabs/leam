@@ -307,12 +307,12 @@ class App extends Component {
               <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} applyOperator={this.applyOperator}/>
             </Paper>
           </Grid>
-          <Grid item xs={5}>
+          <Grid item xs={4}>
             <Paper className={this.classes.paper}>
               <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={300} height={300} />
             </Paper>
           </Grid>
-          <Grid item xs={7}>
+          <Grid item xs={8}>
             <Paper className={this.classes.paper}>
               <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} />
             </Paper>
