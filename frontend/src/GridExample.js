@@ -9,6 +9,7 @@ import {generateRandomList} from './utils.js';
 import HeaderChart from './HeaderChart';
 import BarChart from './BarChart';
 import headerImage from './barsample.png';
+import { Tooltip } from "@material-ui/core";
 
 const data = {
     table: [
@@ -33,7 +34,7 @@ export default class GridExample extends React.Component {
 
     this.state = {
       columnCount: props.datasetHeader.length,
-      height: 300,
+      height: 500,
       overscanColumnCount: 0,
       overscanRowCount: 10,
       rowHeight: 50,
@@ -204,12 +205,17 @@ export default class GridExample extends React.Component {
     const rowClass = this._getRowClassName(rowIndex-1);
     const datum = (rowIndex >= 2) ? this._getDatum(rowIndex-1) : this._getDatum(rowIndex);
 
+    const colName = this.props.datasetHeader[columnIndex];
     let content;
 
     if (datum == "" || datum == null) {
       content = "";
     } else if (rowIndex == 0) {
       content = this.props.datasetHeader[columnIndex];
+    } else if (this.props.colTypes[colName] == "vector") { 
+      // if we vector, we only want to display contents on hover
+     //   content = "<vector>";
+      content = <Tooltip title={datum[columnIndex]}><p>Vector</p></Tooltip>;
     } else {
       content = datum[columnIndex];
     }
@@ -285,7 +291,7 @@ export default class GridExample extends React.Component {
       // backgroundColor: "Thistle",
     };
 
-    if (this.props.colTypes[colName] == "tfidf") {
+    if (this.props.visTypes[colName] == "distribution") {
       return (
         <div id={rowIndex} onMouseOver={this._highlightRow} className={classNames} key={key} style={style}>
           <BarChart data={this.props.visualData[colName]} height={this.state.rowHeight} mode='fit' />

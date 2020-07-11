@@ -5,15 +5,20 @@ export default class BarChart extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.spec = {
-      width: props.width || 100,
-      height: props.height || 100,
-      mark: 'bar',
-      encoding: {
-        y: { field: 'topword', type: 'ordinal' },
-        x: { field: 'score', type: 'quantitative' },
-      },
-      data: { name: 'topwords' }
-    };
+        width: props.width || 100,
+        height: props.height || 100,
+        transform: [
+            {
+                filter: "datum.order <= 3"
+            }
+        ],
+        mark: 'bar',
+        encoding: {
+          y: { field: 'topword', type: 'ordinal', sort: '-x' },
+          x: { field: 'score', type: 'quantitative' },
+        },
+        data: { name: 'distribution' },
+      };
   }
 
   render() {

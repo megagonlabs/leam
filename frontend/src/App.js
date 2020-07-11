@@ -54,6 +54,7 @@ class App extends Component {
       datasets: [],
       datasetRows: [],
       visualEncodings: {},
+      visualizationTypes: {},
       columnTypes: {},
       columnSizes: [],
       selectedColumn: null,
@@ -232,6 +233,15 @@ class App extends Component {
         const columns = JSON.parse(response.data["columns"]);
         const columnTypes = JSON.parse(response.data["columnTypes"]);
         const visualEncodings = JSON.parse(response.data["encodings"]);
+        let visTypes = {};
+        for (let key in visualEncodings) {
+            const visData = visualEncodings[key];
+            const visKeys = Object.keys(visData);
+            if (visKeys.length > 0) {
+                console.log(`vis data of key ${key} contains a visualization object with type ${visKeys[0]}`);
+                visTypes[key] = visKeys[0];
+            }
+        }
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
           chartRow.push("");
@@ -239,16 +249,16 @@ class App extends Component {
         rows.push(chartRow);
         rows.push(...JSON.parse(response.data["rows"]));
 
-        let processedVisualEncodings = {...visualEncodings};
-        // set visual encoding data
-        for (let key in columnTypes) {
-            if (columnTypes[key] === "tfidf") {
-                const tfIdfEncoding = {
-                    "topwords": visualEncodings[key]
-                };
-                processedVisualEncodings[key] = tfIdfEncoding;
-            }
-        }
+        // let processedVisualEncodings = {...visualEncodings};
+        // // set visual encoding data
+        // for (let key in columnTypes) {
+        //     if (columnTypes[key] === "tfidf") {
+        //         const tfIdfEncoding = {
+        //             "topwords": visualEncodings[key]
+        //         };
+        //         processedVisualEncodings[key] = tfIdfEncoding;
+        //     }
+        // }
 
         // determining correct widths of the columns
         let columnWidths = new Array(this.state.fileHeaders.length).fill(0);
@@ -262,7 +272,7 @@ class App extends Component {
           }
         }
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings: processedVisualEncodings });
+        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings, visualizationTypes: visTypes });
       })
       .catch(function (error) {
         console.log(error);
@@ -297,14 +307,14 @@ class App extends Component {
               <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} applyOperator={this.applyOperator}/>
             </Paper>
           </Grid>
-          <Grid item xs={5}>
+          <Grid item xs={4}>
             <Paper className={this.classes.paper}>
-              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} selectedColumn={this.state.selectedColumn} width={300} height={300} />
+              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={200} height={400} />
             </Paper>
           </Grid>
-          <Grid item xs={7}>
+          <Grid item xs={8}>
             <Paper className={this.classes.paper}>
-              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} />
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} />
             </Paper>
           </Grid>
         </Grid>
