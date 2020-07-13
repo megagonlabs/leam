@@ -2,6 +2,8 @@ import spacy
 import json
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import PCA
+from scipy.sparse import vstack
 from .. import log
 
 spacy_nlp = spacy.load('en_core_web_sm')
@@ -63,3 +65,16 @@ def generate_tfidf_features(df, oldColumn, newColumn):
     tfidf = vectorizer.fit_transform(df[oldColumn])
     df[newColumn] = list(tfidf)
     return vectorizer.get_feature_names()
+
+
+def generate_pca_features(df, oldColumn, newColumn):
+    tfidf_vectors = [v for v in df[oldColumn]]
+    tfidf_2d = vstack(tfidf_vectors)
+    tfidf_2d = [list(v) for v in tfidf_2d.A]
+    tfidf_2d = np.stack(tfidf_2d, axis=0)
+    pca = PCA(n_components=10)
+    pca_vectors = pca.fit_transform(tfidf_2d)
+    df[newColumn] = pca_vectors.tolist()
+    log.info('the first rwo of pca vectors is: %s', str(df[newColumn][0]))
+    return
+

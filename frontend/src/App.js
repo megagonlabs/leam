@@ -104,7 +104,7 @@ class App extends Component {
             break;
         default:
             // default is lowercase action
-            action = "lowercase";
+            action = actionName;
     }
 
     const url = "http://localhost:5000/v1/run-operator";

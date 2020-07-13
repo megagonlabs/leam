@@ -215,7 +215,8 @@ export default class GridExample extends React.Component {
     } else if (this.props.colTypes[colName] == "vector") { 
       // if we vector, we only want to display contents on hover
      //   content = "<vector>";
-      content = <Tooltip title={datum[columnIndex]}><p>Vector</p></Tooltip>;
+      const previewString = datum[columnIndex].slice(0, 100) + "...";
+      content = <Tooltip title={previewString}><p>Vector</p></Tooltip>;
     } else {
       content = datum[columnIndex];
     }
