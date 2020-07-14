@@ -28,7 +28,11 @@ class TexDF(object):
                 row_string_vectors = map(lambda r: r[:10], row_string_vectors)
                 row_string_vectors = [", ".join(r) for r in row_string_vectors]
                 readable_df[k] = row_string_vectors
-            
+            elif v == "float":
+                float_column = readable_df[k]
+                row_floats = [round(f, 5) for f in float_column]
+                readable_df[k] = row_floats
+
 
         return readable_df.values.tolist()
 
