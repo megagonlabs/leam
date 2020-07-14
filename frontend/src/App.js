@@ -75,8 +75,8 @@ class App extends Component {
     this.classes = this.props.classes;
   }
 
-  applyOperator = (operatorName, columnName, actionName, selectedIndices) => {
-    console.log(`doing operator: ${operatorName} column -> ${columnName} with action -> ${actionName} with indices -> ${selectedIndices}`);
+  applyOperator = (operatorName, columnNames, actionName, selectedIndices) => {
+    console.log(`doing operator: ${operatorName} columns -> ${columnNames} with action -> ${actionName} with indices -> ${selectedIndices}`);
     const datasetName = this.state.fileName;
     let operator;
     switch (operatorName) {
@@ -112,6 +112,11 @@ class App extends Component {
         case "Projection":
             action = "projection";
             break;
+        case "Visualization":
+            action = "visualization";
+            const visName = `<${columnNames.join('_')}>`;
+            this.setState({ selectedColumn: visName });
+            break;
         default:
             // default is lowercase action
             action = actionName;
@@ -119,12 +124,11 @@ class App extends Component {
 
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
-    axios.post(url, {indices: selectedIndices}, {
+    axios.post(url, {indices: selectedIndices, columns: columnNames}, {
         params: {
             operator: operator,
             action: action,
             dataset: datasetName,
-            column: columnName, 
         },
     })
       .then((response) => {
@@ -319,7 +323,7 @@ class App extends Component {
           </Grid>
           <Grid item xs={4}>
             <Paper className={this.classes.paper}>
-              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={200} height={400} />
+              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={300} height={350} />
             </Paper>
           </Grid>
           <Grid item xs={8}>

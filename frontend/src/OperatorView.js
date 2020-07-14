@@ -10,12 +10,12 @@ export default class OperatorView extends Component {
       operator: "",
       action: "",
       actionList: [], 
-      column: "",
+      columns: [],
       selectedIndex: [],
     };
     this.changeOperator = this.changeOperator.bind(this);
     this.changeAction = this.changeAction.bind(this);
-    this.changeColumn = this.changeColumn.bind(this);
+    this.changeColumns = this.changeColumns.bind(this);
     this.applyOperator = this.applyOperator.bind(this);
     this.changeIndices = this.changeIndices.bind(this);
     this.classes = this.props.classes;
@@ -43,7 +43,7 @@ export default class OperatorView extends Component {
         actions = ["tf-idf", "k-means", "pca"];
     } else {
         // Select
-        actions = ["Filter", "Sort", "Projection"];
+        actions = ["Visualization", "Projection"];
     }
     this.setState({ operator: event.target.value, actionList: actions });
   }
@@ -52,8 +52,10 @@ export default class OperatorView extends Component {
     this.setState({ action: event.target.value });
   }
 
-  changeColumn = (event) => {
-    this.setState({ column: event.target.value });
+  changeColumns = (event) => {
+    // this.setState({ column: event.target.value });
+    let newColumns = Object.assign([], event.target.value);
+    this.setState({ columns: newColumns });
   }
 
   changeIndices = (event) => {
@@ -62,11 +64,11 @@ export default class OperatorView extends Component {
   }
 
   applyOperator = () => {
-    const colName = this.state.column;
+    const colNames = this.state.columns;
     const actionName = this.state.action;
     const operatorName = this.state.operator;
     const selectedIndices = this.state.selectedIndex;
-    this.props.applyOperator(operatorName, colName, actionName, selectedIndices);
+    this.props.applyOperator(operatorName, colNames, actionName, selectedIndices);
   }
 
   render() {
@@ -130,7 +132,7 @@ export default class OperatorView extends Component {
           <Grid item xs={2} />
           {/* Second row: column select dropdown + execute query button */}
           <Grid item xs={5}>
-            <FormControl variant="filled" className={this.classes.formControl}>
+            {/* <FormControl variant="filled" className={this.classes.formControl}>
               <InputLabel id="select-action">Column</InputLabel>
               <Select
                 labelId="select-column"
@@ -138,14 +140,32 @@ export default class OperatorView extends Component {
                 value={this.state.column}
                 onChange={this.changeColumn}
               >
-                {/* <MenuItem value={"Lemmatize"}>Lemmatize</MenuItem> */}
                 {this.props.columns.map((value, idx) => {
                   return (
                     <MenuItem value={value} key={idx}>{value}</MenuItem>
                   );
                 })}
               </Select>
+            </FormControl> */}
+            <FormControl className={this.classes.formControl}>
+                <InputLabel id="demo-mutiple-name-label">Columns</InputLabel>
+                <Select
+                labelId="demo-mutiple-name-label"
+                id="demo-mutiple-name"
+                multiple
+                value={this.state.columns}
+                onChange={this.changeColumns}
+                input={<Input />}
+                MenuProps={MenuProps}
+                >
+                {this.props.columns.map((name) => (
+                    <MenuItem key={name} value={name} style={this.getStyles(name, this.state.columns)}>
+                    {name}
+                    </MenuItem>
+                ))}
+                </Select>
             </FormControl>
+
           </Grid>
           <Grid item xs={5}>
             <FormControl className={this.classes.formControl}>

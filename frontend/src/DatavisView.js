@@ -5,7 +5,7 @@ import BarChart from "./BarChart.js";
 export default class DatavisView extends React.Component {
     constructor(props, context) {
       super(props, context);
-      this.spec = {
+      this.distributionSpec = {
         width: props.width || 100,
         height: props.height || 100,
         layer: [{
@@ -32,6 +32,17 @@ export default class DatavisView extends React.Component {
         data: { name: 'distribution' },
         }]
       };
+
+      this.scatterplotSpec = {
+          width: props.width || 100,
+          height: props.height || 100,
+          mark: 'circle',
+          encoding: {
+              y: { field: 'pca_1', type: 'quantitative'},
+              x: { field: 'pca_0', type: 'quantitative'},
+          },
+          data: { name: 'scatterplot' },
+      };
     }
   
     render() {
@@ -39,8 +50,12 @@ export default class DatavisView extends React.Component {
       const visType = (col == null) ? null : this.props.visTypes[col];
       if (visType == "distribution") {
         return (
-            <VegaLite spec={this.spec} data={this.props.visualData[this.props.selectedColumn]} />
+            <VegaLite spec={this.distributionSpec} data={this.props.visualData[this.props.selectedColumn]} />
         );  
+      } else if (visType == "scatterplot") { 
+        return (
+            <VegaLite spec={this.scatterplotSpec} data={this.props.visualData[col]} />
+        );
       } else {
         let defaults = {
             height: 300,
