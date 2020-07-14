@@ -40,6 +40,13 @@ const useStyles = (theme) => ({
     width: 80,
     height: 80,
   },
+  chips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
+  chip: {
+    margin: 2,
+  },
 });
 
 class App extends Component {
@@ -68,8 +75,8 @@ class App extends Component {
     this.classes = this.props.classes;
   }
 
-  applyOperator = (operatorName, columnName, actionName) => {
-    console.log(`doing operator: ${operatorName} column -> ${columnName} with action -> ${actionName}`);
+  applyOperator = (operatorName, columnName, actionName, selectedIndices) => {
+    console.log(`doing operator: ${operatorName} column -> ${columnName} with action -> ${actionName} with indices -> ${selectedIndices}`);
     const datasetName = this.state.fileName;
     let operator;
     switch (operatorName) {
@@ -102,6 +109,9 @@ class App extends Component {
         case "tf-idf":
             action = "tfidf";
             break;
+        case "Projection":
+            action = "projection";
+            break;
         default:
             // default is lowercase action
             action = actionName;
@@ -109,13 +119,13 @@ class App extends Component {
 
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
-    axios.post(url, null, {
+    axios.post(url, {indices: selectedIndices}, {
         params: {
             operator: operator,
             action: action,
             dataset: datasetName,
             column: columnName, 
-        }
+        },
     })
       .then((response) => {
         console.log(`operator response body is ${response.body}`);

@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from .. import log
 from .featurize import *
 from .clean import lowercase, remove_stopwords, remove_punctuation
+from .select import projection
 
 spacy_nlp = spacy.load('en_core_web_sm')
 
@@ -72,7 +73,7 @@ class TexDF(object):
             return {}
             
 
-    def run_operator(self, column, operator, action):
+    def run_operator(self, column, operator, action, indices):
         # do some error handling here
         if operator == "clean":
             if action == "lowercase":
@@ -97,6 +98,11 @@ class TexDF(object):
                 generate_pca_features(self.df, column, new_column)
                 self.df_types[new_column] = "vector"
                 self.metadata[new_column] = {"pca_num": 10}
+        elif operator == "select":
+            if action == "projection":
+                new_columns, column_type = projection(self.df, column, indices)
+                for nc in new_columns:
+                    self.df_types[nc] = column_type
 
 
 

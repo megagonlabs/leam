@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Grid, Button, Typography, FormControl, InputLabel, MenuItem, Select, IconButton } from "@material-ui/core";
+import { useTheme } from '@material-ui/core/styles';
+import { Grid, Button, Typography, FormControl, InputLabel, MenuItem, Select, IconButton, Chip, Input } from "@material-ui/core";
 import { PlayArrow } from "@material-ui/icons";
 
 export default class OperatorView extends Component {
@@ -10,13 +11,26 @@ export default class OperatorView extends Component {
       action: "",
       actionList: [], 
       column: "",
+      selectedIndex: [],
     };
     this.changeOperator = this.changeOperator.bind(this);
     this.changeAction = this.changeAction.bind(this);
     this.changeColumn = this.changeColumn.bind(this);
     this.applyOperator = this.applyOperator.bind(this);
+    this.changeIndices = this.changeIndices.bind(this);
     this.classes = this.props.classes;
+    this.getStyles = this.getStyles.bind(this);
   }
+
+  getStyles = (name, personName) => {
+    return {
+      fontWeight:
+        personName.indexOf(name) === -1
+          ? "fontWeightRegular"
+          : "fontWeightBold"
+    };
+  }
+  
 
   changeOperator = (event) => {
     let actions;
@@ -29,7 +43,7 @@ export default class OperatorView extends Component {
         actions = ["tf-idf", "k-means", "pca"];
     } else {
         // Select
-        actions = ["Filter", "Sort"];
+        actions = ["Filter", "Sort", "Projection"];
     }
     this.setState({ operator: event.target.value, actionList: actions });
   }
@@ -42,14 +56,37 @@ export default class OperatorView extends Component {
     this.setState({ column: event.target.value });
   }
 
+  changeIndices = (event) => {
+    let newIndices = Object.assign([], event.target.value);
+    this.setState({ selectedIndex: newIndices });
+  }
+
   applyOperator = () => {
     const colName = this.state.column;
     const actionName = this.state.action;
     const operatorName = this.state.operator;
-    this.props.applyOperator(operatorName, colName, actionName);
+    const selectedIndices = this.state.selectedIndex;
+    this.props.applyOperator(operatorName, colName, actionName, selectedIndices);
   }
 
   render() {
+    // const theme = useTheme();
+    let indices = [];
+    for (let i = 0; i < 21; i++) {
+        indices.push(i);
+    }
+
+    const ITEM_HEIGHT = 48;
+    const ITEM_PADDING_TOP = 8;
+    const MenuProps = {
+        PaperProps: {
+          style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+          },
+        },
+      };
+
     return (
       <div className="operator-view">
         <Grid container className={this.classes.root} spacing={2}>
@@ -102,15 +139,43 @@ export default class OperatorView extends Component {
                 onChange={this.changeColumn}
               >
                 {/* <MenuItem value={"Lemmatize"}>Lemmatize</MenuItem> */}
-                {this.props.columns.map((value, _) => {
+                {this.props.columns.map((value, idx) => {
                   return (
-                    <MenuItem value={value}>{value}</MenuItem>
+                    <MenuItem value={value} key={idx}>{value}</MenuItem>
                   );
                 })}
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={5}>
+            <FormControl className={this.classes.formControl}>
+                <InputLabel id="mutiple-chip-label">Indices</InputLabel>
+                <Select
+                labelId="mutiple-chip-label"
+                id="demo-mutiple-chip"
+                multiple
+                value={this.state.selectedIndex}
+                onChange={this.changeIndices}
+                input={<Input id="select-multiple-chip" />}
+                renderValue={(selected) => (
+                    <div className={this.classes.chips}>
+                    {selected.map((value) => (
+                        <Chip key={value} label={value} className={this.classes.chip} />
+                    ))}
+                    </div>
+                )}
+                MenuProps={MenuProps}
+                >
+                {indices.map((idx) => (
+                    <MenuItem key={idx} value={idx} style={this.getStyles(idx, this.state.selectedIndex)}>
+                    {idx}
+                    </MenuItem>
+                ))}
+                </Select>
+             </FormControl>
+          </Grid>
+
+          <Grid item xs={2}>
             <IconButton color="inherit" aria-label="execute" onClick={this.applyOperator}>
               <PlayArrow />
             </IconButton>
