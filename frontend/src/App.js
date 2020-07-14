@@ -106,8 +106,17 @@ class App extends Component {
         case "Remove Punctuation":
             action = "punctuation";
             break;
-        case "tf-idf":
+        case "TF-IDF":
             action = "tfidf";
+            break;
+        case "K-Means":
+            action = "kmeans";
+            break;
+        case "PCA":
+            action = "pca";
+            break;
+        case "Sentiment":
+            action = "sentiment";
             break;
         case "Projection":
             action = "projection";

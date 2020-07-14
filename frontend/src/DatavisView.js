@@ -36,10 +36,10 @@ export default class DatavisView extends React.Component {
       this.scatterplotSpec = {
           width: props.width || 100,
           height: props.height || 100,
-          mark: 'circle',
+          mark: "circle",
           encoding: {
-              y: { field: 'pca_1', type: 'quantitative'},
-              x: { field: 'pca_0', type: 'quantitative'},
+              y: { field: "pca_1", type: "quantitative"},
+              x: { field: "pca_0", type: "quantitative"},
           },
           data: { name: 'scatterplot' },
       };
@@ -53,6 +53,24 @@ export default class DatavisView extends React.Component {
             <VegaLite spec={this.distributionSpec} data={this.props.visualData[this.props.selectedColumn]} />
         );  
       } else if (visType == "scatterplot") { 
+        const firstRow = this.props.visualData[col][visType][0];
+        for (let key in firstRow) {
+            console.log(`[datavis render] vis field -> ${key} and value ${firstRow[key]}`);
+            if (key === "review-tfidf-kmeans") {
+                this.scatterplotSpec.encoding.color = {
+                    field: "review-tfidf-kmeans", 
+                    type: "nominal",
+                };
+            } else if (key == "review-sentiment") {
+                this.scatterplotSpec.encoding.color = {
+                    field: "review-sentiment",
+                    type: "quantitative",
+                    scale: {
+                        range: ["crimson", "royalblue"],
+                    }
+                };
+            }
+        }
         return (
             <VegaLite spec={this.scatterplotSpec} data={this.props.visualData[col]} />
         );

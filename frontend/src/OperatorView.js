@@ -40,7 +40,7 @@ export default class OperatorView extends Component {
         actions = ["Lemmatize", "Lowercase", "Remove Stopwords", "Remove Punctuation"];
     } else if (newOperator == "Featurize") {
         // Featurize
-        actions = ["tf-idf", "k-means", "pca"];
+        actions = ["TF-IDF", "K-Means", "PCA", "Sentiment"];
     } else {
         // Select
         actions = ["Visualization", "Projection"];

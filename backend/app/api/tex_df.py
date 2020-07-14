@@ -109,7 +109,20 @@ class TexDF(object):
                 spec = "scatterplot" # hard-code this spec for now, but it could be dynamic json in future, also put this in separate visualization operator
                 generate_pca_features(self.df, column, new_column)
                 self.df_types[new_column] = "vector"
-                self.metadata[new_column] = {"pca_num": 10}
+                self.metadata[new_column] = {"num_components": 10}
+            elif action == 'kmeans':
+                assert(len(columns) == 1)
+                column = columns[0]
+                new_column = column + '-kmeans'
+                generate_kmeans_clusters(self.df, column, new_column)
+                self.df_types[new_column] = "float"
+                self.metadata[new_column] = {"num_clusters": 5}
+            elif action == "sentiment":
+                assert(len(columns) == 1)
+                column = columns[0]
+                new_column = column + '-sentiment'
+                generate_sentiment_features(self.df, column, new_column)
+                self.df_types[new_column] = "float"
         elif operator == "select":
             if action == "projection":
                 assert(len(columns) == 1)
