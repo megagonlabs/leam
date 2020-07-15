@@ -26,7 +26,7 @@ class DatasetDropdown extends Component {
   
     return (
       <Grid container className={this.classes.root} spacing={2}>
-        <Grid item xs={12}>
+        <Grid item xs={5}>
           <input type="file" id="selectedFile" style={{display: "none"}} onChange={this.props.onFileChange}/>
           <Button
             variant="contained"
@@ -38,7 +38,7 @@ class DatasetDropdown extends Component {
           </Button>
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid item xs={7}>
           <FormControl variant="filled" className={this.classes.formControl}>
             <InputLabel id="demo-simple-select-filled-label">Dataset Name</InputLabel>
             <Select

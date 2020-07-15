@@ -65,6 +65,7 @@ class App extends Component {
       columnTypes: {},
       columnSizes: [],
       selectedColumn: null,
+      dataVisSpec: {},
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -256,15 +257,96 @@ class App extends Component {
         const columns = JSON.parse(response.data["columns"]);
         const columnTypes = JSON.parse(response.data["columnTypes"]);
         const visualEncodings = JSON.parse(response.data["encodings"]);
+        let visualEncodingRows = [];
         let visTypes = {};
+        let spec = {
+            hconcat: [
+            ],
+            data: { name: "all" },
+        };
+        let distributionSpec = {
+            width: 250,
+            height: 200,
+            layer: [{
+                selection: {
+                    "Number": {
+                        type: "single",
+                        fields: ["TopWords"],
+                        init: {"TopWords": 10},
+                        bind: {
+                            "TopWords": {input: "range", min: 1, max: 50, step: 1},
+                        }
+                    }
+                },
+            transform: [
+                {
+                    filter: "datum.order <= Number.TopWords"
+                }
+            ],
+            mark: 'bar',
+            encoding: {
+              y: { field: 'topword', type: 'ordinal', sort: '-x' },
+              x: { field: 'score', type: 'quantitative' },
+            },
+            }],
+          }
+          
+          let scatterplotSentimentSpec = {
+              width: 250,
+              height: 200,
+              mark: "circle",
+              encoding: {
+                  y: { field: "pca_1", type: "quantitative"},
+                  x: { field: "pca_0", type: "quantitative"},
+                  color: {
+                    field: "review-sentiment",
+                    type: "quantitative",
+                    scale: {
+                        range: ["crimson", "royalblue"],
+                    }
+                }
+              },
+          };
+    
+          let scatterplotClusterSpec = {
+            width: 250,
+            height: 200,
+            mark: "circle",
+            encoding: {
+                y: { field: "pca_1", type: "quantitative"},
+                x: { field: "pca_0", type: "quantitative"},
+                color: {
+                    field: "review-tfidf-kmeans", 
+                    type: "nominal",
+                }
+            },
+         };
         for (let key in visualEncodings) {
             const visData = visualEncodings[key];
             const visKeys = Object.keys(visData);
             if (visKeys.length > 0) {
                 console.log(`vis data of key ${key} contains a visualization object with type ${visKeys[0]}`);
                 visTypes[key] = visKeys[0];
+                if (key == "<pca_0_pca_1_review-sentiment>") {
+                    spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
+                } else if (key == "<pca_0_pca_1_review-tfidf-kmeans>") {
+                    spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
+                } else if (key == "review-tfidf") {
+                    spec.hconcat = [...spec.hconcat, distributionSpec];
+                }
+                const rows = visData[visKeys[0]];
+                for (let rowIdx in rows) {
+                    const rowVal = rows[rowIdx];
+                    if (visualEncodingRows.length >= rowIdx - 1) {
+                        visualEncodingRows[rowIdx] = {...visualEncodingRows[rowIdx], ...rowVal};
+                    } else {
+                        visualEncodingRows.push(rowVal);
+                    }
+                }
             }
         }
+        const newVisualEncodings = {"all": visualEncodingRows};
+
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
           chartRow.push("");
@@ -295,7 +377,7 @@ class App extends Component {
           }
         }
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings, visualizationTypes: visTypes });
+        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings: newVisualEncodings, visualizationTypes: visTypes, dataVisSpec: spec });
       })
       .catch(function (error) {
         console.log(error);
@@ -330,12 +412,12 @@ class App extends Component {
               <OperatorView key="operator-view" classes={this.classes} columns={this.state.fileHeaders} applyOperator={this.applyOperator}/>
             </Paper>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12}>
             <Paper className={this.classes.paper}>
-              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={300} height={350} />
+              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visSpec={this.state.dataVisSpec} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={350} height={200} />
             </Paper>
           </Grid>
-          <Grid item xs={8}>
+          <Grid item xs={12}>
             <Paper className={this.classes.paper}>
               <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} />
             </Paper>
