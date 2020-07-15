@@ -31,6 +31,7 @@ export default class OperatorView extends Component {
     };
   }
   
+  
 
   changeOperator = (event) => {
     let actions;
@@ -54,7 +55,9 @@ export default class OperatorView extends Component {
 
   changeColumns = (event) => {
     // this.setState({ column: event.target.value });
+    console.log(`[operator-view] changing columns to have value -> ${event.target.value}`);
     let newColumns = Object.assign([], event.target.value);
+    newColumns = newColumns.filter(col => this.props.columns.includes(col));
     this.setState({ columns: newColumns });
   }
 
