@@ -3,10 +3,13 @@ import json
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+import nltk
 from scipy.sparse import vstack
 from .. import log
 
 spacy_nlp = spacy.load('en_core_web_sm')
+nltk.download('vader_lexicon')
 
 def basic_tokenizer(sentence):
     doc = spacy_nlp(sentence)
@@ -75,6 +78,26 @@ def generate_pca_features(df, oldColumn, newColumn):
     pca = PCA(n_components=10)
     pca_vectors = pca.fit_transform(tfidf_2d)
     df[newColumn] = pca_vectors.tolist()
-    log.info('the first rwo of pca vectors is: %s', str(df[newColumn][0]))
+    log.info('the first row of pca vectors is: %s', str(df[newColumn][0]))
+    return
+
+def generate_kmeans_clusters(df, oldColumn, newColumn):
+    tfidf_vectors = [v for v in df[oldColumn]]
+    tfidf_2d = vstack(tfidf_vectors)
+    tfidf_2d = [list(v) for v in tfidf_2d.A]
+    tfidf_2d = np.stack(tfidf_2d, axis=0)
+    kmeans = KMeans(n_clusters=6, n_init=10).fit(tfidf_2d)
+    cluster_preds = kmeans.predict(tfidf_2d)
+    df[newColumn] = list(cluster_preds)
+    log.info('the first 5 cluster values are: %s', ', '.join([str(c) for c in cluster_preds[:5]]))
+    return
+
+def generate_sentiment_features(df, oldColumn, newColumn):
+    # apply sentiment operator to the text column
+    from nltk.sentiment.vader import SentimentIntensityAnalyzer
+    sid = SentimentIntensityAnalyzer()
+    sentiments = [sid.polarity_scores(r)['compound'] for r in df[oldColumn]]
+    df[newColumn] = sentiments
+    log.info('the first 5 sentiment scores are: %s', ', '.join([str(s) for s in sentiments[:5]]))
     return
 

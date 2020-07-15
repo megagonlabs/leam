@@ -31,9 +31,13 @@ SQLALCHEMY_DATABASE_URI = 'postgresql://%(user)s:\
 def run_operator():
     log.info('In run operator endpoint!')
     operator, action = request.args.get('operator'), request.args.get('action')
-    dataset, column = request.args.get('dataset'), request.args.get('column')
+    dataset, columns, indices = request.args.get('dataset'), request.json.get('columns'), request.json.get('indices')
     log.info('operator -> %s , action -> %s', operator, action)
-    log.info(' dataset -> %s , column -> %s', dataset, column)
+    log.info(' dataset -> %s', dataset)
+    if columns is not None:
+        log.info('columns -> %s', ', '.join(columns))
+    if indices is not None:
+        log.info('indices -> %s', ', '.join([str(i) for i in indices]))
 
     # get unique table name from dataset table
     dataset_info = Dataset.query.filter(Dataset.name == dataset).first()
@@ -54,7 +58,7 @@ def run_operator():
     log.info('first row of table df is: ')
     log.info(tex_dataframe.get_df_values()[0])
 
-    tex_dataframe.run_operator(column, operator, action)
+    tex_dataframe.run_operator(columns, operator, action, indices)
 
     log.info('after first row of table df is: ')
     log.info(tex_dataframe.get_df_values()[0])

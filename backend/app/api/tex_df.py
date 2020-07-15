@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from .. import log
 from .featurize import *
 from .clean import lowercase, remove_stopwords, remove_punctuation
+from .select import projection
 
 spacy_nlp = spacy.load('en_core_web_sm')
 
@@ -27,7 +28,11 @@ class TexDF(object):
                 row_string_vectors = map(lambda r: r[:10], row_string_vectors)
                 row_string_vectors = [", ".join(r) for r in row_string_vectors]
                 readable_df[k] = row_string_vectors
-            
+            elif v == "float":
+                float_column = readable_df[k]
+                row_floats = [round(f, 5) for f in float_column]
+                readable_df[k] = row_floats
+
 
         return readable_df.values.tolist()
 
@@ -46,7 +51,6 @@ class TexDF(object):
     # spec is a json specification that describes what should be used to generate the visualization
     def create_visualization(self, columns, spec):
         # column_types = self.df_types[column]
-        col_names = [i for i in self.df.columns]
         column_types = [self.df_types[c] for c in columns]
         if spec == "distribution":
             assert(len(columns) == 1)
@@ -60,30 +64,37 @@ class TexDF(object):
             # do type check logic
             for i in column_types:
                 assert(i == "float")
-            if len(columns) == 3:
-                # use the 3rd column to visualize color
-                vega_rows = []
-                for index, row in self.df[columns].iterrows():
-                    vega_row = {c: row[c] for c in columns}
-                    vega_rows.append(vega_row)
+            # use the 3rd column to visualize color
+            vega_rows = []
+            for _, row in self.df[columns].iterrows():
+                vega_row = {c: row[c] for c in columns}
+                vega_rows.append(vega_row)
             return vega_rows        
         else:
             # raise Exception('invalid visualization: %s on column %s of type %s', spec, column, column_type)
             return {}
             
 
-    def run_operator(self, column, operator, action):
+    def run_operator(self, columns, operator, action, indices):
         # do some error handling here
         if operator == "clean":
             if action == "lowercase":
+                assert(len(columns) == 1)
+                column = columns[0]
                 lowercase(self.df, column)
             elif action == "stopword":
+                assert(len(columns) == 1)
+                column = columns[0]
                 remove_stopwords(self.df, column)
             elif action == "punctuation":
+                assert(len(columns) == 1)
+                column = columns[0]
                 remove_punctuation(self.df, column)
         elif operator == "featurize":
             if action == "tfidf":
                 # define a new column in the dataframe to assign tf-idf vectors
+                assert(len(columns) == 1)
+                column = columns[0]
                 new_column = column + "-tfidf"
                 spec = "distribution" # hard-code this spec for now, but it could be a dynamic json spec in the future
                 feature_names = generate_tfidf_features(self.df, column, new_column)
@@ -92,14 +103,38 @@ class TexDF(object):
                 encoding = self.create_visualization([new_column], spec)
                 self.cached_visual_encodings[new_column] = {"distribution": encoding}
             elif action == 'pca':
+                assert(len(columns) == 1)
+                column = columns[0]
                 new_column = column + '-pca'
                 spec = "scatterplot" # hard-code this spec for now, but it could be dynamic json in future, also put this in separate visualization operator
                 generate_pca_features(self.df, column, new_column)
                 self.df_types[new_column] = "vector"
-                self.metadata[new_column] = {"pca_num": 10}
-
-
-
+                self.metadata[new_column] = {"num_components": 10}
+            elif action == 'kmeans':
+                assert(len(columns) == 1)
+                column = columns[0]
+                new_column = column + '-kmeans'
+                generate_kmeans_clusters(self.df, column, new_column)
+                self.df_types[new_column] = "float"
+                self.metadata[new_column] = {"num_clusters": 5}
+            elif action == "sentiment":
+                assert(len(columns) == 1)
+                column = columns[0]
+                new_column = column + '-sentiment'
+                generate_sentiment_features(self.df, column, new_column)
+                self.df_types[new_column] = "float"
+        elif operator == "select":
+            if action == "projection":
+                assert(len(columns) == 1)
+                column = columns[0]
+                new_columns, column_type = projection(self.df, column, indices)
+                for nc in new_columns:
+                    self.df_types[nc] = column_type
+            elif action == "visualization":
+                spec = "scatterplot" # need to make this part of vta inference, or user can define their own spec maybe?
+                visual_encoding = self.create_visualization(columns, spec)
+                vis_name = '<' + '_'.join(columns) + '>'
+                self.cached_visual_encodings[vis_name] = {"scatterplot": visual_encoding}
         else:
             raise Exception('unknown operator: %s', operator)
     
