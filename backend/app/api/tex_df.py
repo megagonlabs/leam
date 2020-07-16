@@ -65,6 +65,8 @@ class TexDF(object):
             for i in column_types:
                 assert(i == "float")
             # use the 3rd column to visualize color
+            if 'review' not in columns:
+                columns.append('review')
             vega_rows = []
             for _, row in self.df[columns].iterrows():
                 vega_row = {c: row[c] for c in columns}
