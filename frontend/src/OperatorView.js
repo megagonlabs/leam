@@ -94,12 +94,12 @@ export default class OperatorView extends Component {
 
     return (
       <div className="operator-view">
-        <Grid container className={this.classes.root} spacing={2}>
-          <Grid item xs={12}>
+        <Grid container className={this.classes.buttonsCells} spacing={2}>
+          {/* <Grid item xs={12}>
             <Typography variant="h5" color="inherit">
               Query Builder
             </Typography>
-          </Grid>
+          </Grid> */}
           <Grid item xs={5}>
             <FormControl variant="filled" className={this.classes.formControl}>
               <InputLabel id="select-operator">Operator</InputLabel>

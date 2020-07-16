@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import { VegaLite } from 'react-vega';
 import BarChart from "./BarChart.js";
+import { Handler } from 'vega-tooltip';
 
 export default class DatavisView extends React.Component {
     constructor(props, context) {
@@ -89,7 +90,7 @@ export default class DatavisView extends React.Component {
     //     }
     //   }
       return (
-        <VegaLite spec={this.props.visSpec} data={this.props.visualData} />
+        <VegaLite spec={this.props.visSpec} data={this.props.visualData} tooltip={new Handler().call} />
       ); 
     }
   }

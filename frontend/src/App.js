@@ -20,6 +20,10 @@ const useStyles = (theme) => ({
     flexGrow: 1,
     height: '200px',
   },
+  buttonsCells: {
+    flexGrow: 1,
+    height: '150px',
+  },
   paper: {
     // marginTop: theme.spacing(1),
     padding: theme.spacing(2),
@@ -283,7 +287,7 @@ class App extends Component {
                     filter: "datum.order <= Number.TopWords"
                 }
             ],
-            mark: 'bar',
+            mark: {type: 'bar', tooltip: true},
             encoding: {
               y: { field: 'topword', type: 'ordinal', sort: '-x' },
               x: { field: 'score', type: 'quantitative' },
@@ -294,10 +298,11 @@ class App extends Component {
           let scatterplotSentimentSpec = {
               width: 250,
               height: 200,
-              mark: "circle",
+              mark: "point",
               encoding: {
                   y: { field: "pca_1", type: "quantitative"},
                   x: { field: "pca_0", type: "quantitative"},
+                  tooltip: { field: "review", type: "nominal" },
                   color: {
                     field: "review-sentiment",
                     type: "quantitative",
@@ -315,6 +320,7 @@ class App extends Component {
             encoding: {
                 y: { field: "pca_1", type: "quantitative"},
                 x: { field: "pca_0", type: "quantitative"},
+                tooltip: { field: "review", type: "nominal" },
                 color: {
                     field: "review-tfidf-kmeans", 
                     type: "nominal",
@@ -327,9 +333,9 @@ class App extends Component {
             if (visKeys.length > 0) {
                 console.log(`vis data of key ${key} contains a visualization object with type ${visKeys[0]}`);
                 visTypes[key] = visKeys[0];
-                if (key == "<pca_0_pca_1_review-sentiment>") {
+                if (key == "<pca_0_pca_1_review-sentiment>" || key =="<pca_0_pca_1_review-sentiment_review>") {
                     spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
-                } else if (key == "<pca_0_pca_1_review-tfidf-kmeans>") {
+                } else if (key == "<pca_0_pca_1_review-tfidf-kmeans>" || key == "<pca_0_pca_1_review-tfidf-kmeans_review>") {
                     spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
                 } else if (key == "review-tfidf") {
                     spec.hconcat = [...spec.hconcat, distributionSpec];

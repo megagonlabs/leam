@@ -23,7 +23,8 @@
     "react-vega": "^7.3.0",
     "react-virtualized": "^9.21.2",
     "vega": "^5.13.0",
-    "vega-lite": "^4.13.1"
+    "vega-lite": "^4.13.1",
+    "vega-tooltip": "^0.23.2"
   },
   "scripts": {
     "start": "react-scripts --max_old_space_size=8192 start",

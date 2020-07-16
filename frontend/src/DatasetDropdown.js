@@ -25,7 +25,7 @@ class DatasetDropdown extends Component {
   render() {
   
     return (
-      <Grid container className={this.classes.root} spacing={2}>
+      <Grid container className={this.classes.buttonsCells} spacing={2}>
         <Grid item xs={5}>
           <input type="file" id="selectedFile" style={{display: "none"}} onChange={this.props.onFileChange}/>
           <Button
