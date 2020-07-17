@@ -2,75 +2,25 @@ import React, { PropTypes } from 'react';
 import { VegaLite } from 'react-vega';
 import BarChart from "./BarChart.js";
 import { Handler } from 'vega-tooltip';
+import vegaEmbed from 'vega-embed';
+
+
+const vgEmbedOptions = { actions: false, renderer: 'svg', tooltip: true };
+
 
 export default class DatavisView extends React.Component {
     constructor(props, context) {
       super(props, context);
-      this.distributionSpec = {
-        width: props.width || 100,
-        height: props.height || 100,
-        layer: [{
-            selection: {
-                "Number": {
-                    type: "single",
-                    fields: ["TopWords"],
-                    init: {"TopWords": 10},
-                    bind: {
-                        "TopWords": {input: "range", min: 1, max: 50, step: 1},
-                    }
-                }
-            },
-        transform: [
-            {
-                filter: "datum.order <= Number.TopWords"
-            }
-        ],
-        mark: 'bar',
-        encoding: {
-          y: { field: 'topword', type: 'ordinal', sort: '-x' },
-          x: { field: 'score', type: 'quantitative' },
-        },
-        }],
-      }
-      
-
-      this.scatterplotSentimentSpec = {
-          width: props.width || 100,
-          height: props.height || 100,
-          mark: "circle",
-          encoding: {
-              y: { field: "pca_1", type: "quantitative"},
-              x: { field: "pca_0", type: "quantitative"},
-              color: {
-                field: "review-sentiment",
-                type: "quantitative",
-                scale: {
-                    range: ["crimson", "royalblue"],
-                }
-            }
-          },
-      };
-
-      this.scatterplotClusterSpec = {
-        width: props.width || 100,
-        height: props.height || 100,
-        mark: "circle",
-        encoding: {
-            y: { field: "pca_1", type: "quantitative"},
-            x: { field: "pca_0", type: "quantitative"},
-            color: {
-                field: "review-tfidf-kmeans", 
-                type: "nominal",
-            }
-        },
-     };
-
-     this.spec = {
-        hconcat: [
-        ],
-        data: { name: "all" },
-      };
     }
+
+    componentDidMount() {
+        // histograms for attributes
+        vegaEmbed(this.visRef, this.props.visSpec, vgEmbedOptions).then(({spec, view}) => {
+            view.addEventListener('mouseover', function (event, item) {
+                console.log(item.datum)
+            })
+        })
+      }
   
     render() {
     //   const col = this.props.selectedColumn;
@@ -89,8 +39,8 @@ export default class DatavisView extends React.Component {
     //         }
     //     }
     //   }
-      return (
-        <VegaLite spec={this.props.visSpec} data={this.props.visualData} tooltip={new Handler().call} />
-      ); 
+        return (
+            <div className="vgl-vis" id="vgl-vis" ref={e => this.visRef = e}></div>
+        );
     }
   }
