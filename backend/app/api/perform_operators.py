@@ -1,10 +1,9 @@
 """operators.py - This file defines functiosn for api endpoints
 related to running operators on dataset columns."""
 
-import json
+import json, os, time
 import pandas as pd
 import pickle
-import os
 from flask import jsonify, request
 from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -29,6 +28,7 @@ SQLALCHEMY_DATABASE_URI = 'postgresql://%(user)s:\
 
 @v1.route('/run-operator', methods=(['POST']))
 def run_operator():
+    start_time = time.time()
     log.info('In run operator endpoint!')
     operator, action = request.args.get('operator'), request.args.get('action')
     dataset, columns, indices = request.args.get('dataset'), request.json.get('columns'), request.json.get('indices')
@@ -43,6 +43,7 @@ def run_operator():
     dataset_info = Dataset.query.filter(Dataset.name == dataset).first()
     log.info('dataset unique table -> %s', dataset_info.table_name)
 
+    read_start_time = time.time()
     # check if we have table dataframe stored
     dataset_name = dataset.split('.')[0]
     dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
@@ -53,6 +54,8 @@ def run_operator():
     else:
         df = pd.read_sql_table(dataset_info.table_name, SQLALCHEMY_DATABASE_URI)
         tex_dataframe = TexDF(df)
+    read_time_diff = time.time() - read_start_time
+    log.info('[TIME] get dataset READ DATAFRAME took %s seconds', read_time_diff)
 
 
     log.info('first row of table df is: ')
@@ -62,6 +65,12 @@ def run_operator():
 
     log.info('after first row of table df is: ')
     log.info(tex_dataframe.get_df_values()[0])
+
+    time_diff = round(time.time() - start_time, 3)
+    log.info('[TIME] run operator took %s seconds', time_diff)
  
+    write_time_start = time.time()
     pickle.dump(tex_dataframe, open(dataframe_pkl_file, 'wb'))
+    write_time_diff = round(time.time() - write_time_start, 3)
+    log.info('[TIME] get dataset WRITE DATAFRAME took %s seconds', write_time_diff)
     return jsonify({})

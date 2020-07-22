@@ -1,5 +1,4 @@
-import re, json, uuid, csv
-import os
+import re, json, uuid, csv, os, time
 import pandas as pd
 import pickle
 import scipy
@@ -37,6 +36,7 @@ def get_datasets():
 
 @v1.route('/get-datasets/<string:name>', methods=(['GET']))
 def get_dataset(name):
+    start_time = time.time()
     num_rows = int(request.headers.get('numrows'))
     log.info("Getting single dataset with name: {} and numrows: {}".format(name, num_rows))
     engine = create_engine(SQLALCHEMY_DATABASE_URI)
@@ -48,6 +48,7 @@ def get_dataset(name):
     table_name = dataset_row.table_name
     log.info("Got table name -> {}".format(table_name))
   
+    read_start_time = time.time()
     # check if session dataframe has been stored
     dataset_name = name.split('.')[0]
     dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
@@ -58,6 +59,8 @@ def get_dataset(name):
         df = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
         tex_dataframe = TexDF(df)
         pickle.dump(tex_dataframe, open(dataframe_pkl_file, 'wb'))
+    read_time_diff = time.time() - read_start_time
+    log.info('[TIME] get dataset READ DATAFRAME took %s seconds', read_time_diff)
 
     tex_df_values = tex_dataframe.get_df_values()
     tex_df_columns = json.dumps(tex_dataframe.get_df_columns())
@@ -65,6 +68,9 @@ def get_dataset(name):
     tex_df_types = json.dumps(tex_dataframe.get_df_types())
     log.info("first row of df: ")
     log.info(tex_df_values[0])
+    time_diff = round(time.time() - start_time, 3)
+    log.info("[TIME] get dataset took %d seconds", time_diff)
+    
     tex_df_rows = json.dumps(tex_df_values)
 
     return jsonify({ 'rows': tex_df_rows, 'columns': tex_df_columns, 'columnTypes': tex_df_types, 'encodings': tex_df_visual_encodings})
