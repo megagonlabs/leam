@@ -264,9 +264,10 @@ class App extends Component {
         let visualEncodingRows = [];
         let visTypes = {};
         let spec = {
+            $schema: 'https://vega.github.io/schema/vega-lite/3.0.0-rc6.json',
             hconcat: [
             ],
-            data: { name: "all" },
+            data: { values: [] },
         };
         let distributionSpec = {
             width: 250,
@@ -352,6 +353,7 @@ class App extends Component {
             }
         }
         const newVisualEncodings = {"all": visualEncodingRows};
+        spec.data.values = visualEncodingRows;
 
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
