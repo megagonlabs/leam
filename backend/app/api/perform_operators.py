@@ -27,12 +27,13 @@ POSTGRES = {
 SQLALCHEMY_DATABASE_URI = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
+
 @v1.route('/run-operator', methods=(['POST']))
 def run_operator():
     log.info('In run operator endpoint!')
-    operator, action = request.args.get('operator'), request.args.get('action')
+    operator, action, vis = request.args.get('operator'), request.args.get('action'), request.args.get('visualization')
     dataset, columns, indices = request.args.get('dataset'), request.json.get('columns'), request.json.get('indices')
-    log.info('operator -> %s , action -> %s', operator, action)
+    log.info('operator -> %s , action -> %s, visualization -> %s', operator, action, vis)
     log.info(' dataset -> %s', dataset)
     if columns is not None:
         log.info('columns -> %s', ', '.join(columns))
@@ -58,7 +59,7 @@ def run_operator():
     log.info('first row of table df is: ')
     log.info(tex_dataframe.get_df_values()[0])
 
-    tex_dataframe.run_operator(columns, operator, action, indices)
+    tex_dataframe.run_operator(columns, operator, action, indices, vis)
 
     log.info('after first row of table df is: ')
     log.info(tex_dataframe.get_df_values()[0])

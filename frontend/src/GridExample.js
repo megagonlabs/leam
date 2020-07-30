@@ -77,6 +77,7 @@ export default class GridExample extends React.Component {
       useDynamicRowHeight,
     } = this.state;
 
+
     return (
         <AutoSizer disableHeight ref="AutoSizer">
           {({width}) => (
@@ -106,9 +107,9 @@ export default class GridExample extends React.Component {
   }
 
   componentWillReceiveProps(props) {
-    // this.grid.forceUpdate();
     // this.grid.measureAllCells();
     this.grid.recomputeGridSize();
+    this.grid.forceUpdate();
   }
 
   _cellRenderer({columnIndex, key, rowIndex, style}) {
@@ -159,6 +160,7 @@ export default class GridExample extends React.Component {
     if (this.props.numRows == 0) {
       return "";
     } 
+    // if rows are highlighted, place them at the top
     const datum = this.props.datasetRows[index % 501];
     // console.log("datum is -> ", datum);
     return datum;
@@ -181,12 +183,17 @@ export default class GridExample extends React.Component {
   }
 
   _highlightRow = event => {
-    this.setState({ highlightedRow: event.target.id });
-    this.grid.forceUpdate();
+    // this.setState({ highlightedRow: event.target.id });
+    const rowNum = parseInt(event.target.id);
+    if (rowNum > 1) {
+        this.props.highlight([rowNum]);
+        // this.grid.forceUpdate();
+    }
   }
 
   _unHighlightRow = event => {
-    this.setState({ highlightedRow: -1 });
+    // this.setState({ highlightedRow: -1 });
+    this.props.highlight([]);
   }
 
   _collapseCell = event => {
@@ -224,7 +231,7 @@ export default class GridExample extends React.Component {
     const classNames = clsx(rowClass, "cell", {
       ["centeredCell"]: columnIndex > 2,
       ["headerCell"]: rowIndex == 0,
-      ["rowSelected"]: (rowIndex == this.state.highlightedRow) && (rowIndex > 1),
+      ["rowSelected"]: (this.props.highlightedRows.includes(rowIndex) && (rowIndex > 1)),
     });
 
     style = {

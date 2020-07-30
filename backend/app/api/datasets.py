@@ -63,11 +63,12 @@ def get_dataset(name):
     tex_df_columns = json.dumps(tex_dataframe.get_df_columns())
     tex_df_visual_encodings = json.dumps(tex_dataframe.get_visual_encodings())
     tex_df_types = json.dumps(tex_dataframe.get_df_types())
+    tex_df_idx = json.dumps(tex_dataframe.get_idx())
     log.info("first row of df: ")
     log.info(tex_df_values[0])
     tex_df_rows = json.dumps(tex_df_values)
 
-    return jsonify({ 'rows': tex_df_rows, 'columns': tex_df_columns, 'columnTypes': tex_df_types, 'encodings': tex_df_visual_encodings})
+    return jsonify({ 'rows': tex_df_rows, 'columns': tex_df_columns, 'columnTypes': tex_df_types, 'encodings': tex_df_visual_encodings, 'vis_idx': tex_df_idx})
 
 @v1.route('/upload-file', methods=(['POST']))
 def upload_file():
