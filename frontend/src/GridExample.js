@@ -160,7 +160,21 @@ export default class GridExample extends React.Component {
     if (this.props.numRows == 0) {
       return "";
     } 
+    if (index == 0) {
+        return this.props.datasetRows[index]; // this is just for the chart header cells
+    }
+
     // if rows are highlighted, place them at the top
+    if (this.props.isFiltering == true) {
+        // console.log(`[TableView] gets to isfiltering check!`);
+        const normalizedIndex = index - 1;
+        if (normalizedIndex <= (this.props.highlightedRows.length - 1)) {
+            const highlightedRowNum = this.props.highlightedRows[normalizedIndex];
+            // console.log(`[TableView] index is ${highlightedRowNum} should return ${this.props.datasetRows[highlightedRowNum % 501]}`);
+            return this.props.datasetRows[highlightedRowNum % 501];
+        } 
+        return "";
+    } 
     const datum = this.props.datasetRows[index % 501];
     // console.log("datum is -> ", datum);
     return datum;
@@ -186,7 +200,7 @@ export default class GridExample extends React.Component {
     // this.setState({ highlightedRow: event.target.id });
     const rowNum = parseInt(event.target.id);
     if (rowNum > 1) {
-        this.props.highlight([rowNum]);
+        this.props.highlight([rowNum], true);
         // this.grid.forceUpdate();
     }
   }
@@ -231,7 +245,7 @@ export default class GridExample extends React.Component {
     const classNames = clsx(rowClass, "cell", {
       ["centeredCell"]: columnIndex > 2,
       ["headerCell"]: rowIndex == 0,
-      ["rowSelected"]: (this.props.highlightedRows.includes(rowIndex) && (rowIndex > 1)),
+      ["rowSelected"]: (this.props.isFiltering) ? ((rowIndex-2) < this.props.highlightedRows.length && rowIndex > 1) : (this.props.highlightedRows[0] - 1 == rowIndex && rowIndex > 1),
     });
 
     style = {
@@ -239,7 +253,7 @@ export default class GridExample extends React.Component {
     }
 
     return (
-      <div id={rowIndex} onMouseOver={this._highlightRow} onClick={this._collapseCell} className={classNames} key={key} style={style}>
+      <div id={rowIndex} onMouseEnter={this._highlightRow} onMouseLeave={this._unHighlightRow} onClick={this._collapseCell} className={classNames} key={key} style={style}>
         {content}
       </div>
     );

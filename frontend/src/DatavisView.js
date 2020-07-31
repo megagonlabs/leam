@@ -39,7 +39,7 @@ export default class DatavisView extends React.Component {
                         if (item != undefined && item.datum != undefined) {
                             console.log(item.datum);
                             const rows = barchartIdx[item.datum.topword];
-                            barchartCoordFunc(rows);
+                            barchartCoordFunc(rows, false);
                         }
                     })
                 }
@@ -58,6 +58,8 @@ export default class DatavisView extends React.Component {
             this.setState({refListUpdated: true});
         } else if (prevState.refListUpdated === false && this.state.refListUpdated === true) {
             this.setState({refListUpdated: false});
+        } else if (prevProps.reverseIdx["barchart"] == undefined && this.props.reverseIdx["barchart"] != undefined) {
+            // pass
         } else {
             return;
         }
@@ -80,7 +82,7 @@ export default class DatavisView extends React.Component {
                         if (item != undefined && item.datum != undefined) {
                             console.log(item.datum);
                             const rows = barchartIdx[item.datum.topword];
-                            barchartCoordFunc(rows);
+                            barchartCoordFunc(rows, false);
                         }
                     })
                 }

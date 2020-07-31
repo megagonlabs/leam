@@ -72,6 +72,7 @@ class App extends Component {
       dataVisSpec: [],
       reverseIndex: {},
       highlightedRows: [],
+      filtering: false,
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -81,10 +82,29 @@ class App extends Component {
     this.selectColumn = this.selectColumn.bind(this);
     this.classes = this.props.classes;
     this.highlightRows = this.highlightRows.bind(this);
+
   }
 
-  highlightRows = (rows) => {
-      this.setState({highlightedRows: rows});
+  highlightRows = (rows, isMouseover) => {
+      const normalizedRows = rows.map((val, _) => val+1);  
+      this.setState({highlightedRows: normalizedRows});
+      if (isMouseover == false) {
+          this.setState({filtering: true});
+      } else {
+          this.setState({filtering: false});
+      }
+    //   if (isMouseover === false && this.state.datasetRows.length > 0) {
+    //       // filter highlighted rows to top
+    //       const actualRows = this.state.datasetRows.filter((r, _) => ((rows.includes(r[0]+1) == false) && (r[0] > 1)));
+    //       let newDatasetRows = [this.state.datasetRows[0]];
+    //       for (let key in actualRows) {
+    //           const r = actualRows[key];
+    //           newDatasetRows.push(r);
+    //       }
+    //       let remainingRows = this.state.datasetRows.filter((r, _) => ((rows.includes(r[0]+1) == false) && (r[0] > 1)));
+    //       newDatasetRows = [...newDatasetRows, ...remainingRows];
+    //       this.setState({datasetRows: newDatasetRows});
+    //   }
   }
 
   applyOperator = (operatorName, columnNames, actionName, selectedIndices) => {
@@ -294,15 +314,15 @@ class App extends Component {
                     "Number": {
                         type: "single",
                         fields: ["TopWords"],
-                        init: {"TopWords": 450},
+                        init: {"TopWords": 10},
                         bind: {
-                            "TopWords": {input: "range", min: 1, max: 500, step: 1},
+                            "TopWords": {input: "range", min: 1, max: 50, step: 1},
                         }
                     }
                 },
             transform: [
                 {
-                    filter: "datum.order > Number.TopWords"
+                    filter: "datum.order <= Number.TopWords"
                 }
             ],
             mark: {type: 'bar', tooltip: true},
@@ -461,7 +481,7 @@ class App extends Component {
           </Grid>
           <Grid item xs={12}>
             <Paper className={this.classes.paper}>
-              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} highlightedRows={this.state.highlightedRows} highlight={this.highlightRows} />
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} highlightedRows={this.state.highlightedRows} highlight={this.highlightRows} isFiltering={this.state.filtering} />
             </Paper>
           </Grid>
         </Grid>
