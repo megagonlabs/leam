@@ -69,7 +69,10 @@ class App extends Component {
       columnTypes: {},
       columnSizes: [],
       selectedColumn: null,
-      dataVisSpec: {},
+      dataVisSpec: [],
+      reverseIndex: {},
+      highlightedRows: [],
+      filtering: false,
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -78,6 +81,30 @@ class App extends Component {
     this.applyOperator = this.applyOperator.bind(this);
     this.selectColumn = this.selectColumn.bind(this);
     this.classes = this.props.classes;
+    this.highlightRows = this.highlightRows.bind(this);
+
+  }
+
+  highlightRows = (rows, isMouseover) => {
+      const normalizedRows = rows.map((val, _) => val+1);  
+      this.setState({highlightedRows: normalizedRows});
+      if (isMouseover == false) {
+          this.setState({filtering: true});
+      } else {
+          this.setState({filtering: false});
+      }
+    //   if (isMouseover === false && this.state.datasetRows.length > 0) {
+    //       // filter highlighted rows to top
+    //       const actualRows = this.state.datasetRows.filter((r, _) => ((rows.includes(r[0]+1) == false) && (r[0] > 1)));
+    //       let newDatasetRows = [this.state.datasetRows[0]];
+    //       for (let key in actualRows) {
+    //           const r = actualRows[key];
+    //           newDatasetRows.push(r);
+    //       }
+    //       let remainingRows = this.state.datasetRows.filter((r, _) => ((rows.includes(r[0]+1) == false) && (r[0] > 1)));
+    //       newDatasetRows = [...newDatasetRows, ...remainingRows];
+    //       this.setState({datasetRows: newDatasetRows});
+    //   }
   }
 
   applyOperator = (operatorName, columnNames, actionName, selectedIndices) => {
@@ -133,7 +160,7 @@ class App extends Component {
             break;
         default:
             // default is lowercase action
-            action = actionName;
+            action = actionName.toLowerCase();
     }
 
     const url = "http://localhost:5000/v1/run-operator";
@@ -143,6 +170,7 @@ class App extends Component {
             operator: operator,
             action: action,
             dataset: datasetName,
+            visualization: "review-tfidf",
         },
     })
       .then((response) => {
@@ -261,15 +289,25 @@ class App extends Component {
         const columns = JSON.parse(response.data["columns"]);
         const columnTypes = JSON.parse(response.data["columnTypes"]);
         const visualEncodings = JSON.parse(response.data["encodings"]);
+        const visIndexes = JSON.parse(response.data["vis_idx"]);
         let visualEncodingRows = [];
         let visTypes = {};
-        let spec = {
-            hconcat: [
-            ],
-            data: { name: "all" },
-        };
+
+        console.log(`visIndex is: ${visIndexes["barchart"]}`);
+        const indexes = {...this.state.reverseIndex, barchart: visIndexes["barchart"]};
+        this.setState({reverseIndex: indexes});
+
+        // let spec = {
+        //     $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+        //     hconcat: [
+        //     ],
+        //     data: { values: [] },
+        // };
+        const specList = [];
         let distributionSpec = {
-            width: 250,
+            $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+            data: {values: []},
+            width: 200,
             height: 200,
             layer: [{
                 selection: {
@@ -296,7 +334,9 @@ class App extends Component {
           }
           
           let scatterplotSentimentSpec = {
-              width: 250,
+              $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+              data: {values: []},
+              width: 150,
               height: 200,
               mark: "point",
               encoding: {
@@ -314,7 +354,9 @@ class App extends Component {
           };
     
           let scatterplotClusterSpec = {
-            width: 250,
+            $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+            data: {values: []},
+            width: 150,
             height: 200,
             mark: "circle",
             encoding: {
@@ -331,15 +373,6 @@ class App extends Component {
             const visData = visualEncodings[key];
             const visKeys = Object.keys(visData);
             if (visKeys.length > 0) {
-                console.log(`vis data of key ${key} contains a visualization object with type ${visKeys[0]}`);
-                visTypes[key] = visKeys[0];
-                if (key == "<pca_0_pca_1_review-sentiment>" || key =="<pca_0_pca_1_review-sentiment_review>") {
-                    spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
-                } else if (key == "<pca_0_pca_1_review-tfidf-kmeans>" || key == "<pca_0_pca_1_review-tfidf-kmeans_review>") {
-                    spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
-                } else if (key == "review-tfidf") {
-                    spec.hconcat = [...spec.hconcat, distributionSpec];
-                }
                 const rows = visData[visKeys[0]];
                 for (let rowIdx in rows) {
                     const rowVal = rows[rowIdx];
@@ -351,6 +384,29 @@ class App extends Component {
                 }
             }
         }
+
+        for (let key in visualEncodings) {
+            const visData = visualEncodings[key];
+            const visKeys = Object.keys(visData);
+            if (visKeys.length > 0) {
+                console.log(`vis data of key ${key} contains a visualization object with type ${visKeys[0]}`);
+                visTypes[key] = visKeys[0];
+                if (key == "<pca_0_pca_1_review-sentiment>" || key =="<pca_0_pca_1_review-sentiment_review>" || key == "<review_pca_0_pca_1_review-sentiment>") {
+                    // spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
+                    scatterplotSentimentSpec.data.values = visualEncodingRows;
+                    specList.push(scatterplotSentimentSpec);
+                } else if (key == "<pca_0_pca_1_review-tfidf-kmeans>" || key == "<pca_0_pca_1_review-tfidf-kmeans_review>" || key == "<review_pca_0_pca_1_review-tfidf-kmeans>") {
+                    // spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
+                    scatterplotClusterSpec.data.values = visualEncodingRows;
+                    specList.push(scatterplotClusterSpec);
+                } else if (key == "review-tfidf") {
+                    // spec.hconcat = [...spec.hconcat, distributionSpec];
+                    distributionSpec.data.values = visualEncodingRows;
+                    specList.push(distributionSpec);
+                }
+            }
+        }
+
         const newVisualEncodings = {"all": visualEncodingRows};
 
         this.setState({ fileHeaders: columns });
@@ -383,7 +439,7 @@ class App extends Component {
           }
         }
         columnWidths = columnWidths.map((val) => { return val / 20; });
-        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings: newVisualEncodings, visualizationTypes: visTypes, dataVisSpec: spec });
+        this.setState({ datasetRows: rows, columnSizes: columnWidths, columnTypes, visualEncodings: newVisualEncodings, visualizationTypes: visTypes, dataVisSpec: specList });
       })
       .catch(function (error) {
         console.log(error);
@@ -420,12 +476,12 @@ class App extends Component {
           </Grid>
           <Grid item xs={12}>
             <Paper className={this.classes.paper}>
-              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visSpec={this.state.dataVisSpec} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={350} height={200} />
+              <DatavisView key="datavis-view" visualData={this.state.visualEncodings} visSpecList={this.state.dataVisSpec} visTypes={this.state.visualizationTypes} selectedColumn={this.state.selectedColumn} width={350} height={200} reverseIdx={this.state.reverseIndex} highlightRows={this.highlightRows}/>
             </Paper>
           </Grid>
           <Grid item xs={12}>
             <Paper className={this.classes.paper}>
-              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} />
+              <TableView key="table-view" datasetRows={this.state.datasetRows} datasetHeader={this.state.fileHeaders} visualData={this.state.visualEncodings} visTypes={this.state.visualizationTypes} colTypes={this.state.columnTypes} selectColumn={this.selectColumn} colSizes={this.state.columnSizes} highlightedRows={this.state.highlightedRows} highlight={this.highlightRows} isFiltering={this.state.filtering} />
             </Paper>
           </Grid>
         </Grid>

@@ -2,95 +2,109 @@ import React, { PropTypes } from 'react';
 import { VegaLite } from 'react-vega';
 import BarChart from "./BarChart.js";
 import { Handler } from 'vega-tooltip';
+import { Grid } from "@material-ui/core";
+import vegaEmbed from 'vega-embed';
+
+
+// const vgEmbedOptions = { actions: false, renderer: 'svg', tooltip: true };
+const vgEmbedOptions = {};
+
 
 export default class DatavisView extends React.Component {
     constructor(props, context) {
       super(props, context);
-      this.distributionSpec = {
-        width: props.width || 100,
-        height: props.height || 100,
-        layer: [{
-            selection: {
-                "Number": {
-                    type: "single",
-                    fields: ["TopWords"],
-                    init: {"TopWords": 10},
-                    bind: {
-                        "TopWords": {input: "range", min: 1, max: 50, step: 1},
-                    }
-                }
-            },
-        transform: [
-            {
-                filter: "datum.order <= Number.TopWords"
-            }
-        ],
-        mark: 'bar',
-        encoding: {
-          y: { field: 'topword', type: 'ordinal', sort: '-x' },
-          x: { field: 'score', type: 'quantitative' },
-        },
-        }],
-      }
-      
-
-      this.scatterplotSentimentSpec = {
-          width: props.width || 100,
-          height: props.height || 100,
-          mark: "circle",
-          encoding: {
-              y: { field: "pca_1", type: "quantitative"},
-              x: { field: "pca_0", type: "quantitative"},
-              color: {
-                field: "review-sentiment",
-                type: "quantitative",
-                scale: {
-                    range: ["crimson", "royalblue"],
-                }
-            }
-          },
+      this.refList = this.props.visSpecList.map(() => React.createRef());
+      this.state = {
+          refListUpdated: false,
       };
+      console.log(`[datavis view] vis spec list constructor: ${props.visSpecList}`);
+    }
 
-      this.scatterplotClusterSpec = {
-        width: props.width || 100,
-        height: props.height || 100,
-        mark: "circle",
-        encoding: {
-            y: { field: "pca_1", type: "quantitative"},
-            x: { field: "pca_0", type: "quantitative"},
-            color: {
-                field: "review-tfidf-kmeans", 
-                type: "nominal",
-            }
-        },
-     };
+    componentDidMount() {
+        console.log(`here is the current props spec: `);
+        console.log(this.props.visSpecList);
+        
+        console.log(`here is the vis refs list: `);
+        console.log(this.refList);
 
-     this.spec = {
-        hconcat: [
-        ],
-        data: { name: "all" },
-      };
+        for (let key in this.refList) {
+            let ref = this.refList[key];
+            const barchartIdx = this.props.reverseIdx["barchart"];
+            const barchartCoordFunc = this.props.highlightRows;
+            vegaEmbed(ref.current, this.props.visSpecList[key], vgEmbedOptions).then(({_, view}) => {
+                console.log(`view should be here!`);
+                console.log(view);
+                if (key == 0) {
+                    view.addEventListener('mouseover', function (event, item) {
+                        if (item != undefined && item.datum != undefined) {
+                            console.log(item.datum);
+                            const rows = barchartIdx[item.datum.topword];
+                            barchartCoordFunc(rows, false);
+                        }
+                    })
+                }
+                
+            }).catch((err) => {
+                console.log("error:");
+                console.log(err);
+            })
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.visSpecList.length != this.props.visSpecList.length) {
+            this.refList = this.props.visSpecList.map(() => React.createRef());
+            console.log(`[componentDidUpdate] new ref list: ${JSON.stringify(this.refList)}`);
+            this.setState({refListUpdated: true});
+        } else if (prevState.refListUpdated === false && this.state.refListUpdated === true) {
+            this.setState({refListUpdated: false});
+        } else if (prevProps.reverseIdx["barchart"] == undefined && this.props.reverseIdx["barchart"] != undefined) {
+            // pass
+        } else {
+            return;
+        }
+
+        console.log(`here is the current props spec: `);
+        console.log(this.props.visSpecList);
+        
+        console.log(`here is the vis refs list: `);
+        console.log(this.refList);
+
+        for (let key in this.refList) {
+            let ref = this.refList[key];
+            const barchartIdx = this.props.reverseIdx["barchart"];
+            const barchartCoordFunc = this.props.highlightRows;
+            vegaEmbed(ref.current, this.props.visSpecList[key], vgEmbedOptions).then(({_, view}) => {
+                console.log(`view should be here!`);
+                console.log(view);
+                if (key == 0) {
+                    view.addEventListener('mouseover', function (event, item) {
+                        if (item != undefined && item.datum != undefined) {
+                            console.log(item.datum);
+                            const rows = barchartIdx[item.datum.topword];
+                            barchartCoordFunc(rows, false);
+                        }
+                    })
+                }
+                
+            }).catch((err) => {
+                console.log("error:");
+                console.log(err);
+            })
+        }
     }
   
     render() {
-    //   const col = this.props.selectedColumn;
-    //   const visType = (col == null) ? null : this.props.visTypes[col];
-    //   let newSpec = Object.assign({}, this.spec);
-    //   if (visType == "distribution") {
-    //     newSpec.hconcat.push(this.distributionSpec);
-    //   } else if (visType == "scatterplot") { 
-    //     const firstRow = this.props.visualData[col][visType][0];
-    //     for (let key in firstRow) {
-    //         console.log(`[datavis render] vis field -> ${key} and value ${firstRow[key]}`);
-    //         if (key === "review-tfidf-kmeans") {
-    //             newSpec.hconcat.push(this.scatterplotClusterSpec);
-    //         } else if (key == "review-sentiment") {
-    //             newSpec.hconcat.push(this.scatterplotSentimentSpec);
-    //         }
-    //     }
-    //   }
-      return (
-        <VegaLite spec={this.props.visSpec} data={this.props.visualData} tooltip={new Handler().call} />
-      ); 
+        console.log(`[render] reflist is: ${this.reflist}`);
+        return (
+            <Grid container>
+            {this.refList.map((r, index) => {
+                return (<Grid item xs={4} key={index}>
+                    <div className={"vgl-vis-"+index} id={"vgl-vis-"+index} ref={r}></div>
+                </Grid>);
+            })}
+            {/* <div className="vgl-vis" id="vgl-vis" ref={e => this.visRef = e}></div> */}
+            </Grid>
+        );
     }
   }

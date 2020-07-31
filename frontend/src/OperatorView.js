@@ -44,7 +44,7 @@ export default class OperatorView extends Component {
         actions = ["TF-IDF", "K-Means", "PCA", "Sentiment"];
     } else {
         // Select
-        actions = ["Visualization", "Projection"];
+        actions = ["Visualization", "Projection", "Coordination"];
     }
     this.setState({ operator: event.target.value, actionList: actions });
   }

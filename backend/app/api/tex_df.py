@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from .. import log
 from .featurize import *
 from .clean import lowercase, remove_stopwords, remove_punctuation
-from .select import projection
+from .select import projection, coordinate
 
 spacy_nlp = spacy.load('en_core_web_sm')
 
@@ -16,6 +16,7 @@ class TexDF(object):
         # map of column name -> visual encoding data
         self.metadata = {i: {} for i in df.columns}
         self.cached_visual_encodings = {i: {} for i in df.columns}
+        self.view_indexes = {}
 
     def get_df_values(self):
         readable_df = self.df.copy()
@@ -48,6 +49,9 @@ class TexDF(object):
     def get_visual_encodings(self):
         return self.cached_visual_encodings
 
+    def get_idx(self):
+        return self.view_indexes
+
     # spec is a json specification that describes what should be used to generate the visualization
     def create_visualization(self, columns, spec):
         # column_types = self.df_types[column]
@@ -62,11 +66,8 @@ class TexDF(object):
         elif spec == "scatterplot":
             # generate a list of maps to specific fields
             # do type check logic
-            for i in column_types:
-                assert(i == "float")
-            # use the 3rd column to visualize color
-            if 'review' not in columns:
-                columns.append('review')
+            # for i in column_types:
+            #     assert(i == "float")
             vega_rows = []
             for _, row in self.df[columns].iterrows():
                 vega_row = {c: row[c] for c in columns}
@@ -77,7 +78,7 @@ class TexDF(object):
             return {}
             
 
-    def run_operator(self, columns, operator, action, indices):
+    def run_operator(self, columns, operator, action, indices, visualization):
         # do some error handling here
         if operator == "clean":
             if action == "lowercase":
@@ -137,6 +138,11 @@ class TexDF(object):
                 visual_encoding = self.create_visualization(columns, spec)
                 vis_name = '<' + '_'.join(columns) + '>'
                 self.cached_visual_encodings[vis_name] = {"scatterplot": visual_encoding}
+            elif action == "coordination":
+                column = columns[0]
+                labels = self.metadata[column]
+                log.info('[Coordinate]: labels are -> %s', labels.__str__())
+                self.view_indexes["barchart"] = coordinate(self.df, column, labels)
         else:
             raise Exception('unknown operator: %s', operator)
     
