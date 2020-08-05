@@ -84,6 +84,7 @@ class TexDF(object):
             # raise Exception('invalid visualization: %s on column %s of type %s', spec, column, column_type)
             return {}
 
+    # TODO: use static types for typechecking column operations, different handlers for each type
     def run_operator(self, columns, operator_class, operator, action, indices=None):
         # do some error handling here
         if operator == "lowercase":

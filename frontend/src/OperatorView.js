@@ -126,7 +126,7 @@ export default class OperatorView extends Component {
           </Grid> */}
           <Grid item xs={5}>
             <FormControl variant="filled" className={this.classes.formControl}>
-              <InputLabel id="select-operator">Operator</InputLabel>
+              <InputLabel id="select-operator">Category</InputLabel>
               <Select
                 labelId="select-operator"
                 id="select-operator"
@@ -141,7 +141,7 @@ export default class OperatorView extends Component {
           </Grid>
           <Grid item xs={5}>
             <FormControl variant="filled" className={this.classes.formControl}>
-              <InputLabel id="select-action">Action</InputLabel>
+              <InputLabel id="select-action">Operator</InputLabel>
               <Select
                 labelId="select-action"
                 id="select-action"
