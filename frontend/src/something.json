@@ -1,0 +1,21 @@
+{
+  "coordinate": [
+    {
+      "view": "explorer.data",
+      "data": { "source": "column", "name": "review" },
+      "operator": {
+        "class": "project",
+        "type": "lowercase",
+        "on_complete": { "action": "update" }
+      }
+    },
+    {
+      "view": "explorer.table",
+      "on_response": {
+        "action": "update",
+        "dest": "column",
+        "name": "review"
+      }
+    }
+  ]
+}

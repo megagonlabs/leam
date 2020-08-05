@@ -1,4 +1,5 @@
-from app import db
+from explorer_app import db
+
 
 class Dataset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -9,17 +10,14 @@ class Dataset(db.Model):
     header = db.Column(db.String)
 
     def to_json(self):
-      json_dataset = {
-        'name': self.name,
-        'header': self.header,
-        'num_rows': self.num_rows,
-        'table_name': self.table_name,
-      }
-      return json_dataset
+        json_dataset = {
+            "name": self.name,
+            "header": self.header,
+            "num_rows": self.num_rows,
+            "table_name": self.table_name,
+        }
+        return json_dataset
 
     def __repr__(self):
-        return '<Dataset {}>'.format(self.name)
-
-
-
+        return "<Dataset {}>".format(self.name)
 
