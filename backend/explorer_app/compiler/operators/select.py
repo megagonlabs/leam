@@ -1,16 +1,16 @@
 import pandas as pd
 import numpy as np
-from .. import log
+from explorer_app import log
+
 
 def projection(df, column, indices):
-    column_name_tokens = column.split('-')
+    column_name_tokens = column.split("-")
     new_columns = []
     for i in indices:
-        new_column = column_name_tokens[-1] + '_' + str(i)
-        new_columns.append(new_column)
-        df[new_column] = df[column].map(lambda x: x[i])
+        new_columns.append(df[column].map(lambda x: x[i]))
     # need to make return type dynamic
     return new_columns, "float"
+
 
 # just handling visual encoding with type == distribution for now
 def coordinate(df, column, labels):
@@ -20,5 +20,5 @@ def coordinate(df, column, labels):
         for j in range(len(labels)):
             if tfidf_vectors[i, 0, j] > 0.0:
                 reverse_idx[labels[j]].append(i)
-    log.info('[COORDINATE] reverse idx is -> %s', reverse_idx.__str__())
+    log.info("[COORDINATE] reverse idx is -> %s", reverse_idx.__str__())
     return reverse_idx

@@ -1,12 +1,12 @@
 FROM python:3
 
 RUN apt-get update \
-  && apt-get install -y postgresql-client
+    && apt-get install -y postgresql-client
 
 ENV FLASK_APP explorer.py
 
 WORKDIR /app
-ADD . /app
+ADD ./explorer_app/* /app/
 RUN pip install -r /app/requirements.txt
 # CMD ["python", "explorer.py"]
 
