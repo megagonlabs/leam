@@ -8,6 +8,7 @@ import {
   Toolbar,
   IconButton,
   Typography,
+  Box,
 } from "@material-ui/core";
 import { Menu } from "@material-ui/icons";
 import axios from "axios";
@@ -17,6 +18,7 @@ import BarChart from "./BarChart";
 import OperatorView from "./OperatorView.js";
 import DatavisView from "./DatavisView.js";
 import TableView from "./GridExample.js";
+import NotebookView from "./components/NotebookView.js";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "fontsource-roboto";
@@ -42,7 +44,7 @@ const useStyles = (theme) => ({
     display: "block",
   },
   formControl: {
-    minWidth: 200,
+    minWidth: 150,
   },
   grid: {
     margin: theme.spacing(2),
@@ -560,8 +562,8 @@ class App extends Component {
               />
             </Paper>
           </Grid>
-          <Grid item xs={12}>
-            <Paper className={this.classes.paper}>
+          <Grid item xs={8}>
+            <Box ml={2}>
               <TableView
                 key="table-view"
                 datasetRows={this.state.datasetRows}
@@ -575,6 +577,11 @@ class App extends Component {
                 highlight={this.highlightRows}
                 isFiltering={this.state.filtering}
               />
+            </Box>
+          </Grid>
+          <Grid item xs={4}>
+            <Paper className={this.classes.paper}>
+              <NotebookView />
             </Paper>
           </Grid>
         </Grid>
