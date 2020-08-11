@@ -1,0 +1,2 @@
+col = tdf.get_column("review")
+col.lowercase()
