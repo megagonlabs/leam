@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from "axios";
 import {
   List,
   ListItem,
@@ -94,9 +95,25 @@ export default class NotebookView extends Component {
     // do something
     if (!command.startsWith(":")) {
       console.log(`COMMAND: ${command}`);
-      this.setState({
-        history: [...this.state.history, { command: command, status: "torun" }],
-      });
+      const url = "http://localhost:5000/v1/run-operator";
+      // fetch the actual rows
+      axios
+        .post(url, { vta_spec: command, vta_script_flag: 1 })
+        .then((response) => {
+          console.log(`operator response body is ${response.body}`);
+        })
+        .then(() => {
+          this.setState({
+            history: [
+              ...this.state.history,
+              { command: command, status: "finished" },
+            ],
+          });
+          this.props.loadFile(this.props.datasetName);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     } else {
       // magic command?
     }

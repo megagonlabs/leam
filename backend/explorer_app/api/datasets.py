@@ -2,13 +2,13 @@ import re, json, uuid, csv, os, time
 import pandas as pd
 import pickle
 import scipy
-from io import StringIO
+from io import StringIO, BytesIO
 from flask import jsonify, request, session
 from flask_cors import CORS
 
-# from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from explorer_app.api import v1
 from explorer_app import log
 from explorer_app.models import Dataset
@@ -47,14 +47,14 @@ def get_dataset(name):
     log.info(
         "Getting single dataset with name: {} and numrows: {}".format(name, num_rows)
     )
-    # engine = create_engine(SQLALCHEMY_DATABASE_URI)
-    # Session = sessionmaker()
-    # Session.configure(bind=engine)
-    # session = Session()
-    # query = session.query(Dataset).filter(Dataset.name == name)
-    # dataset_row = query.first()
-    # table_name = dataset_row.table_name
-    # log.info("Got table name -> {}".format(table_name))
+    engine = create_engine(SQLALCHEMY_DATABASE_URI)
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+    query = session.query(Dataset).filter(Dataset.name == name)
+    dataset_row = query.first()
+    table_name = dataset_row.table_name
+    log.info("Got table name -> {}".format(table_name))
 
     read_start_time = time.time()
     # check if session dataframe has been stored
@@ -64,7 +64,9 @@ def get_dataset(name):
         log.info("reading pickle file from fs")
         tex_dataframe = pickle.load(open(dataframe_pkl_file, "rb"))
     else:
-        raise Exception("[get-dataset] no pickle file found!")
+        df = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
+        tex_dataframe = tex_df.TexDF(df)
+        pickle.dump(tex_dataframe, open(dataframe_pkl_file, "wb"))
 
     symbol_table_pkl_file = "/app/symbol_table.pkl"
     if os.path.exists(symbol_table_pkl_file):
@@ -112,13 +114,10 @@ def upload_file():
     file_text = request.form["filedata"]
     # file_lines = re.split('[\n|\r]+', file_text)
     file = StringIO(file_text)
-    # reader = csv.reader(file, delimiter=",")
-    df = pd.read_csv(file)
-    dataset_pkl_name = "/app/" + file_name.split(".")[0] + ".pkl"
-    tdf = tex_df.TexDF(df)
-    pickle.dump(tdf, open(dataset_pkl_name, "wb"))
-
-    header = [i for i in df.columns]
+    reader = csv.reader(file, delimiter=",")
+    file_lines = [row for row in reader]
+    file_rows = len(file_lines) - 1
+    header = file_lines[0]
     include_header = []
     ignore_header = []
     for col in header:
@@ -135,47 +134,47 @@ def upload_file():
     dataset = Dataset(
         name=file_name,
         type=file_type,
-        num_rows=len(df.index),
+        num_rows=file_rows,
         table_name=pg_table_name,
         header=encoded_header,
     )
     db.session.add(dataset)
     db.session.commit()
 
-    # # Now dynamically create new table with the contents of file
-    # column_names = ["id"]
-    # column_types = [Integer]
-    # primary_key_flags = [True]
-    # nullable_flags = [False]
-    # for col in include_header:
-    #     column_names.append(col)
-    #     column_types.append(String)
-    #     primary_key_flags.append(False)
-    #     nullable_flags.append(True)
+    # Now dynamically create new table with the contents of file
+    column_names = ["id"]
+    column_types = [Integer]
+    primary_key_flags = [True]
+    nullable_flags = [False]
+    for col in include_header:
+        column_names.append(col)
+        column_types.append(String)
+        primary_key_flags.append(False)
+        nullable_flags.append(True)
 
-    # engine = create_engine(SQLALCHEMY_DATABASE_URI)
-    # post_meta = MetaData(bind=engine)
-    # datasetTable = Table(
-    #     pg_table_name,
-    #     post_meta,
-    #     *(
-    #         Column(
-    #             column_name,
-    #             column_type,
-    #             primary_key=primary_key_flag,
-    #             nullable=nullable_flag,
-    #         )
-    #         for column_name, column_type, primary_key_flag, nullable_flag in zip(
-    #             column_names, column_types, primary_key_flags, nullable_flags
-    #         )
-    #     ),
-    # )
-    # datasetTable.create()
+    engine = create_engine(SQLALCHEMY_DATABASE_URI)
+    post_meta = MetaData(bind=engine)
+    datasetTable = Table(
+        pg_table_name,
+        post_meta,
+        *(
+            Column(
+                column_name,
+                column_type,
+                primary_key=primary_key_flag,
+                nullable=nullable_flag,
+            )
+            for column_name, column_type, primary_key_flag, nullable_flag in zip(
+                column_names, column_types, primary_key_flags, nullable_flags
+            )
+        ),
+    )
+    datasetTable.create()
 
-    # # insert the dataset data in the Postgres table
-    # conn = engine.connect()
-    # insert_data = generate_insert_statements(file_lines[1:], header, ignore_header)
-    # conn.execute(datasetTable.insert(), insert_data)
+    # insert the dataset data in the Postgres table
+    conn = engine.connect()
+    insert_data = generate_insert_statements(file_lines[1:], header, ignore_header)
+    conn.execute(datasetTable.insert(), insert_data)
 
     return jsonify(success=True)
 

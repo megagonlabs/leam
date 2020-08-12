@@ -204,7 +204,7 @@ class App extends Component {
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
     axios
-      .post(url, { vta_spec: vtaSpec })
+      .post(url, { vta_spec: vtaSpec, vta_script_flag: 0 })
       .then((response) => {
         console.log(`operator response body is ${response.body}`);
       })
@@ -234,6 +234,8 @@ class App extends Component {
     formData.append("filename", this.state.fileName);
     formData.append("filetype", this.state.fileType);
     formData.append("filedata", fileData);
+    console.log("filedata: ");
+    console.log(fileData);
     // console.log("uploading filename: ", this.state.fileName);
     // console.log("uploading filetype: ", this.state.fileType);
     // console.log("uploading file contents: ", this.state.fileData);
@@ -581,7 +583,10 @@ class App extends Component {
           </Grid>
           <Grid item xs={4}>
             <Paper className={this.classes.paper}>
-              <NotebookView />
+              <NotebookView
+                loadFile={this.loadFile}
+                datasetName={this.state.fileName}
+              />
             </Paper>
           </Grid>
         </Grid>
