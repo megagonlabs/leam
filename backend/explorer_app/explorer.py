@@ -7,6 +7,7 @@ from explorer_app.models import Dataset
 
 app = create_app()
 migrate = Migrate(app, db)
+
 # with app.app_context():
 #     upgrade("/app/explorer_app/migrations")
 

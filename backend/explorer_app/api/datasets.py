@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 import scipy
 from io import StringIO
-from flask import jsonify, request
+from flask import jsonify, request, session
 from flask_cors import CORS
 
 # from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
@@ -66,6 +66,15 @@ def get_dataset(name):
     else:
         raise Exception("[get-dataset] no pickle file found!")
 
+    symbol_table_pkl_file = "/app/symbol_table.pkl"
+    if os.path.exists(symbol_table_pkl_file):
+        log.info("reading symbol table from fs")
+        symbol_table = pickle.load(open(symbol_table_pkl_file, "rb"))
+    else:
+        symbol_table = {}
+
+    symbol_table["tdf"] = name
+    pickle.dump(symbol_table, open(symbol_table_pkl_file, "wb"))
     read_time_diff = time.time() - read_start_time
     log.info("[TIME] get dataset READ DATAFRAME took %s seconds", read_time_diff)
 

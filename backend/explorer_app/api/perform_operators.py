@@ -43,8 +43,8 @@ def run_operator():
 
     if is_vta_script:
         log.info("parsing VTA script...")
-        VTA_parser.parseVTAScript(vta_spec)
-        return jsonify({"success": False})
+        vta_IR = VTALoader.parse_vta_script(vta_spec)
+        vta_spec = VTALoader.convert_vta_script(vta_IR)
 
     success = compiler.compile_vta(vta_spec)
     time_diff = round(time.time() - start_time, 3)

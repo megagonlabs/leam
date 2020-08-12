@@ -5,6 +5,7 @@ astroid==2.4.2
 attrs==19.3.0
 black==19.10b0
 blis==0.4.1
+cachelib==0.1.1
 catalogue==1.0.0
 certifi==2020.6.20
 chardet==3.0.4
@@ -14,6 +15,7 @@ en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_
 Flask==1.1.2
 Flask-Cors==3.0.8
 Flask-Migrate==2.5.3
+Flask-Session==0.3.2
 Flask-SQLAlchemy==2.4.3
 gunicorn==20.0.4
 idna==2.10

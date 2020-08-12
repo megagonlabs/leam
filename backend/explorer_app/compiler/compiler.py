@@ -1,6 +1,7 @@
 import json
 import os
 import pickle
+from explorer_app import log
 
 """
 
@@ -81,6 +82,8 @@ def run_vta_view(vta_view_cmd):
     data_spec = vta_view_cmd["data"]
     dataset_name = data_spec["source"]
     dataset_columns = data_spec["columns"]
+    log.info("vta data spec: ")
+    log.info(data_spec)
     dataset_pkl_name = "/app/" + dataset_name.split(".")[0] + ".pkl"
     if os.path.exists(dataset_pkl_name):
         tdf = pickle.load(open(dataset_pkl_name, "rb"))
