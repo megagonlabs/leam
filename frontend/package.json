@@ -17,6 +17,7 @@
     "json-loader": "^0.5.7",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
+    "react-ace": "^9.1.2",
     "react-bootstrap": "^1.0.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.0",

@@ -3,6 +3,7 @@ import { Row, Col, Container } from "react-bootstrap";
 import { withStyles } from "@material-ui/core/styles";
 import {
   Grid,
+  Box,
   Paper,
   AppBar,
   Toolbar,
@@ -17,6 +18,7 @@ import BarChart from "./BarChart";
 import OperatorView from "./OperatorView.js";
 import DatavisView from "./DatavisView.js";
 import TableView from "./GridExample.js";
+import NotebookView from "./NotebookView.js";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "fontsource-roboto";
@@ -73,6 +75,7 @@ class App extends Component {
       datasets: [],
       datasetRows: [],
       visualEncodings: {},
+      selectedVisIdx: -1,
       visualizationTypes: {},
       columnTypes: {},
       columnSizes: [],
@@ -90,7 +93,12 @@ class App extends Component {
     this.selectColumn = this.selectColumn.bind(this);
     this.classes = this.props.classes;
     this.highlightRows = this.highlightRows.bind(this);
+    this.selectVisIdx = this.selectVisIdx.bind(this);
   }
+
+  selectVisIdx = (idx) => {
+    this.setState({ selectedVisIdx: idx });
+  };
 
   highlightRows = (rows, isMouseover) => {
     const normalizedRows = rows.map((val, _) => val + 1);
@@ -114,79 +122,63 @@ class App extends Component {
     //   }
   };
 
-  applyOperator = (
-    operatorCategory,
-    columnNames,
-    operator,
-    selectedIndices
-  ) => {
+  applyOperator = (operatorName, columnNames, actionName, selectedIndices) => {
     console.log(
-      `doing operator type: ${operatorCategory} columns -> ${columnNames} with operator -> ${operator} with indices -> ${selectedIndices}`
+      `doing operator: ${operatorName} columns -> ${columnNames} with action -> ${actionName} with indices -> ${selectedIndices}`
     );
     const datasetName = this.state.fileName;
-    let opCategory;
-    switch (operatorCategory) {
+    let operator;
+    switch (operatorName) {
       case "Clean":
-        opCategory = "clean";
+        operator = "clean";
         break;
       case "Featurize":
-        opCategory = "featurize";
+        operator = "featurize";
         break;
       case "Select":
-        opCategory = "select";
+        operator = "select";
         break;
       default:
-        opCategory = "clean";
+        operator = "clean";
     }
     let op;
     let action;
-    switch (operator) {
+    switch (actionName) {
       case "Lowercase":
-        op = "lowercase";
-        action = "update";
+        action = "lowercase";
         break;
       case "Remove Stopwords":
-        op = "stopword";
-        action = "update";
+        action = "stopword";
         break;
       case "Stemming":
-        op = "stemming";
-        action = "update";
+        action = "stemming";
         break;
       case "Remove Punctuation":
-        op = "punctuation";
-        action = "update";
+        action = "punctuation";
         break;
       case "TF-IDF":
-        op = "tfidf";
-        action = "create";
+        action = "tfidf";
         break;
       case "K-Means":
-        op = "kmeans";
-        action = "create";
+        action = "kmeans";
         break;
       case "PCA":
-        op = "pca";
-        action = "create";
+        action = "pca";
         break;
       case "Sentiment":
-        op = "sentiment";
-        action = "create";
+        action = "sentiment";
         break;
       case "Projection":
-        op = "projection";
-        action = "create";
+        action = "projection";
         break;
       case "Visualization":
-        op = "visualization";
-        action = "create";
+        action = "visualization";
         const visName = `<${columnNames.join("_")}>`;
         this.setState({ selectedColumn: visName });
         break;
       default:
         // default is lowercase action
-        op = operator.toLowerCase();
-        action = "create";
+        action = actionName.toLowerCase();
     }
 
     const vtaSpec = generateVTASpec(
@@ -202,7 +194,18 @@ class App extends Component {
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
     axios
-      .post(url, { vta_spec: vtaSpec })
+      .post(
+        url,
+        { indices: selectedIndices, columns: columnNames },
+        {
+          params: {
+            operator: operator,
+            action: action,
+            dataset: datasetName,
+            visualization: "review-tfidf",
+          },
+        }
+      )
       .then((response) => {
         console.log(`operator response body is ${response.body}`);
       })
@@ -340,35 +343,83 @@ class App extends Component {
         //     data: { values: [] },
         // };
         const specList = [];
+        // let distributionSpec = {
+        //   $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+        //   data: { values: [] },
+        //   width: 200,
+        //   height: 200,
+        //   layer: [
+        //     {
+        //       selection: {
+        //         Number: {
+        //           type: "single",
+        //           fields: ["TopWords"],
+        //           init: { TopWords: 10 },
+        //           bind: {
+        //             TopWords: { input: "range", min: 1, max: 50, step: 1 },
+        //           },
+        //         },
+        //       },
+        //       transform: [
+        //         {
+        //           filter: "datum.order <= Number.TopWords",
+        //         },
+        //       ],
+        //       mark: { type: "bar", tooltip: true },
+        //       encoding: {
+        //         y: { field: "topword", type: "ordinal", sort: "-x" },
+        //         x: { field: "score", type: "quantitative" },
+        //       },
+        //     },
+        //   ],
+        // };
+
         let distributionSpec = {
           $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-          data: { values: [] },
+          data: {
+            values: [],
+          },
           width: 200,
           height: 200,
-          layer: [
-            {
-              selection: {
-                Number: {
-                  type: "single",
-                  fields: ["TopWords"],
-                  init: { TopWords: 10 },
-                  bind: {
-                    TopWords: { input: "range", min: 1, max: 50, step: 1 },
-                  },
-                },
-              },
-              transform: [
-                {
-                  filter: "datum.order <= Number.TopWords",
-                },
-              ],
-              mark: { type: "bar", tooltip: true },
-              encoding: {
-                y: { field: "topword", type: "ordinal", sort: "-x" },
-                x: { field: "score", type: "quantitative" },
+          selection: {
+            select: { type: "single" },
+            Number: {
+              type: "single",
+              fields: ["TopWords"],
+              init: { TopWords: 10 },
+              bind: {
+                TopWords: { input: "range", min: 1, max: 50, step: 1 },
               },
             },
+          },
+          transform: [
+            {
+              filter: "datum.order <= Number.TopWords",
+            },
           ],
+          mark: {
+            type: "bar",
+            fill: "#4C78A8",
+            cursor: "pointer",
+            tooltip: true,
+          },
+          encoding: {
+            y: { field: "topword", type: "ordinal", sort: "-x" },
+            x: { field: "score", type: "quantitative" },
+            fillOpacity: {
+              condition: { selection: "select", value: 1 },
+              value: 0.3,
+            },
+            strokeWidth: {
+              condition: { selection: "select", value: 1 },
+              value: 0,
+            },
+          },
+          config: {
+            scale: {
+              bandPaddingInner: 0.2,
+            },
+          },
         };
 
         let scatterplotSentimentSpec = {
@@ -551,6 +602,8 @@ class App extends Component {
                 key="datavis-view"
                 visualData={this.state.visualEncodings}
                 visSpecList={this.state.dataVisSpec}
+                selectedIdx={this.state.selectedVisIdx}
+                selectVisIdxFunc={this.selectVisIdx}
                 visTypes={this.state.visualizationTypes}
                 selectedColumn={this.state.selectedColumn}
                 width={350}
@@ -560,13 +613,15 @@ class App extends Component {
               />
             </Paper>
           </Grid>
-          <Grid item xs={12}>
-            <Paper className={this.classes.paper}>
+          <Grid item xs={8}>
+            <Box ml={2}>
               <TableView
                 key="table-view"
                 datasetRows={this.state.datasetRows}
                 datasetHeader={this.state.fileHeaders}
                 visualData={this.state.visualEncodings}
+                selectedVisIdx={this.state.selectedVisIdx}
+                selectVisIdxFunc={this.selectVisIdx}
                 visTypes={this.state.visualizationTypes}
                 colTypes={this.state.columnTypes}
                 selectColumn={this.selectColumn}
@@ -574,6 +629,17 @@ class App extends Component {
                 highlightedRows={this.state.highlightedRows}
                 highlight={this.highlightRows}
                 isFiltering={this.state.filtering}
+              />
+            </Box>
+          </Grid>
+          <Grid item xs={4}>
+            <Paper className={this.classes.paper}>
+              <NotebookView
+                loadFile={this.loadFile}
+                datasetName={this.state.fileName}
+                selectVisIdxFunc={this.selectVisIdx}
+                reverseIdx={this.state.reverseIndex}
+                highlightRows={this.highlightRows}
               />
             </Paper>
           </Grid>
