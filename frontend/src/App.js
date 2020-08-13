@@ -181,16 +181,6 @@ class App extends Component {
         action = actionName.toLowerCase();
     }
 
-    const vtaSpec = generateVTASpec(
-      opCategory,
-      op,
-      action,
-      columnNames,
-      datasetName
-    );
-
-    console.log(vtaSpec);
-
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
     axios
