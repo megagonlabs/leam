@@ -3,18 +3,17 @@ related to running operators on dataset columns."""
 
 import json, os, time
 import pandas as pd
+import pickle
 from flask import jsonify, request
-
-# from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from . import v1
-
-# from .. import db
+from .clean import lowercase, remove_stopwords
+from .tex_df import TexDF
+from .. import db
 from .. import log
-
-# from ..models import Dataset
-from explorer_app.compiler import compiler
+from ..models import Dataset
 
 POSTGRES = {
     "user": "postgres",
@@ -35,54 +34,56 @@ SQLALCHEMY_DATABASE_URI = (
 def run_operator():
     start_time = time.time()
     log.info("In run operator endpoint!")
-    # operator, action, vis = (
-    #     request.args.get("operator"),
-    #     request.args.get("action"),
-    #     request.args.get("visualization"),
-    # )
-    # dataset, columns, indices = (
-    #     request.args.get("dataset"),
-    #     request.json.get("columns"),
-    #     request.json.get("indices"),
-    # )
-    vta_spec = request.json.get("vta_spec")
-    log.info("VTA spec -> %s", vta_spec)
-    # log.info(" dataset -> %s", dataset)
-    # if columns is not None:
-    #     log.info("columns -> %s", ", ".join(columns))
-    # if indices is not None:
-    #     log.info("indices -> %s", ", ".join([str(i) for i in indices]))
+    operator, action, vis = (
+        request.args.get("operator"),
+        request.args.get("action"),
+        request.args.get("visualization"),
+    )
+    dataset, columns, indices = (
+        request.args.get("dataset"),
+        request.json.get("columns"),
+        request.json.get("indices"),
+    )
+    log.info(
+        "operator -> %s , action -> %s, visualization -> %s", operator, action, vis
+    )
+    log.info(" dataset -> %s", dataset)
+    if columns is not None:
+        log.info("columns -> %s", ", ".join(columns))
+    if indices is not None:
+        log.info("indices -> %s", ", ".join([str(i) for i in indices]))
 
-    # # get unique table name from dataset table
-    # dataset_info = Dataset.query.filter(Dataset.name == dataset).first()
-    # log.info("dataset unique table -> %s", dataset_info.table_name)
+    # get unique table name from dataset table
+    dataset_info = Dataset.query.filter(Dataset.name == dataset).first()
+    log.info("dataset unique table -> %s", dataset_info.table_name)
 
-    # read_start_time = time.time()
-    # # check if we have table dataframe stored
-    # dataset_name = dataset.split(".")[0]
-    # dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
-    # log.info("dataframe pickle file path: %s", dataframe_pkl_file)
-    # if os.path.exists(dataframe_pkl_file):
-    #     log.info("reading pickled dataframe")
-    #     tex_dataframe = pickle.load(open(dataframe_pkl_file, "rb"))
-    # else:
-    #     df = pd.read_sql_table(dataset_info.table_name, SQLALCHEMY_DATABASE_URI)
-    #     tex_dataframe = TexDF(df)
-    # read_time_diff = time.time() - read_start_time
-    # log.info("[TIME] get dataset READ DATAFRAME took %s seconds", read_time_diff)
+    read_start_time = time.time()
+    # check if we have table dataframe stored
+    dataset_name = dataset.split(".")[0]
+    dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
+    log.info("dataframe pickle file path: %s", dataframe_pkl_file)
+    if os.path.exists(dataframe_pkl_file):
+        log.info("reading pickled dataframe")
+        tex_dataframe = pickle.load(open(dataframe_pkl_file, "rb"))
+    else:
+        df = pd.read_sql_table(dataset_info.table_name, SQLALCHEMY_DATABASE_URI)
+        tex_dataframe = TexDF(df)
+    read_time_diff = time.time() - read_start_time
+    log.info("[TIME] get dataset READ DATAFRAME took %s seconds", read_time_diff)
 
-    # log.info("first row of table df is: ")
-    # log.info(tex_dataframe.get_df_values()[0])
+    log.info("first row of table df is: ")
+    log.info(tex_dataframe.get_df_values()[0])
 
-    # tex_dataframe.run_operator(columns, operator, action, indices, vis)
+    tex_dataframe.run_operator(columns, operator, action, indices, vis)
 
-    # log.info("after first row of table df is: ")
-    # log.info(tex_dataframe.get_df_values()[0])
+    log.info("after first row of table df is: ")
+    log.info(tex_dataframe.get_df_values()[0])
 
-    # time_diff = round(time.time() - start_time, 3)
-    # log.info("[TIME] run operator took %s seconds", time_diff)
-
-    success = compiler.compile_vta(vta_spec)
     time_diff = round(time.time() - start_time, 3)
-    log.info("[PERFORM_OPERATOR] total time was %s seconds", time_diff)
-    return jsonify({success: success})
+    log.info("[TIME] run operator took %s seconds", time_diff)
+
+    write_time_start = time.time()
+    pickle.dump(tex_dataframe, open(dataframe_pkl_file, "wb"))
+    write_time_diff = round(time.time() - write_time_start, 3)
+    log.info("[TIME] get dataset WRITE DATAFRAME took %s seconds", write_time_diff)
+    return jsonify({})
