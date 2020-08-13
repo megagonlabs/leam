@@ -14,6 +14,7 @@ export default class DatavisView extends React.Component {
     this.refList = this.props.visSpecList.map(() => React.createRef());
     this.state = {
       refListUpdated: false,
+      vegaView: null,
     };
     console.log(
       `[datavis view] vis spec list constructor: ${props.visSpecList}`
@@ -69,6 +70,21 @@ export default class DatavisView extends React.Component {
       this.props.reverseIdx["barchart"] != undefined
     ) {
       // pass
+    } else if (prevProps.selectedIdx != this.props.selectedIdx) {
+      console.log("doing external select on vega view");
+      if (this.props.selectedIdx == -1) {
+        this.state.vegaView.signal("select_tuple", null).runAsync();
+      } else {
+        this.state.vegaView
+          .signal("select_tuple", {
+            unit: "",
+            fields: [{ type: "E", field: "_vgsid_" }],
+            values: [this.props.selectedIdx],
+          })
+          .runAsync();
+      }
+      let _ = this.state.vegaView.getState().signals;
+      return;
     } else {
       return;
     }
@@ -83,16 +99,19 @@ export default class DatavisView extends React.Component {
       let ref = this.refList[key];
       const barchartIdx = this.props.reverseIdx["barchart"];
       const barchartCoordFunc = this.props.highlightRows;
+      const selectVisIdxFunc = this.props.selectVisIdxFunc;
       vegaEmbed(ref.current, this.props.visSpecList[key], vgEmbedOptions)
         .then(({ _, view }) => {
           console.log(`view should be here!`);
           console.log(view);
+          this.setState({ vegaView: view });
           if (key == 0) {
-            view.addEventListener("mouseover", function (event, item) {
+            view.addEventListener("click", function (event, item) {
               if (item != undefined && item.datum != undefined) {
                 console.log(item.datum);
                 const rows = barchartIdx[item.datum.topword];
                 barchartCoordFunc(rows, false);
+                selectVisIdxFunc(item.datum._vgsid_);
               }
             });
           }
