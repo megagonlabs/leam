@@ -127,8 +127,11 @@ def convert_vta_script(script_IR):
                 )
             var_info = symbol_table.get(var_name)
             vta_op = {}
+            vta_create_operators = ["tfidf", "pca", "kmeans", "sentiment"]
             vta_action = "update"
             # TODO: act checks to use create/add actions instead
+            if vta_operator in vta_create_operators:
+                vta_action = "create"
             vta_op["view"] = "explorer.data"
             vta_op["data"] = {
                 "columns": [var_info["name"]],

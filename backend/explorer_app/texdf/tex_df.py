@@ -143,15 +143,18 @@ class TexDF(object):
             for nc in new_column_names:
                 self.df_types[nc] = column_type
         elif operator == "visualization":
+            log.info("[run-operator] in visualizationi operator")
             spec = "scatterplot"  # need to make this part of vta inference, or user can define their own spec maybe?
             visual_encoding = self.create_visualization(columns, spec)
             vis_name = "<" + "_".join(columns) + ">"
             self.cached_visual_encodings[vis_name] = {"scatterplot": visual_encoding}
+            return
         elif operator == "coordination":
             column = columns[0]
             labels = self.metadata[column]
             log.info("[Coordinate]: labels are -> %s", labels.__str__())
             self.view_indexes["barchart"] = select.coordinate(self.df, column, labels)
+            return
         else:
             raise Exception("unknown operator: %s", operator)
 

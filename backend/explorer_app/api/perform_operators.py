@@ -37,7 +37,9 @@ def run_operator():
     start_time = time.time()
     log.info("In run operator endpoint!")
 
+    result = {}
     vta_spec = request.json.get("vta_spec")
+    spec_view = request.json.get("explorer_view")
     is_vta_script = request.json.get("vta_script_flag")
     log.info("VTA spec -> %s", vta_spec)
 
@@ -45,8 +47,10 @@ def run_operator():
         log.info("parsing VTA script...")
         vta_IR = VTALoader.parse_vta_script(vta_spec)
         vta_spec = VTALoader.convert_vta_script(vta_IR)
+        log.info("parsed vta-script is: ")
+        log.info(vta_spec)
 
-    success = compiler.compile_vta(vta_spec)
+    result = compiler.compile_vta(vta_spec)
     time_diff = round(time.time() - start_time, 3)
     log.info("[PERFORM_OPERATOR] total time was %s seconds", time_diff)
-    return jsonify({success: success})
+    return jsonify({"result": result})
