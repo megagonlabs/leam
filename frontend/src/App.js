@@ -628,8 +628,10 @@ class App extends Component {
                 loadFile={this.loadFile}
                 datasetName={this.state.fileName}
                 selectVisIdxFunc={this.selectVisIdx}
+                visualData={this.state.visualEncodings}
                 reverseIdx={this.state.reverseIndex}
                 highlightRows={this.highlightRows}
+                applyOperator={this.applyOperator}
               />
             </Paper>
           </Grid>

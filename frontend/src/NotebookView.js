@@ -114,15 +114,38 @@ export default class NotebookView extends Component {
       //   .catch(function (error) {
       //     console.log(error);
       //   });
-      if (command == 'vegaView.select("bad")') {
-        console.log("selecting word1 ..");
-        this.props.selectVisIdxFunc(1);
-        const rows = this.props.reverseIdx["barchart"]["bad"];
-        this.props.highlightRows(rows, false);
-      } else if (command == "vegaView.reset()") {
+      if (command.includes("select(")) {
+        // this.props.selectVisIdxFunc(1);
+        let re = new RegExp('"(.*)"', "g");
+        let results = command.match(re)[0];
+        results = results.replaceAll('"', "");
+        console.log("select word -> " + results);
+        let visualIdx = 1;
+        let topWord = "bad";
+        for (let i = 0; i < this.props.visualData["all"].length; i++) {
+          let val = this.props.visualData["all"][i]["topword"];
+          if (val == results) {
+            visualIdx = i + 1;
+          }
+        }
+        this.props.selectVisIdxFunc(visualIdx);
+        if (this.props.reverseIdx["barchart"] != undefined) {
+          const rows = this.props.reverseIdx["barchart"][topWord];
+          this.props.highlightRows(rows, false);
+        }
+      } else if (command.includes("reset")) {
         console.log("resetting vega view vis");
         this.props.selectVisIdxFunc(-1);
         this.props.highlightRows([], true);
+      } else if (command.includes("coordinate")) {
+        if (command.includes("table")) {
+          this.props.applyOperator(
+            "Select",
+            ["review-tfidf"],
+            "coordination",
+            []
+          );
+        }
       }
       this.setState({
         history: [
