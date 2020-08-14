@@ -84,6 +84,8 @@ class App extends Component {
       reverseIndex: {},
       highlightedRows: [],
       filtering: false,
+      coordinatingScatterPlot: false,
+      coordinatingTable: false,
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -94,6 +96,10 @@ class App extends Component {
     this.classes = this.props.classes;
     this.highlightRows = this.highlightRows.bind(this);
     this.selectVisIdx = this.selectVisIdx.bind(this);
+    this.addScatterPlotCoordination = this.addScatterPlotCoordination.bind(
+      this
+    );
+    this.addTableCoordination = this.addTableCoordination.bind(this);
   }
 
   selectVisIdx = (idx) => {
@@ -285,6 +291,14 @@ class App extends Component {
     this.getFiles();
   }
 
+  addScatterPlotCoordination() {
+    this.setState({ coordinatingScatterPlot: true });
+  }
+
+  addTableCoordination() {
+    this.setState({ coordinatingTable: true });
+  }
+
   loadFile = (name) => {
     const fileName = name;
     let fileRows = 0;
@@ -417,17 +431,23 @@ class App extends Component {
           data: { values: [] },
           width: 150,
           height: 200,
-          mark: "point",
+          selection: {
+            select: { type: "multi" },
+          },
+          mark: { type: "point", tooltip: true },
           encoding: {
             y: { field: "pca_1", type: "quantitative" },
             x: { field: "pca_0", type: "quantitative" },
-            tooltip: { field: "review", type: "nominal" },
             color: {
               field: "review-sentiment",
               type: "quantitative",
               scale: {
                 range: ["crimson", "royalblue"],
               },
+            },
+            strokeWidth: {
+              condition: { selection: "select", value: 4 },
+              value: 0.5,
             },
           },
         };
@@ -600,6 +620,8 @@ class App extends Component {
                 height={200}
                 reverseIdx={this.state.reverseIndex}
                 highlightRows={this.highlightRows}
+                coordinatingScatterPlot={this.state.coordinatingScatterPlot}
+                coordinatingTable={this.state.coordinatingTable}
               />
             </Paper>
           </Grid>
@@ -632,6 +654,9 @@ class App extends Component {
                 reverseIdx={this.state.reverseIndex}
                 highlightRows={this.highlightRows}
                 applyOperator={this.applyOperator}
+                addScatterPlotCoordination={this.addScatterPlotCoordination}
+                coordinatingTable={this.state.coordinatingTable}
+                addTableCoordination={this.addTableCoordination}
               />
             </Paper>
           </Grid>

@@ -126,12 +126,18 @@ export default class NotebookView extends Component {
           let val = this.props.visualData["all"][i]["topword"];
           if (val == results) {
             visualIdx = i + 1;
+            topWord = val;
           }
         }
         this.props.selectVisIdxFunc(visualIdx);
         if (this.props.reverseIdx["barchart"] != undefined) {
           const rows = this.props.reverseIdx["barchart"][topWord];
-          this.props.highlightRows(rows, false);
+          console.log(
+            `topword: ${topWord} and rows are ${JSON.stringify(rows)}`
+          );
+          if (this.props.coordinatingTable) {
+            this.props.highlightRows(rows, false);
+          }
         }
       } else if (command.includes("reset")) {
         console.log("resetting vega view vis");
@@ -145,6 +151,10 @@ export default class NotebookView extends Component {
             "coordination",
             []
           );
+          this.props.addTableCoordination();
+        }
+        if (command.includes("vis")) {
+          this.props.addScatterPlotCoordination();
         }
       }
       this.setState({

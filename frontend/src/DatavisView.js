@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { PropTypes } from "react";
 import { VegaLite } from "react-vega";
 import BarChart from "./BarChart.js";
@@ -14,7 +15,8 @@ export default class DatavisView extends React.Component {
     this.refList = this.props.visSpecList.map(() => React.createRef());
     this.state = {
       refListUpdated: false,
-      vegaView: null,
+      barChartView: null,
+      scatterView: null,
     };
     console.log(
       `[datavis view] vis spec list constructor: ${props.visSpecList}`
@@ -37,13 +39,17 @@ export default class DatavisView extends React.Component {
           console.log(`view should be here!`);
           console.log(view);
           if (key == 0) {
-            view.addEventListener("mouseover", function (event, item) {
+            this.setState({ barChartView: view });
+            view.addEventListener("click", function (event, item) {
               if (item != undefined && item.datum != undefined) {
                 console.log(item.datum);
                 const rows = barchartIdx[item.datum.topword];
                 barchartCoordFunc(rows, false);
+                selectVisIdxFunc(item.datum._vgsid_);
               }
             });
+          } else if (key == 1) {
+            this.setState({ scatterView: view });
           }
         })
         .catch((err) => {
@@ -70,20 +76,60 @@ export default class DatavisView extends React.Component {
       this.props.reverseIdx["barchart"] != undefined
     ) {
       // pass
+    } else if (
+      prevProps.coordinatingScatterPlot == false &&
+      this.props.coordinatingScatterPlot == true
+    ) {
+      // pass
+    } else if (
+      prevProps.coordinatingTable == false &&
+      this.props.coordinatingTable == true
+    ) {
+      // pass
     } else if (prevProps.selectedIdx != this.props.selectedIdx) {
       console.log("doing external select on vega view");
       if (this.props.selectedIdx == -1) {
-        this.state.vegaView.signal("select_tuple", null).runAsync();
+        this.state.barChartView.signal("select_tuple", null).runAsync();
+        if (this.props.coordinatingScatterPlot == true) {
+          // send reset signal to scatter plot
+          this.state.scatterView.signal("select_toggle", false).runAsync();
+          this.state.scatterView.signal("select_tuple", null).runAsync();
+          let _ = this.state.scatterView.getState().signals;
+        }
       } else {
-        this.state.vegaView
+        this.state.barChartView
           .signal("select_tuple", {
             unit: "",
             fields: [{ type: "E", field: "_vgsid_" }],
             values: [this.props.selectedIdx],
           })
           .runAsync();
+        if (this.props.coordinatingScatterPlot == true) {
+          // highlight relevant scatter plot points
+          console.log("in coordinate sp");
+          const word = Object.keys(this.props.reverseIdx["barchart"])[
+            this.props.selectedIdx
+          ];
+          const points = this.props.reverseIdx["barchart"][word];
+          console.log(
+            `[dv-view] selecting points -> ${JSON.stringify(points)}`
+          );
+          for (let i = 0; i < points.length; i++) {
+            this.state.scatterView.signal("select_toggle", false);
+            if (i > 0) this.state.scatterView.signal("select_toggle", true);
+            this.state.scatterView
+              .signal("select_tuple", {
+                unit: "",
+                fields: [{ type: "E", field: "_vgsid_" }],
+                values: [points[i]],
+              })
+              .runAsync();
+          }
+          let _ = this.state.scatterView.getState().signals;
+        }
       }
-      let _ = this.state.vegaView.getState().signals;
+      let _ = this.state.barChartView.getState().signals;
+
       return;
     } else {
       return;
@@ -100,20 +146,25 @@ export default class DatavisView extends React.Component {
       const barchartIdx = this.props.reverseIdx["barchart"];
       const barchartCoordFunc = this.props.highlightRows;
       const selectVisIdxFunc = this.props.selectVisIdxFunc;
+      const coordinatingTable = this.props.coordinatingTable;
       vegaEmbed(ref.current, this.props.visSpecList[key], vgEmbedOptions)
         .then(({ _, view }) => {
           console.log(`view should be here!`);
           console.log(view);
           if (key == 0) {
-            this.setState({ vegaView: view });
-            view.addEventListener("click", function (event, item) {
-              if (item != undefined && item.datum != undefined) {
-                console.log(item.datum);
-                const rows = barchartIdx[item.datum.topword];
-                barchartCoordFunc(rows, false);
-                selectVisIdxFunc(item.datum._vgsid_);
-              }
-            });
+            this.setState({ barChartView: view });
+            if (coordinatingTable == true) {
+              view.addEventListener("click", function (event, item) {
+                if (item != undefined && item.datum != undefined) {
+                  console.log(item.datum);
+                  const rows = barchartIdx[item.datum.topword];
+                  barchartCoordFunc(rows, false);
+                  selectVisIdxFunc(item.datum._vgsid_);
+                }
+              });
+            }
+          } else if (key == 1) {
+            this.setState({ scatterView: view });
           }
         })
         .catch((err) => {
