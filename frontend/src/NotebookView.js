@@ -153,7 +153,7 @@ export default class NotebookView extends Component {
           );
           this.props.addTableCoordination();
         }
-        if (command.includes("vis")) {
+        if (command.includes("vis2")) {
           this.props.addScatterPlotCoordination();
         }
       }
