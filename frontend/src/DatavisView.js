@@ -104,8 +104,8 @@ export default class DatavisView extends React.Component {
         .then(({ _, view }) => {
           console.log(`view should be here!`);
           console.log(view);
-          this.setState({ vegaView: view });
           if (key == 0) {
+            this.setState({ vegaView: view });
             view.addEventListener("click", function (event, item) {
               if (item != undefined && item.datum != undefined) {
                 console.log(item.datum);
