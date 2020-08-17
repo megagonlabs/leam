@@ -66,12 +66,11 @@ def parse_vta_script(script):
     token_stream = CommonTokenStream(lexer)
     parser = VTAParser.VTAParser(token_stream)
     tree = parser.top()
-    log.info("Start Walking...")
     listener = VtaLoader()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
-    log.info("results = %s", listener.rows.__str__())
-    log.info("vars = %s", listener.vars.__str__())
+    log.info("\nresults = %s", listener.rows.__str__())
+    log.info("vars = %s\n", listener.vars.__str__())
     return listener.rows
 
 
@@ -150,27 +149,5 @@ def convert_vta_script(script_IR):
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) > 1:
-    #     input_stream = FileStream(sys.argv[1])
-    # else:
-    #     input_stream = InputStream(sys.stdin.read())
-
-    # lexer = VTALexer(input_stream)
-    # token_stream = CommonTokenStream(lexer)
-    # parser = VTAParser(token_stream)
-    # tree = parser.top()
-
-    # lisp_tree_str = tree.toStringTree(recog=parser)
-    # print(lisp_tree_str)
-
-    # # listener
-    # print("Start Walking...")
-
-    # listener = VtaLoader()
-    # walker = ParseTreeWalker()
-    # walker.walk(listener, tree)
-    # print("results = ", listener.rows)
-    # print("vars = ", listener.vars)
-
     example_one = "col = tdf.get_column('review')\ncol.lowercase()"
     parse_vta_script(example_one)

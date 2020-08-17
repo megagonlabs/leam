@@ -35,18 +35,15 @@ CORS(v1)
 
 @v1.route("/get-datasets", methods=(["GET"]))
 def get_datasets():
-    log.info("In get datsets endpoint!")
     datasets = Dataset.query.all()
     return jsonify({"datasets": [dataset.to_json() for dataset in datasets]})
 
 
 @v1.route("/get-datasets/<string:name>", methods=(["GET"]))
 def get_dataset(name):
-    start_time = time.time()
+    log.info("\n\n-----------------------------------------")
+    log.info("Retrieving Dataset\n")
     num_rows = int(request.headers.get("numrows"))
-    log.info(
-        "Getting single dataset with name: {} and numrows: {}".format(name, num_rows)
-    )
     engine = create_engine(SQLALCHEMY_DATABASE_URI)
     Session = sessionmaker()
     Session.configure(bind=engine)
@@ -54,14 +51,12 @@ def get_dataset(name):
     query = session.query(Dataset).filter(Dataset.name == name)
     dataset_row = query.first()
     table_name = dataset_row.table_name
-    log.info("Got table name -> {}".format(table_name))
 
     read_start_time = time.time()
     # check if session dataframe has been stored
     dataset_name = name.split(".")[0]
     dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
     if os.path.exists(dataframe_pkl_file):
-        log.info("reading pickle file from fs")
         tex_dataframe = pickle.load(open(dataframe_pkl_file, "rb"))
     else:
         df = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
@@ -70,7 +65,6 @@ def get_dataset(name):
 
     symbol_table_pkl_file = "/app/symbol_table.pkl"
     if os.path.exists(symbol_table_pkl_file):
-        log.info("reading symbol table from fs")
         symbol_table = pickle.load(open(symbol_table_pkl_file, "rb"))
     else:
         symbol_table = {}
@@ -78,18 +72,12 @@ def get_dataset(name):
     symbol_table["tdf"] = name
     pickle.dump(symbol_table, open(symbol_table_pkl_file, "wb"))
     read_time_diff = time.time() - read_start_time
-    log.info("[TIME] get dataset READ DATAFRAME took %s seconds", read_time_diff)
 
     tex_df_values = tex_dataframe.get_df_values()
     tex_df_columns = json.dumps(tex_dataframe.get_df_columns())
     tex_df_visual_encodings = json.dumps(tex_dataframe.get_visual_encodings())
     tex_df_types = json.dumps(tex_dataframe.get_df_types())
     tex_df_idx = json.dumps(tex_dataframe.get_idx())
-    log.info("first row of df: ")
-    log.info(tex_df_values[0])
-    time_diff = round(time.time() - start_time, 3)
-    log.info("[TIME] get dataset took %d seconds", time_diff)
-
     tex_df_rows = json.dumps(tex_df_values)
 
     return jsonify(
@@ -105,10 +93,9 @@ def get_dataset(name):
 
 @v1.route("/upload-file", methods=(["POST"]))
 def upload_file():
-    log.info("In upload file endpoint!")
+    log.info("\n\n-----------------------------------------")
+    log.info("Uploading Dataset\n")
     formKeys = request.form.keys()
-    for i in formKeys:
-        log.info(i)
     file_name = request.form["filename"]
     file_type = request.form["filetype"]
     file_text = request.form["filedata"]
@@ -125,8 +112,6 @@ def upload_file():
             ignore_header.append(col)
         else:
             include_header.append(col)
-
-    log.info("header of file -> {}".format(include_header))
 
     # # Encoding Dataset object to insert into postgres
     encoded_header = json.dumps(include_header)
@@ -179,17 +164,6 @@ def upload_file():
     return jsonify(success=True)
 
 
-# def extract_header(header_text):
-#   fields = []
-#   field_list = header_text.split(',')
-#   for f in field_list:
-#     stripped = f.lower()
-#     stripped.replace(" ", "")
-#     if len(stripped) > 0:
-#       fields.append(stripped)
-#   return fields
-
-
 def generate_pg_tablename(file_name, version):
     id = uuid.uuid4()
     pg_table_id = str(id).replace("-", "_")
@@ -202,20 +176,12 @@ def generate_insert_statements(dataset_rows, header, ignore_header):
     count = 0
     for row in dataset_rows:
         pg_row = {}
-        # row_cells = row.split(',')
-        if count == 0:
-            log.info(header)
-            log.info(row)
-        # log.info(row_cells)
         if len(row) <= 1:
             continue
 
         for i, cell in enumerate(row):
             if header[i] not in ignore_header:
                 pg_row[header[i]] = row[i]
-
-        if count == 0:
-            log.info(pg_row)
 
         inserts.append(pg_row)
         count += 1
