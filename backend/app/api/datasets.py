@@ -9,12 +9,12 @@ from flask_cors import CORS
 from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from explorer_app.api import v1
-from explorer_app import log
-from explorer_app.models import Dataset
-from explorer_app.texdf import tex_df
+from app.api import v1
+from app import log
+from app.models import Dataset
+from app.texdf import tex_df
 
-from explorer_app import db
+from app import db
 
 
 POSTGRES = {
@@ -43,14 +43,6 @@ def get_datasets():
 def get_dataset(name):
     log.info("\n\n-----------------------------------------")
     log.info("Retrieving Dataset\n")
-    num_rows = int(request.headers.get("numrows"))
-    engine = create_engine(SQLALCHEMY_DATABASE_URI)
-    Session = sessionmaker()
-    Session.configure(bind=engine)
-    session = Session()
-    query = session.query(Dataset).filter(Dataset.name == name)
-    dataset_row = query.first()
-    table_name = dataset_row.table_name
 
     read_start_time = time.time()
     # check if session dataframe has been stored
@@ -59,8 +51,7 @@ def get_dataset(name):
     if os.path.exists(dataframe_pkl_file):
         tex_dataframe = pickle.load(open(dataframe_pkl_file, "rb"))
     else:
-        df = pd.read_sql_table(table_name, SQLALCHEMY_DATABASE_URI)
-        tex_dataframe = tex_df.TexDF(df)
+        tex_dataframe = tex_df.TexDF(name)
         pickle.dump(tex_dataframe, open(dataframe_pkl_file, "wb"))
 
     symbol_table_pkl_file = "/app/symbol_table.pkl"
@@ -71,7 +62,6 @@ def get_dataset(name):
 
     symbol_table["tdf"] = name
     pickle.dump(symbol_table, open(symbol_table_pkl_file, "wb"))
-    read_time_diff = time.time() - read_start_time
 
     tex_df_values = tex_dataframe.get_df_values()
     tex_df_columns = json.dumps(tex_dataframe.get_df_columns())

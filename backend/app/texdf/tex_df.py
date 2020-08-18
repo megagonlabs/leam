@@ -1,23 +1,41 @@
 import spacy
 import json
 import numpy as np
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from .. import log
-from explorer_app.compiler.operators import featurize
-from explorer_app.compiler.operators import clean
-from explorer_app.compiler.operators import select
+from vta.operators import featurize
+from vta.operators import clean
+from vta.operators import select
+
+from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from app.api import v1
+from app.models import Dataset
+from flask import current_app
 
 
 spacy_nlp = spacy.load("en_core_web_sm")
 
 
 class TexDF(object):
-    def __init__(self, df):
-        self.df = df
-        self.df_types = {i: "string" for i in df.columns}
+    def __init__(self, name):
+        engine = create_engine(current_app.config["SQLALCHEMY_DATABASE_URI"])
+        Session = sessionmaker()
+        Session.configure(bind=engine)
+        session = Session()
+        query = session.query(Dataset).filter(Dataset.name == name)
+        dataset_row = query.first()
+        table_name = dataset_row.table_name
+        dataset_name = name.split(".")[0]
+        self.df = pd.read_sql_table(
+            table_name, current_app.config["SQLALCHEMY_DATABASE_URI"]
+        )
+        self.df_types = {i: "string" for i in self.df.columns}
         # map of column name -> visual encoding data
-        self.metadata = {i: {} for i in df.columns}
-        self.cached_visual_encodings = {i: {} for i in df.columns}
+        self.metadata = {i: {} for i in self.df.columns}
+        self.cached_visual_encodings = {i: {} for i in self.df.columns}
         self.view_indexes = {}
 
     def get_df_values(self):

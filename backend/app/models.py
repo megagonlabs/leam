@@ -1,4 +1,4 @@
-from explorer_app import db
+from app import db
 
 
 class Dataset(db.Model):

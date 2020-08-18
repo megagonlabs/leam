@@ -1,5 +1,4 @@
 alembic==1.4.2
-antlr4-python3-runtime==4.8
 appdirs==1.4.4
 astroid==2.4.2
 attrs==19.3.0
@@ -56,6 +55,7 @@ toml==0.10.1
 tqdm==4.47.0
 typed-ast==1.4.1
 urllib3==1.25.9
+-e git+git@github.com:rit-git/explorer.git@a682d7fef18fa6d0fb423ae2fcecf68927232cfa#egg=vta&subdirectory=backend/vta
 wasabi==0.7.0
 Werkzeug==1.0.1
 wrapt==1.12.1

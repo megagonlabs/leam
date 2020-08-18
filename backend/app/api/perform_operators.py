@@ -14,8 +14,7 @@ from . import v1
 from .. import log
 
 # from ..models import Dataset
-from explorer_app.compiler import compiler
-from explorer_app.compiler.vtascript_parser import VTALoader
+from vta import compiler
 
 POSTGRES = {
     "user": "postgres",
@@ -46,9 +45,12 @@ def run_operator():
 
     if is_vta_script:
         log.info("parsing VITAL command\n")
-        vta_IR = VTALoader.parse_vta_script(vta_spec)
-        vta_spec = VTALoader.convert_vta_script(vta_IR)
-        log.info("generated VTA spec is: %s\n", vta_spec)
+        try:
+            cmd_output = exec(vta_spec)
+        except Exception as e:
+            log.error("python command had error: %s", str(e))
+
+        log.debug("generated VTA spec is: %s\n", vta_spec)
 
     result = compiler.compile_vta(vta_spec)
     time_diff = round(time.time() - start_time, 3)

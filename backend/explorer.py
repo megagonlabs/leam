@@ -2,8 +2,8 @@ from flask import Flask, Blueprint, request, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate, upgrade
 from flask_sqlalchemy import SQLAlchemy
-from explorer_app import create_app, db
-from explorer_app.models import Dataset
+from app import create_app, db
+from app.models import Dataset
 
 app = create_app()
 migrate = Migrate(app, db)

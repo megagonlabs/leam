@@ -1,7 +1,6 @@
 import json
 import os
 import pickle
-from explorer_app import log
 
 """
 
