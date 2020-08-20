@@ -7,6 +7,7 @@ ENV FLASK_APP explorer.py
 
 WORKDIR /app
 ADD ./explorer_app/* /app/
+ADD requirements.txt /app/
 RUN pip install -r /app/requirements.txt
 # CMD ["python", "explorer.py"]
 
