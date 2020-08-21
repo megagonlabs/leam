@@ -6,7 +6,6 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import nltk
 from scipy.sparse import vstack
-from explorer_app import log
 
 spacy_nlp = spacy.load("en_core_web_sm")
 nltk.download("vader_lexicon")
@@ -30,8 +29,8 @@ def get_top_words(top_words):
     tw_list = [(k, v) for k, v in top_words.items()]
     tw_list = sorted(tw_list, key=lambda word: word[1], reverse=True)
     tw_list = [(v[0], v[1], i + 1) for i, v in enumerate(tw_list)]
-    log.info("top words list:")
-    log.info(tw_list)
+    # log.info("top words list:")
+    # log.info(tw_list)
     for v in tw_list:
         tw_final_list.append({"topword": v[0], "score": v[1], "order": v[2]})
     return tw_final_list
@@ -48,8 +47,8 @@ def generate_tfidf_visualization(df, column, labels):
     # print(means)
     ordered = np.argsort(tfidf_vectors * -1)
     # ordered = ordered
-    log.info(means)
-    log.info(ordered)
+    # log.info(means)
+    # log.info(ordered)
 
     top_k = 50
     result = {}
@@ -63,7 +62,7 @@ def generate_tfidf_visualization(df, column, labels):
     # tfidf_word_list = result.items()
     # flat_list = sorted(tfidf_word_list, key=lambda tup: tup[1])
     # log.info(flat_list)
-    log.info(result)
+    # log.info(result)
     return result
 
 
@@ -90,10 +89,10 @@ def generate_kmeans_clusters(df, column):
     tfidf_2d = np.stack(tfidf_2d, axis=0)
     kmeans = KMeans(n_clusters=6, n_init=10).fit(tfidf_2d)
     cluster_preds = kmeans.predict(tfidf_2d)
-    log.info(
-        "the first 5 cluster values are: %s",
-        ", ".join([str(c) for c in cluster_preds[:5]]),
-    )
+    # log.info(
+    #     "the first 5 cluster values are: %s",
+    #     ", ".join([str(c) for c in cluster_preds[:5]]),
+    # )
     return [list(cluster_preds)]
 
 
@@ -103,8 +102,8 @@ def generate_sentiment_features(df, column):
 
     sid = SentimentIntensityAnalyzer()
     sentiments = [sid.polarity_scores(r)["compound"] for r in df[column]]
-    log.info(
-        "the first 5 sentiment scores are: %s",
-        ", ".join([str(s) for s in sentiments[:5]]),
-    )
+    # log.info(
+    #     "the first 5 sentiment scores are: %s",
+    #     ", ".join([str(s) for s in sentiments[:5]]),
+    # )
     return [sentiments]

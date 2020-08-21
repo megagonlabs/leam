@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 import scipy
 from io import StringIO, BytesIO
-from flask import jsonify, request, session
+from flask import jsonify, request, session, current_app
 from flask_cors import CORS
 
 from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
@@ -12,7 +12,8 @@ from sqlalchemy.orm import sessionmaker
 from app.api import v1
 from app import log
 from app.models import Dataset
-from app.texdf import tex_df
+from vta.texdf import tex_df
+from vta import VTA
 
 from app import db
 
@@ -46,22 +47,24 @@ def get_dataset(name):
 
     read_start_time = time.time()
     # check if session dataframe has been stored
+    # use vta dataset load command instead
+    engine = create_engine(current_app.config["SQLALCHEMY_DATABASE_URI"])
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+    query = session.query(Dataset).filter(Dataset.name == name)
+    dataset_row = query.first()
+    table_name = dataset_row.table_name
     dataset_name = name.split(".")[0]
     dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
     if os.path.exists(dataframe_pkl_file):
         tex_dataframe = pickle.load(open(dataframe_pkl_file, "rb"))
     else:
-        tex_dataframe = tex_df.TexDF(name)
+        df = pd.read_sql_table(
+            table_name, current_app.config["SQLALCHEMY_DATABASE_URI"]
+        )
+        tex_dataframe = tex_df.TexDF(df)
         pickle.dump(tex_dataframe, open(dataframe_pkl_file, "wb"))
-
-    symbol_table_pkl_file = "/app/symbol_table.pkl"
-    if os.path.exists(symbol_table_pkl_file):
-        symbol_table = pickle.load(open(symbol_table_pkl_file, "rb"))
-    else:
-        symbol_table = {}
-
-    symbol_table["tdf"] = name
-    pickle.dump(symbol_table, open(symbol_table_pkl_file, "wb"))
 
     tex_df_values = tex_dataframe.get_df_values()
     tex_df_columns = json.dumps(tex_dataframe.get_df_columns())

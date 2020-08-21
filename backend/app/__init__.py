@@ -35,7 +35,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     db.init_app(app)
-    from explorer_app.api import v1 as v1_blueprint
+    from app.api import v1 as v1_blueprint
 
     app.register_blueprint(v1_blueprint, url_prefix="/v1")
     return app

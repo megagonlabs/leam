@@ -23,7 +23,7 @@ services:
         build:
             context: ./backend/
             dockerfile: Dockerfile
-        command: ["./explorer_app/scripts/wait-for-postgres.sh", "postgres", "./explorer_app/scripts/entrypoint.sh"]
+        command: ["./scripts/wait-for-postgres.sh", "postgres", "./scripts/entrypoint.sh"]
         expose:
             - "5000"
         ports:

@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from explorer_app import log
 
 
 def projection(df, column, indices):
@@ -20,5 +19,5 @@ def coordinate(df, column, labels):
         for j in range(len(labels)):
             if tfidf_vectors[i, 0, j] > 0.0:
                 reverse_idx[labels[j]].append(i)
-    log.info("[COORDINATE] reverse idx is -> %s", reverse_idx.__str__())
+    # log.info("[COORDINATE] reverse idx is -> %s", reverse_idx.__str__())
     return reverse_idx

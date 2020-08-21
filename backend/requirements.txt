@@ -55,7 +55,7 @@ toml==0.10.1
 tqdm==4.47.0
 typed-ast==1.4.1
 urllib3==1.25.9
--e git+git@github.com:rit-git/explorer.git@a682d7fef18fa6d0fb423ae2fcecf68927232cfa#egg=vta&subdirectory=backend/vta
+-e .
 wasabi==0.7.0
 Werkzeug==1.0.1
 wrapt==1.12.1
