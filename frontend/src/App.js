@@ -324,18 +324,18 @@ class App extends Component {
         let chartRow = [];
         chartRow.push("");
         const columns = JSON.parse(response.data["columns"]);
-        const columnTypes = JSON.parse(response.data["columnTypes"]);
-        const visualEncodings = JSON.parse(response.data["encodings"]);
-        const visIndexes = JSON.parse(response.data["vis_idx"]);
-        let visualEncodingRows = [];
-        let visTypes = {};
+        // const columnTypes = JSON.parse(response.data["columnTypes"]);
+        // const visualEncodings = JSON.parse(response.data["encodings"]);
+        // const visIndexes = JSON.parse(response.data["vis_idx"]);
+        // let visualEncodingRows = [];
+        // let visTypes = {};
 
-        console.log(`visIndex is: ${visIndexes["barchart"]}`);
-        const indexes = {
-          ...this.state.reverseIndex,
-          barchart: visIndexes["barchart"],
-        };
-        this.setState({ reverseIndex: indexes });
+        // console.log(`visIndex is: ${visIndexes["barchart"]}`);
+        // const indexes = {
+        //   ...this.state.reverseIndex,
+        //   barchart: visIndexes["barchart"],
+        // };
+        // this.setState({ reverseIndex: indexes });
 
         // let spec = {
         //     $schema: "https://vega.github.io/schema/vega-lite/v4.json",
@@ -343,126 +343,126 @@ class App extends Component {
         //     ],
         //     data: { values: [] },
         // };
-        const specList = [];
-        let distributionSpec = {
-          $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-          data: { values: [] },
-          width: 200,
-          height: 200,
-          layer: [
-            {
-              selection: {
-                Number: {
-                  type: "single",
-                  fields: ["TopWords"],
-                  init: { TopWords: 10 },
-                  bind: {
-                    TopWords: { input: "range", min: 1, max: 50, step: 1 },
-                  },
-                },
-              },
-              transform: [
-                {
-                  filter: "datum.order <= Number.TopWords",
-                },
-              ],
-              mark: { type: "bar", tooltip: true },
-              encoding: {
-                y: { field: "topword", type: "ordinal", sort: "-x" },
-                x: { field: "score", type: "quantitative" },
-              },
-            },
-          ],
-        };
+        // const specList = [];
+        // let distributionSpec = {
+        //   $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+        //   data: { values: [] },
+        //   width: 200,
+        //   height: 200,
+        //   layer: [
+        //     {
+        //       selection: {
+        //         Number: {
+        //           type: "single",
+        //           fields: ["TopWords"],
+        //           init: { TopWords: 10 },
+        //           bind: {
+        //             TopWords: { input: "range", min: 1, max: 50, step: 1 },
+        //           },
+        //         },
+        //       },
+        //       transform: [
+        //         {
+        //           filter: "datum.order <= Number.TopWords",
+        //         },
+        //       ],
+        //       mark: { type: "bar", tooltip: true },
+        //       encoding: {
+        //         y: { field: "topword", type: "ordinal", sort: "-x" },
+        //         x: { field: "score", type: "quantitative" },
+        //       },
+        //     },
+        //   ],
+        // };
 
-        let scatterplotSentimentSpec = {
-          $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-          data: { values: [] },
-          width: 150,
-          height: 200,
-          mark: "point",
-          encoding: {
-            y: { field: "pca_1", type: "quantitative" },
-            x: { field: "pca_0", type: "quantitative" },
-            tooltip: { field: "review", type: "nominal" },
-            color: {
-              field: "review-sentiment",
-              type: "quantitative",
-              scale: {
-                range: ["crimson", "royalblue"],
-              },
-            },
-          },
-        };
+        // let scatterplotSentimentSpec = {
+        //   $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+        //   data: { values: [] },
+        //   width: 150,
+        //   height: 200,
+        //   mark: "point",
+        //   encoding: {
+        //     y: { field: "pca_1", type: "quantitative" },
+        //     x: { field: "pca_0", type: "quantitative" },
+        //     tooltip: { field: "review", type: "nominal" },
+        //     color: {
+        //       field: "review-sentiment",
+        //       type: "quantitative",
+        //       scale: {
+        //         range: ["crimson", "royalblue"],
+        //       },
+        //     },
+        //   },
+        // };
 
-        let scatterplotClusterSpec = {
-          $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-          data: { values: [] },
-          width: 150,
-          height: 200,
-          mark: "circle",
-          encoding: {
-            y: { field: "pca_1", type: "quantitative" },
-            x: { field: "pca_0", type: "quantitative" },
-            tooltip: { field: "review", type: "nominal" },
-            color: {
-              field: "review-tfidf-kmeans",
-              type: "nominal",
-            },
-          },
-        };
-        for (let key in visualEncodings) {
-          const visData = visualEncodings[key];
-          const visKeys = Object.keys(visData);
-          if (visKeys.length > 0) {
-            const rows = visData[visKeys[0]];
-            for (let rowIdx in rows) {
-              const rowVal = rows[rowIdx];
-              if (visualEncodingRows.length >= rowIdx - 1) {
-                visualEncodingRows[rowIdx] = {
-                  ...visualEncodingRows[rowIdx],
-                  ...rowVal,
-                };
-              } else {
-                visualEncodingRows.push(rowVal);
-              }
-            }
-          }
-        }
+        // let scatterplotClusterSpec = {
+        //   $schema: "https://vega.github.io/schema/vega-lite/v4.json",
+        //   data: { values: [] },
+        //   width: 150,
+        //   height: 200,
+        //   mark: "circle",
+        //   encoding: {
+        //     y: { field: "pca_1", type: "quantitative" },
+        //     x: { field: "pca_0", type: "quantitative" },
+        //     tooltip: { field: "review", type: "nominal" },
+        //     color: {
+        //       field: "review-tfidf-kmeans",
+        //       type: "nominal",
+        //     },
+        //   },
+        // };
+        // for (let key in visualEncodings) {
+        //   const visData = visualEncodings[key];
+        //   const visKeys = Object.keys(visData);
+        //   if (visKeys.length > 0) {
+        //     const rows = visData[visKeys[0]];
+        //     for (let rowIdx in rows) {
+        //       const rowVal = rows[rowIdx];
+        //       if (visualEncodingRows.length >= rowIdx - 1) {
+        //         visualEncodingRows[rowIdx] = {
+        //           ...visualEncodingRows[rowIdx],
+        //           ...rowVal,
+        //         };
+        //       } else {
+        //         visualEncodingRows.push(rowVal);
+        //       }
+        //     }
+        //   }
+        // }
 
-        for (let key in visualEncodings) {
-          const visData = visualEncodings[key];
-          const visKeys = Object.keys(visData);
-          if (visKeys.length > 0) {
-            console.log(
-              `vis data of key ${key} contains a visualization object with type ${visKeys[0]}`
-            );
-            visTypes[key] = visKeys[0];
-            if (
-              key == "<pca_0_pca_1_review-sentiment>" ||
-              key == "<pca_0_pca_1_review-sentiment_review>" ||
-              key == "<review_pca_0_pca_1_review-sentiment>"
-            ) {
-              // spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
-              scatterplotSentimentSpec.data.values = visualEncodingRows;
-              specList.push(scatterplotSentimentSpec);
-            } else if (
-              key == "<pca_0_pca_1_review-tfidf-kmeans>" ||
-              key == "<pca_0_pca_1_review-tfidf-kmeans_review>" ||
-              key == "<review_pca_0_pca_1_review-tfidf-kmeans>"
-            ) {
-              // spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
-              scatterplotClusterSpec.data.values = visualEncodingRows;
-              specList.push(scatterplotClusterSpec);
-            } else if (key == "review-tfidf") {
-              // spec.hconcat = [...spec.hconcat, distributionSpec];
-              distributionSpec.data.values = visualEncodingRows;
-              specList.push(distributionSpec);
-            }
-          }
-        }
+        // for (let key in visualEncodings) {
+        //   const visData = visualEncodings[key];
+        //   const visKeys = Object.keys(visData);
+        //   if (visKeys.length > 0) {
+        //     console.log(
+        //       `vis data of key ${key} contains a visualization object with type ${visKeys[0]}`
+        //     );
+        //     visTypes[key] = visKeys[0];
+        //     if (
+        //       key == "<pca_0_pca_1_review-sentiment>" ||
+        //       key == "<pca_0_pca_1_review-sentiment_review>" ||
+        //       key == "<review_pca_0_pca_1_review-sentiment>"
+        //     ) {
+        //       // spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
+        //       scatterplotSentimentSpec.data.values = visualEncodingRows;
+        //       specList.push(scatterplotSentimentSpec);
+        //     } else if (
+        //       key == "<pca_0_pca_1_review-tfidf-kmeans>" ||
+        //       key == "<pca_0_pca_1_review-tfidf-kmeans_review>" ||
+        //       key == "<review_pca_0_pca_1_review-tfidf-kmeans>"
+        //     ) {
+        //       // spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
+        //       scatterplotClusterSpec.data.values = visualEncodingRows;
+        //       specList.push(scatterplotClusterSpec);
+        //     } else if (key == "review-tfidf") {
+        //       // spec.hconcat = [...spec.hconcat, distributionSpec];
+        //       distributionSpec.data.values = visualEncodingRows;
+        //       specList.push(distributionSpec);
+        //     }
+        //   }
+        // }
 
-        const newVisualEncodings = { all: visualEncodingRows };
+        // const newVisualEncodings = { all: visualEncodingRows };
 
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
@@ -499,10 +499,10 @@ class App extends Component {
         this.setState({
           datasetRows: rows,
           columnSizes: columnWidths,
-          columnTypes,
-          visualEncodings: newVisualEncodings,
-          visualizationTypes: visTypes,
-          dataVisSpec: specList,
+          // columnTypes,
+          // visualEncodings: newVisualEncodings,
+          // visualizationTypes: visTypes,
+          // dataVisSpec: specList,
         });
       })
       .catch(function (error) {

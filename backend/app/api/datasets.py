@@ -12,11 +12,10 @@ from sqlalchemy.orm import sessionmaker
 from app.api import v1
 from app import log
 from app.models import Dataset
-from vta.texdf import tex_df
-from vta import VTA
-
 from app import db
 
+from vta.texdf.tex_df import TexDF
+from vta import VTA
 
 POSTGRES = {
     "user": "postgres",
@@ -58,28 +57,30 @@ def get_dataset(name):
     dataset_name = name.split(".")[0]
     dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
     if os.path.exists(dataframe_pkl_file):
+        log.info("reading pickled dataset")
         tex_dataframe = pickle.load(open(dataframe_pkl_file, "rb"))
     else:
+        log.info("getting dataset from db")
         df = pd.read_sql_table(
             table_name, current_app.config["SQLALCHEMY_DATABASE_URI"]
         )
-        tex_dataframe = tex_df.TexDF(df)
+        tex_dataframe = TexDF(df, name)
         pickle.dump(tex_dataframe, open(dataframe_pkl_file, "wb"))
 
-    tex_df_values = tex_dataframe.get_df_values()
-    tex_df_columns = json.dumps(tex_dataframe.get_df_columns())
-    tex_df_visual_encodings = json.dumps(tex_dataframe.get_visual_encodings())
-    tex_df_types = json.dumps(tex_dataframe.get_df_types())
-    tex_df_idx = json.dumps(tex_dataframe.get_idx())
+    tex_df_values = tex_dataframe.get_table_view()
+    tex_df_columns = json.dumps(tex_dataframe.get_table_view_columns())
+    # tex_df_visual_encodings = json.dumps(tex_dataframe.get_visual_encodings())
+    # tex_df_types = json.dumps(tex_dataframe.get_df_types())
+    # tex_df_idx = json.dumps(tex_dataframe.get_idx())
     tex_df_rows = json.dumps(tex_df_values)
 
     return jsonify(
         {
             "rows": tex_df_rows,
             "columns": tex_df_columns,
-            "columnTypes": tex_df_types,
-            "encodings": tex_df_visual_encodings,
-            "vis_idx": tex_df_idx,
+            # "columnTypes": tex_df_types,
+            # "encodings": tex_df_visual_encodings,
+            # "vis_idx": tex_df_idx,
         }
     )
 

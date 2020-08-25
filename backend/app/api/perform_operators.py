@@ -18,7 +18,7 @@ from . import v1
 from .. import log
 
 # from ..models import Dataset
-from vta import compiler
+from vta import VTA
 from vta.texdf.tex_df import TexDF
 
 POSTGRES = {
@@ -65,7 +65,7 @@ def run_operator():
                 vta_session = pickle.load(open("vta_session.pkl", "rb"))
             else:
                 vta_session = {}
-            VTA_globals = {"pd": pd}
+            VTA_globals = {"pd": pd, "VTA": VTA}
             VTA_locals = vta_session
             code = vta_spec
             # col = None
@@ -74,6 +74,13 @@ def run_operator():
                 exec(compile(code, "VITAL", "exec"), VTA_globals, VTA_locals)
             for var in VTA_locals:
                 log.info("VTA locals var name: %s has value: %s", var, VTA_locals[var])
+            if os.path.exists("/app/UI_QUEUE.pkl"):
+                UI_QUEUE = pickle.load(open("UI_QUEUE.pkl", "rb"))
+            else:
+                UI_QUEUE = []
+            for task in UI_QUEUE:
+                log.info("VTA ui queue has value: %s", task)
+            # TODO: check if UI queue has new tasks pushed onto it, need to send these to the front-end
             code_output = s.getvalue()
             log.info("python code output is: %s", code_output)
             vta_session = VTA_locals
@@ -84,7 +91,7 @@ def run_operator():
         log.debug("generated VTA spec is: %s\n", vta_spec)
         return jsonify({"output": code_output})
 
-    result = compiler.compile_vta(vta_spec)
+    # result = compiler.compile_vta(vta_spec)
     time_diff = round(time.time() - start_time, 3)
     log.info("[PERFORM_OPERATOR] total time was %s seconds", time_diff)
-    return jsonify({"result": result})
+    return jsonify({"result": "true"})

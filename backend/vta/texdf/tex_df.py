@@ -1,5 +1,5 @@
 import spacy
-import json
+import json, os, pickle
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -16,32 +16,95 @@ from app.models import Dataset
 # from vta.operators import select
 
 # from vta import spacy_nlp
-from vta.texdf.tex_column import TexColumn
-from vta.texdf.tex_metadata import MetadataItem, MetadataType
+from .tex_column import TexColumn
+from vta.texdf.tex_metadata import MetadataItem
+from ..types import VTAColumnType
 
 
 class TexDF:
+    dataset_name: str
     data_view: pd.DataFrame
+    table_view: []
     columns: Dict[str, TexColumn]
 
-    def __init__(self, df):
+    def __init__(self, df, name):
+        self.dataset_name = name
         self.data_view = df
-        self.columns = {i: TexColumn(i) for i in df.columns}
+        self.table_view = []
+        self.columns = {i: TexColumn(i, VTAColumnType.TEXT) for i in df.columns}
         # self.cached_visual_encodings = {i: {} for i in self.df.columns}
         # self.view_indexes = {}
+        self.update_table_view()
+        if os.path.exists("/app/UI_QUEUE.pkl"):
+            self.UI_QUEUE = pickle.load(open("UI_QUEUE.pkl", "rb"))
+        else:
+            self.UI_QUEUE = []
+            pickle.dump(self.UI_QUEUE, open("/app/UI_QUEUE.pkl", "wb"))
 
     def get_dataview_column(self, col_name: str) -> pd.Series:
         return self.data_view[col_name]
 
+    def get_table_view(self):
+        return self.table_view
+
+    def get_table_view_columns(self):
+        return [i for i in self.data_view.columns]
+
     def get_column_metadata(self, col_name: str) -> TexColumn:
         return self.columns[col_name]
 
-    def update_dataview_column(self, col_name: str, new_column: Any):
-        self.data_view[col_name] = new_column
+    def update_table_view(self):
+        readable_df = self.data_view.copy()
+        for k, v in self.columns.items():
+            col_type = v.col_type
+            if col_type == VTAColumnType.VECTOR:
+                is_column_list = type(readable_df[k][0]) == list
+                row_vectors = (
+                    readable_df[k].map(lambda r: np.array(r).tolist())
+                    if is_column_list
+                    else readable_df[k].map(lambda r: r.toarray().tolist())
+                )
+                row_vectors = (
+                    row_vectors if is_column_list else [r[0] for r in row_vectors]
+                )
+                row_string_vectors = [[str(f) for f in r] for r in row_vectors]
+                row_string_vectors = map(lambda r: r[:10], row_string_vectors)
+                row_string_vectors = [", ".join(r) for r in row_string_vectors]
+                readable_df[k] = row_string_vectors
+            elif v == VTAColumnType.FLOAT:
+                float_column = readable_df[k]
+                row_floats = [round(f, 5) for f in float_column]
+                readable_df[k] = row_floats
 
-    def create_dataview_column(self, new_col_name: str, new_column: Any):
+        self.table_view = readable_df.values.tolist()
+
+    def update_dataview_column(
+        self, col_name: str, col_type: VTAColumnType, new_column: Any
+    ):
+        self.data_view[col_name] = new_column
+        col = self.columns[col_name]
+        col.col_type = col_type
+        self.update_table_view()
+        task = {"view": "table", "type": "update_column"}
+        self.add_to_uiq(task)
+        self.checkpoint_texdf()
+
+    def create_dataview_column(
+        self, new_col_name: str, col_type: VTAColumnType, new_column: Any
+    ):
         self.data_view[new_col_name] = new_column
-        self.columns[new_col_name] = TexColumn(new_col_name)
+        self.columns[new_col_name] = TexColumn(new_col_name, col_type)
+        self.update_table_view()
+        self.checkpoint_texdf()
+
+    def add_to_uiq(self, task):
+        self.UI_QUEUE.append(task)
+        pickle.dump(self.UI_QUEUE, open("UI_QUEUE.pkl", "wb"))
+
+    def checkpoint_texdf(self):
+        name = self.dataset_name.split(".")[0]
+        dataframe_pkl_file = "/app/" + name + ".pkl"
+        pickle.dump(self, open(dataframe_pkl_file, "wb"))
 
     # def get_df_values(self):
     #     readable_df = self.df.copy()

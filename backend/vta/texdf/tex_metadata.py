@@ -1,12 +1,11 @@
 from enum import Enum
-import pandas as pd
 from typing import List
-from vta.types import MetadataType
+from vta.types import VTAColumnType
 
 
 class MetadataItem:
     column: str
-    md_type: MetadataType
+    md_type: VTAColumnType
 
     def __init__(self, col_name, meta_type, metadata):
         self.column = col_name

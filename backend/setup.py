@@ -1,7 +1,5 @@
-from setuptools import setup, find_namespace_packages
+from distutils.core import setup
 
 setup(
-    name="vta",
-    version="1.0",
-    packages=find_namespace_packages(include=["namespace.*"]),
+    name="vta", version="1.0.0", packages=["vta"],
 )

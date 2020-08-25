@@ -1,10 +1,8 @@
 from enum import Enum
 from typing import List
-import pandas as pd
-import spacy
-from vta.texdf.tex_df import TexDF
-from vta.texdf.tex_column import TexColumn
-from vta.types import SelectionType, ColumnType, ActionType
+from .texdf import tex_df
+from .texdf import tex_column
+from vta.types import SelectionType, VTAColumnType, ActionType
 from vta.project import Project
 from vta.mutate import Mutate
 
@@ -15,11 +13,11 @@ class VTAColumn:
     """
 
     selection_type: SelectionType
-    texdf: TexDF
+    texdf: tex_df.TexDF
     col_name: str
-    col_type: ColumnType
+    col_type: VTAColumnType
 
-    def __init__(self, texdf, column, column_type=ColumnType.TEXT):
+    def __init__(self, texdf, column, column_type=VTAColumnType.TEXT):
         self.selection_type = SelectionType.column
         self.texdf = texdf
         self.col_name = column

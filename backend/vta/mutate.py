@@ -1,8 +1,8 @@
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from vta.texdf.tex_df import TexDF
-from vta.types import SelectionType, ColumnType, ActionType, MetadataType
+from .texdf import tex_df
+from .types import SelectionType, VTAColumnType, ActionType
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -15,9 +15,9 @@ def basic_tokenizer(sentence):
 
 class Mutate:
     selection_type: SelectionType
-    texdf: TexDF
+    texdf: tex_df.TexDF
     col_name: str
-    col_type: ColumnType
+    col_type: VTAColumnType
 
     def __init__(self, selection_type, texdf, column, column_type):
         self.selection_type = selection_type
@@ -28,19 +28,24 @@ class Mutate:
     def tf_idf(self, action=ActionType.Create, metadata=ActionType.Add):
         column_value = self.texdf.get_dataview_column(self.col_name)
         vectorizer = TfidfVectorizer(tokenizer=basic_tokenizer)
-        tfidf_vectors = list(vectorizer.fit_transform(column_value))
+        vectors = vectorizer.fit_transform(column_value)
+        tfidf_vectors = list(vectors)
         new_column_name = self.col_name + "_tf_idf"
         if action is ActionType.Create:
-            self.texdf.create_dataview_column(new_column_name, tfidf_vectors)
+            self.texdf.create_dataview_column(
+                new_column_name, VTAColumnType.VECTOR, tfidf_vectors
+            )
             # handling metadata
             if metadata is ActionType.Add:
                 feature_labels = vectorizer.get_feature_names()
                 metadata = self.texdf.get_column_metadata(new_column_name)
-                metadata.add_metadata(MetadataType.FEATURE_LABELS, feature_labels)
+                metadata.add_metadata(VTAColumnType.VECTOR, feature_labels)
             return new_column_name
 
         elif action is ActionType.Update:
-            self.texdf.update_dataview_column(self.col_name, tfidf_vectors)
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.VECTOR, tfidf_vectors
+            )
             if metadata is ActionType.Add:
                 feature_labels = vectorizer.get_feature_names()
                 metadata = self.texdf.get_column_metadata(self.col_name)

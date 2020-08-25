@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class ColumnType(Enum):
+class VTAColumnType(Enum):
     # regular types
     INT = "Int"
     FLOAT = "Float"
@@ -17,6 +17,12 @@ class ColumnType(Enum):
     VISUALIZATION = "Visualization"
 
 
+class VisType(Enum):
+    barchart = "barchart"
+    scatterplot = "scatterplot"
+    heatmap = "heatmap"
+
+
 class ActionType(Enum):
     Update = "Update"  # update existing column
     Create = "Create"  # create new column
@@ -28,7 +34,3 @@ class SelectionType(Enum):
     column = "column"
     vis = "vis"
     metadata = "metadata"
-
-
-class MetadataType(Enum):
-    FEATURE_LABELS = "FEATURE_LABELS"

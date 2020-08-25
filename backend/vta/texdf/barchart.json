@@ -1,0 +1,30 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "data": { "values": [] },
+  "width": 200,
+  "height": 200,
+  "layer": [
+    {
+      "selection": {
+        "Number": {
+          "type": "single",
+          "fields": ["TopWords"],
+          "init": { "TopWords": 10 },
+          "bind": {
+            "TopWords": { "input": "range", "min": 1, "max": 50, "step": 1 }
+          }
+        }
+      },
+      "transform": [
+        {
+          "filter": "datum.order <= Number.TopWords"
+        }
+      ],
+      "mark": { "type": "bar", "tooltip": true },
+      "encoding": {
+        "y": { "field": "topword", "type": "ordinal", "sort": "-x" },
+        "x": { "field": "score", "type": "quantitative" }
+      }
+    }
+  ]
+}

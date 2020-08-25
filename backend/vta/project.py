@@ -2,8 +2,8 @@ from enum import Enum
 from typing import List
 import pandas as pd
 import spacy
-from vta.texdf.tex_df import TexDF
-from vta.types import SelectionType, ColumnType, ActionType
+from .texdf import tex_df
+from .types import SelectionType, VTAColumnType, ActionType
 
 
 spacy_nlp = spacy.load("en_core_web_sm")
@@ -11,9 +11,9 @@ spacy_nlp = spacy.load("en_core_web_sm")
 
 class Project:
     selection_type: SelectionType
-    texdf: TexDF
+    texdf: tex_df.TexDF
     col_name: str
-    col_type: ColumnType
+    col_type: VTAColumnType
 
     def __init__(self, selection_type, texdf, column, column_type):
         self.selection_type = selection_type
@@ -29,7 +29,9 @@ class Project:
         column_value = self.texdf.get_dataview_column(self.col_name)
         new_column_value = column_value.str.lower()
         if action is ActionType.Update:
-            self.texdf.update_dataview_column(self.col_name, new_column_value)
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
         else:
             raise Exception(
                 "[lowercase] unknown action performed on column: %s", self.col_name
@@ -46,7 +48,9 @@ class Project:
             filtered_tokens.append(" ".join(tokens))
 
         if action is ActionType.Update:
-            self.texdf.update_dataview_column(self.col_name, filtered_tokens)
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, filtered_tokens
+            )
         else:
             raise Exception(
                 "[remove_punctuation] unknown action performed on column: %s",
@@ -64,7 +68,9 @@ class Project:
         new_column_value = column_value.map(remove_stopwords_helper)
 
         if action is ActionType.Update:
-            self.texdf.update_dataview_column(self.col_name, new_column_value)
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
         else:
             raise Exception(
                 "[remove_stopwords] unknown action performed on column: %s",

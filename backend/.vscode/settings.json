@@ -4,5 +4,6 @@
   "python.linting.pylintUseMinimalCheckers": false,
   "python.formatting.provider": "black",
   "editor.formatOnSave": true,
-  "python.formatting.blackPath": "./venv/bin/black"
+  "python.formatting.blackPath": "./venv/bin/black",
+  "python.pythonPath": "venv/bin/python"
 }
