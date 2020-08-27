@@ -2,9 +2,10 @@ from enum import Enum
 from typing import List
 from .texdf import tex_df
 from .texdf import tex_column
-from vta.types import SelectionType, VTAColumnType, ActionType
+from vta.types import SelectionType, VTAColumnType, ActionType, VisType
 from vta.project import Project
 from vta.mutate import Mutate
+from .aggregate import Aggregate
 
 
 class VTAColumn:
@@ -36,3 +37,19 @@ class VTAColumn:
 
     def mutate(self):
         return Mutate(self.selection_type, self.texdf, self.col_name, self.col_type)
+
+    def aggregate(self):
+        return Aggregate(self.selection_type, self.texdf, self.col_name, self.col_type)
+
+    def visualize(self, vis_type, md_tag=None):
+        # how do we do multi-col visualizations
+        if vis_type == "barchart":
+            internal_vis_type = VisType.barchart
+        else:
+            internal_vis_type = None
+        if md_tag == None:
+            self.texdf.add_visualization([self.col_name], internal_vis_type)
+        else:
+            self.texdf.add_visualization(
+                [self.col_name], internal_vis_type, md_tag=md_tag
+            )

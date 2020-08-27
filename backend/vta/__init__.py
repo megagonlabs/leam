@@ -29,15 +29,20 @@ class VTA:
     def get_column(self, col_name):
         return VTAColumn(self.texdf, col_name)
 
+    def visualize(self, columns, vis_type):
+        # create visualization on tex dataframe
+        return
+
 
 if __name__ == "__main__":
     df = pd.read_csv("test_reviews_small.csv")
-    tdf = TexDF(df)
+    tdf = TexDF(df, "test_reviews_small.csv")
     data = VTA("test.csv", tdf)
     col = data.get_column("review")
     # print(col)
     col.project().remove_punctuation()
     new_col = col.mutate().tf_idf()
+    # add a column list function and show output on frontend
     col2 = data.get_column(new_col)
     # print(col2)
     # print(col2.print_metadata())

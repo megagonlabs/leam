@@ -324,6 +324,12 @@ class App extends Component {
         let chartRow = [];
         chartRow.push("");
         const columns = JSON.parse(response.data["columns"]);
+        let visSpecList = [];
+        const visualizations = JSON.parse(response.data["visualizations"]);
+        for (let i = 0; i < visualizations.length; i++) {
+          const visValue = visualizations[i];
+          visSpecList.push(visValue["spec"]);
+        }
         // const columnTypes = JSON.parse(response.data["columnTypes"]);
         // const visualEncodings = JSON.parse(response.data["encodings"]);
         // const visIndexes = JSON.parse(response.data["vis_idx"]);
@@ -499,6 +505,7 @@ class App extends Component {
         this.setState({
           datasetRows: rows,
           columnSizes: columnWidths,
+          dataVisSpec: visSpecList,
           // columnTypes,
           // visualEncodings: newVisualEncodings,
           // visualizationTypes: visTypes,

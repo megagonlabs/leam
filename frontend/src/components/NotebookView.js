@@ -140,7 +140,7 @@ export default class NotebookView extends Component {
             commands={[
               {
                 name: "run",
-                bindKey: { mac: "Enter" },
+                bindKey: { mac: "Shift+Enter" },
                 exec: this.runCell,
               },
             ]}

@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Dict, Any
 from .tex_metadata import MetadataItem
 from ..types import VTAColumnType
 
@@ -6,21 +6,18 @@ from ..types import VTAColumnType
 class TexColumn:
     col_name: str
     col_type: VTAColumnType
-    metadata: List[MetadataItem]
+    metadata: Dict[str, MetadataItem]
 
     def __init__(self, column_name, col_type):
         self.col_name = column_name
         self.col_type = col_type
-        self.metadata = []
-
-    # make sure that an aggregate is returning a data structure with the corresponding rows included
-    # b/c will use those to determine coordination
-    def add_metadata(self, md_type: VTAColumnType, md_value: Any):
-        new_metadata = MetadataItem(self.col_name, md_type, md_value)
-        self.metadata.append(new_metadata)
+        self.metadata = {}
 
     def get_col_type(self):
         return self.col_type
+
+    def get_metadata_by_tag(self, tag):
+        return self.metadata[tag]
 
     def __str__(self):
         output = "[" + "".join([str(i) for i in self.metadata]) + "]"

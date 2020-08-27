@@ -38,8 +38,12 @@ class Mutate:
             # handling metadata
             if metadata is ActionType.Add:
                 feature_labels = vectorizer.get_feature_names()
-                metadata = self.texdf.get_column_metadata(new_column_name)
-                metadata.add_metadata(VTAColumnType.VECTOR, feature_labels)
+                self.texdf.add_metadata(
+                    new_column_name,
+                    "feature_labels",
+                    VTAColumnType.VECTOR,
+                    feature_labels,
+                )
             return new_column_name
 
         elif action is ActionType.Update:
@@ -48,8 +52,12 @@ class Mutate:
             )
             if metadata is ActionType.Add:
                 feature_labels = vectorizer.get_feature_names()
-                metadata = self.texdf.get_column_metadata(self.col_name)
-                metadata.add_metadata(feature_labels)
+                self.texdf.add_metadata(
+                    self.col_name,
+                    "feature_labels",
+                    VTAColumnType.VECTOR,
+                    feature_labels,
+                )
         else:
             raise Exception(
                 "[tf_idf] unknown action performed on column: %s", self.col_name,

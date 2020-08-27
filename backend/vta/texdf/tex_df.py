@@ -17,8 +17,9 @@ from app.models import Dataset
 
 # from vta import spacy_nlp
 from .tex_column import TexColumn
-from vta.texdf.tex_metadata import MetadataItem
-from ..types import VTAColumnType
+from .tex_metadata import MetadataItem
+from .tex_vis import TexVis
+from ..types import VTAColumnType, VisType
 
 
 class TexDF:
@@ -26,12 +27,14 @@ class TexDF:
     data_view: pd.DataFrame
     table_view: []
     columns: Dict[str, TexColumn]
+    visualizations: List[TexVis]
 
     def __init__(self, df, name):
         self.dataset_name = name
         self.data_view = df
         self.table_view = []
         self.columns = {i: TexColumn(i, VTAColumnType.TEXT) for i in df.columns}
+        self.visualizations = []
         # self.cached_visual_encodings = {i: {} for i in self.df.columns}
         # self.view_indexes = {}
         self.update_table_view()
@@ -50,8 +53,62 @@ class TexDF:
     def get_table_view_columns(self):
         return [i for i in self.data_view.columns]
 
+    def get_visualizations(self):
+        vis_list = [i.to_dict() for i in self.visualizations]
+        return vis_list
+
     def get_column_metadata(self, col_name: str) -> TexColumn:
         return self.columns[col_name]
+
+    def get_all_metadata(self):
+        # metadata will be a table with 3 columns: tag | data_type | data
+        all_metadata = []
+        for _, col in self.columns.items():
+            col_metadata = []
+            for _, md in col.metadata.items():
+                col_metadata_item = []
+                col_metadata_item.append(md.tag)
+                col_metadata_item.append(md.md_type.value)
+                col_metadata_item.append(md.value)
+                col_metadata.append(col_metadata_item)
+            all_metadata.append(col_metadata)
+        return all_metadata
+
+    def get_columns_vega_format(self, columns, data_type, md_tag=None):
+        # Take in list of columns, output data from those columns formatted
+        # in vega-lite format: [{"id": 1, "x": 0.3}, {"id": 2, "x": 0.7}, ...]
+        vega_rows = []
+        if data_type == "dataview":
+            for _, row in self.data_view[columns].iterrows():
+                vega_row = {c: row[c] for c in columns}
+                vega_rows.append(vega_row)
+        elif data_type == "metadata":
+            col_name = columns[0]
+            data = self.get_column_metadata(col_name).get_metadata_by_tag(md_tag)
+            # add some way to handle different types of metadata
+            tw_list = [(k, v) for k, v in data.value.items()]
+            tw_list = sorted(tw_list, key=lambda word: word[1], reverse=True)
+            tw_list = [(v[0], v[1], i + 1) for i, v in enumerate(tw_list)]
+            # log.info("top words list:")
+            # log.info(tw_list)
+            for v in tw_list:
+                vega_rows.append({"topword": v[0], "score": v[1], "order": v[2]})
+
+        return vega_rows
+
+    def add_visualization(self, columns, vis_type, md_tag=None):
+        # if aggregate type vis, using metadata, if not using column(s)
+        if vis_type == VisType.barchart:
+            data_type = "metadata"
+            vis_data = self.get_columns_vega_format(columns, data_type, md_tag=md_tag)
+        else:
+            data_type = "dataview"
+            vis_data = self.get_columns_vega_format(columns, data_type)
+        new_vis = TexVis(vis_type, columns, vis_data)
+        self.visualizations.append(new_vis)
+        task = {"view": "datavis", "type": "add_vis"}
+        self.add_to_uiq(task)
+        self.checkpoint_texdf()
 
     def update_table_view(self):
         readable_df = self.data_view.copy()
@@ -94,7 +151,20 @@ class TexDF:
     ):
         self.data_view[new_col_name] = new_column
         self.columns[new_col_name] = TexColumn(new_col_name, col_type)
+        task = {"view": "table", "type": "update_metadata"}
+        self.add_to_uiq(task)
         self.update_table_view()
+        self.checkpoint_texdf()
+
+    # make sure that an aggregate is returning a data structure with the corresponding rows included
+    # b/c will use those to determine coordination
+    def add_metadata(
+        self, col_name: str, tag: str, md_type: VTAColumnType, md_value: Any
+    ):
+        new_metadata = MetadataItem(tag, col_name, md_type, md_value)
+        col = self.columns[col_name]
+        col.metadata[tag] = new_metadata
+        # TODO: add a table view type thing maybe metadata view for presenting metadata if needed
         self.checkpoint_texdf()
 
     def add_to_uiq(self, task):
@@ -105,39 +175,6 @@ class TexDF:
         name = self.dataset_name.split(".")[0]
         dataframe_pkl_file = "/app/" + name + ".pkl"
         pickle.dump(self, open(dataframe_pkl_file, "wb"))
-
-    # def get_df_values(self):
-    #     readable_df = self.df.copy()
-    #     for k, v in self.df_types.items():
-    #         if v == "vector":
-    #             is_column_list = type(readable_df[k][0]) == list
-    #             row_vectors = (
-    #                 readable_df[k].map(lambda r: np.array(r).tolist())
-    #                 if is_column_list
-    #                 else readable_df[k].map(lambda r: r.toarray().tolist())
-    #             )
-    #             row_vectors = (
-    #                 row_vectors if is_column_list else [r[0] for r in row_vectors]
-    #             )
-    #             row_string_vectors = [[str(f) for f in r] for r in row_vectors]
-    #             row_string_vectors = map(lambda r: r[:10], row_string_vectors)
-    #             row_string_vectors = [", ".join(r) for r in row_string_vectors]
-    #             readable_df[k] = row_string_vectors
-    #         elif v == "float":
-    #             float_column = readable_df[k]
-    #             row_floats = [round(f, 5) for f in float_column]
-    #             readable_df[k] = row_floats
-
-    #     return readable_df.values.tolist()
-
-    # def get_df_columns(self):
-    #     return self.df.columns.tolist()
-
-    # def get_df_types(self):
-    #     return self.df_types
-
-    # def get_metadata(self):
-    #     return self.metadata
 
     # def get_visual_encodings(self):
     #     return self.cached_visual_encodings
