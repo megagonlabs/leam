@@ -9,6 +9,7 @@ from app.models import Dataset
 from flask import current_app
 from vta.column import VTAColumn
 from vta.texdf.tex_df import TexDF
+from .types import VisType
 
 
 class VTA:
@@ -29,9 +30,21 @@ class VTA:
     def get_column(self, col_name):
         return VTAColumn(self.texdf, col_name)
 
-    def visualize(self, columns, vis_type):
+    def visualize(self, columns, vis_type, md_tag=None):
         # create visualization on tex dataframe
-        return
+        # how do we do multi-col visualizations
+        if vis_type == "barchart":
+            internal_vis_type = VisType.barchart
+        elif vis_type == "scatterplot":
+            internal_vis_type = VisType.scatterplot
+        elif vis_type == "heatmap":
+            internal_vis_type = VisType.heatmap
+        else:
+            internal_vis_type = None
+        if md_tag == None:
+            self.texdf.add_visualization(columns, internal_vis_type)
+        else:
+            self.texdf.add_visualization(columns, internal_vis_type, md_tag=md_tag)
 
 
 if __name__ == "__main__":

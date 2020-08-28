@@ -9,12 +9,14 @@ import {
   Divider,
   Typography,
   Box,
+  Grid,
 } from "@material-ui/core";
 import { Star } from "@material-ui/icons";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/theme-kuroir";
 import "ace-builds/src-noconflict/mode-javascript";
+import { PlayArrow } from "@material-ui/icons";
 
 export default class NotebookView extends Component {
   constructor(props) {
@@ -24,13 +26,18 @@ export default class NotebookView extends Component {
       history: [],
       colorAttr: "weighted_mean_sentiment",
       pattern: "",
+      cellNum: 0,
     };
-    this.starti = 0;
-
     this.runCell = this.runCell.bind(this);
     // this.remoteRun = this.remoteRun.bind(this);
     this.onAceLoad = this.onAceLoad.bind(this);
+    this.changeLineNum = this.changeLineNum.bind(this);
   }
+
+  changeLineNum = () => {
+    const currCellNum = this.state.cellNum;
+    this.setState({ cellNum: currCellNum + 1 });
+  };
 
   onAceLoad = (_editor) => {
     _editor.renderer.setShowGutter(false);
@@ -109,6 +116,7 @@ export default class NotebookView extends Component {
               { command: command, status: "finished" },
             ],
           });
+          this.changeLineNum();
           this.props.loadFile(this.props.datasetName);
         })
         .catch(function (error) {
@@ -126,53 +134,66 @@ export default class NotebookView extends Component {
 
   render() {
     return (
-      <div className="details-wrap">
-        <div className="console">
-          <AceEditor
-            mode="javascript"
-            theme="kuroir"
-            name="input-editor"
-            className="ace-cli"
-            editorProps={{ $blockScrolling: Infinity }}
-            width="80%"
-            min-height="30px"
-            value={this.state.editorValue}
-            commands={[
-              {
-                name: "run",
-                bindKey: { mac: "Shift+Enter" },
-                exec: this.runCell,
-              },
-            ]}
-            onLoad={this.onAceLoad}
-          />
-          <div className="command-history">
-            <List component="nav" style={{ overflow: "auto", maxHeight: 300 }}>
-              {this.state.history.map((x, i) => (
-                <Box border={1} borderColor="gray">
-                  <ListItem button key={i}>
-                    {/* <ListItemIcon>
-                    <Star />
-                  </ListItemIcon> */}
-                    <Typography variant="h7" f>
-                      <Box fontWeight="fontWeightBold" m={1}>
-                        ln[{i}]:
-                      </Box>
-                    </Typography>
-                    <ListItemText
-                      primary={
-                        <React.Fragment>
-                          <span className="command-code">{x.command}</span>
-                        </React.Fragment>
-                      }
-                    />
-                  </ListItem>
-                </Box>
-              ))}
-            </List>
-          </div>
-        </div>
-      </div>
+      <Grid container>
+        {/* <Grid item xs={1}>
+          <Typography variant="h7">
+            <Box fontWeight="fontWeightBold">ln[{this.state.cellNum}]:</Box>
+          </Typography>
+        </Grid> */}
+        <Grid item xs={12}>
+          <Box ml={-2}>
+            <AceEditor
+              mode="javascript"
+              theme="kuroir"
+              name="input-editor"
+              className="ace-cli"
+              editorProps={{ $blockScrolling: Infinity }}
+              width="90%"
+              min-height="30px"
+              placeholder="Enter Command Here..."
+              value={this.state.editorValue}
+              commands={[
+                {
+                  name: "run",
+                  bindKey: { mac: "Shift+Enter" },
+                  exec: this.runCell,
+                },
+              ]}
+              onLoad={this.onAceLoad}
+            />
+          </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <List component="nav" style={{ overflow: "auto", maxHeight: 300 }}>
+            {this.state.history.map((x, i) => (
+              <React.Fragment>
+                {/* <Box border={1} borderColor="gray"> */}
+                <ListItem button key={i} border={1}>
+                  <Typography variant="h7">
+                    <Box fontWeight="fontWeightBold" mr={4} ml={-1}>
+                      ln[{i}]:
+                    </Box>
+                  </Typography>
+                  <Box style={{ backgroundColor: "#E8E9E8" }}>
+                    <Box pt={1} pb={1} pl={1} pr={3}>
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant="body2"
+                            style={{ whiteSpace: "pre-line" }}
+                          >
+                            <span className="command-code">{x.command}</span>
+                          </Typography>
+                        }
+                      />
+                    </Box>
+                  </Box>
+                </ListItem>
+              </React.Fragment>
+            ))}
+          </List>
+        </Grid>
+      </Grid>
     );
   }
 }

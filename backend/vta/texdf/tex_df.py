@@ -47,6 +47,9 @@ class TexDF:
     def get_dataview_column(self, col_name: str) -> pd.Series:
         return self.data_view[col_name]
 
+    def get_column_type(self, col_name: str) -> VTAColumnType:
+        return self.columns[col_name].col_type
+
     def get_table_view(self):
         return self.table_view
 

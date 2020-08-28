@@ -34,7 +34,7 @@ export default class GridExample extends React.Component {
 
     this.state = {
       columnCount: props.datasetHeader.length,
-      height: 250,
+      height: 350,
       overscanColumnCount: 0,
       overscanRowCount: 10,
       rowHeight: 40,
@@ -142,16 +142,14 @@ export default class GridExample extends React.Component {
       // console.log(`prewidth of index ${index} -> ${preWidth}`);
       if (preWidth == null) {
         return 100;
+      } else if (index == 0) {
+        return 30;
       } else if (10 * preWidth > 400) {
         return 400;
       } else if (10 * preWidth > 80) {
         return 10 * preWidth;
       } else {
-        if (numCols <= 5) {
-          return 120;
-        } else {
-          return 80;
-        }
+        return 80;
       }
     }
   }

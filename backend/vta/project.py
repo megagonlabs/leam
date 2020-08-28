@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import List
 import pandas as pd
+import numpy as np
 import spacy
+from sklearn.decomposition import PCA
 from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType
 
@@ -75,5 +77,25 @@ class Project:
             raise Exception(
                 "[remove_stopwords] unknown action performed on column: %s",
                 self.col_name,
+            )
+
+    def pca(self, action=ActionType.Create):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+        tfidf_vectors = [v for v in column_value]
+        tfidf_2d = np.vstack(tfidf_vectors)
+        tfidf_2d = [list(v) for v in tfidf_2d.A]
+        tfidf_2d = np.stack(tfidf_2d, axis=0)
+        pca = PCA(n_components=10)
+        pca_vectors = pca.fit_transform(tfidf_2d).tolist()
+
+        new_col_name = self.col_name + "_PCA"
+
+        if action is ActionType.Create:
+            self.texdf.create_dataview_column(
+                new_col_name, VTAColumnType.TEXT, pca_vectors
+            )
+        else:
+            raise Exception(
+                "[pca] unknown action performed on column: %s", self.col_name,
             )
 

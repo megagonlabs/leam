@@ -1,0 +1,19 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "data": { "values": [] },
+  "width": 150,
+  "height": 200,
+  "mark": "point",
+  "encoding": {
+    "y": { "field": "pca_1", "type": "quantitative" },
+    "x": { "field": "pca_0", "type": "quantitative" },
+    "tooltip": { "field": "review", "type": "nominal" },
+    "color": {
+      "field": "review-sentiment",
+      "type": "quantitative",
+      "scale": {
+        "range": ["crimson", "royalblue"]
+      }
+    }
+  }
+}

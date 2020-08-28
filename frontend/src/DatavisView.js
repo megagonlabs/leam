@@ -2,9 +2,8 @@ import React, { PropTypes } from "react";
 import { VegaLite } from "react-vega";
 import BarChart from "./BarChart.js";
 import { Handler } from "vega-tooltip";
-import { Grid } from "@material-ui/core";
+import { Grid, Box } from "@material-ui/core";
 import vegaEmbed from "vega-embed";
-import { Rnd } from "react-rnd";
 
 // const vgEmbedOptions = { actions: false, renderer: 'svg', tooltip: true };
 const vgEmbedOptions = {};
@@ -115,13 +114,15 @@ export default class DatavisView extends React.Component {
       <Grid container>
         {this.refList.map((r, index) => {
           return (
-            <Grid item xs={4} key={index}>
+            // <Grid item xs={4} key={index} border={1}>
+            <Box border={1} p={1}>
               <div
                 className={"vgl-vis-" + index}
                 id={"vgl-vis-" + index}
                 ref={r}
               ></div>
-            </Grid>
+            </Box>
+            // </Grid>
           );
         })}
         {/* <div className="vgl-vis" id="vgl-vis" ref={e => this.visRef = e}></div> */}
