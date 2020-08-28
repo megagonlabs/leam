@@ -1,5 +1,4 @@
-import React, { Component } from "react";
-import { Row, Col, Container } from "react-bootstrap";
+import React, { Component, useCallback } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import {
   Grid,
@@ -9,6 +8,7 @@ import {
   IconButton,
   Typography,
   Box,
+  Drawer,
 } from "@material-ui/core";
 import { Menu } from "@material-ui/icons";
 import axios from "axios";
@@ -18,12 +18,14 @@ import BarChart from "./BarChart";
 import OperatorView from "./OperatorView.js";
 import DatavisView from "./DatavisView.js";
 import TableView from "./GridExample.js";
+import LeamAppBar from "./components/LeamAppBar.js";
 import NotebookView from "./components/NotebookView.js";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "fontsource-roboto";
 import stopwords from "./stopwords.json";
 import generateVTASpec from "./vta/VtaGenerator.js";
+import Draggable from "react-draggable";
 
 const useStyles = (theme) => ({
   root: {
@@ -226,6 +228,10 @@ class App extends Component {
     this.fileReader.onloadend = this.handleFileRead;
     this.fileReader.readAsText(file);
     this.setState({ fileName: file.name, fileType: file.type });
+    console.log(
+      `in ONFILECHANGE, name is ${this.state.fileName} locally is ${file.name}`
+    );
+    this.loadFile(file.name);
   };
 
   handleFileRead = () => {
@@ -522,39 +528,13 @@ class App extends Component {
       <div className={this.classes.root}>
         <Grid container className={this.classes.root} spacing={2}>
           <Grid item xs={12}>
-            <AppBar position="static" color="primary">
-              <Toolbar variant="dense">
-                <IconButton edge="start" color="inherit" aria-label="menu">
-                  <Menu />
-                </IconButton>
-                <Typography variant="h5" color="inherit">
-                  Text Explorer
-                </Typography>
-              </Toolbar>
-            </AppBar>
-          </Grid>
-          <Grid item xs={5}>
-            <Paper className={this.classes.paper}>
-              <DatasetDropdown
-                key="dataset-dropdown"
-                datasets={this.state.datasets}
-                onFileChange={this.onFileChange}
-                fileName={this.state.fileName}
-                loadFile={this.loadFile}
-                getFiles={this.getFiles}
-                classes={this.classes}
-              />
-            </Paper>
-          </Grid>
-          <Grid item xs={7}>
-            <Paper className={this.classes.paper}>
-              <OperatorView
-                key="operator-view"
-                classes={this.classes}
-                columns={this.state.fileHeaders}
-                applyOperator={this.applyOperator}
-              />
-            </Paper>
+            <LeamAppBar
+              onFileChange={this.onFileChange}
+              fileName={this.state.fileName}
+              loadFile={this.loadFile}
+              datasets={this.state.datasets}
+              columns={this.state.fileHeaders}
+            />
           </Grid>
           <Grid item xs={12}>
             <Paper className={this.classes.paper}>
@@ -571,7 +551,7 @@ class App extends Component {
               />
             </Paper>
           </Grid>
-          <Grid item xs={8}>
+          <Grid item xs={12}>
             <Box ml={2}>
               <TableView
                 key="table-view"
@@ -588,7 +568,7 @@ class App extends Component {
               />
             </Box>
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={12}>
             <Paper className={this.classes.paper}>
               <NotebookView
                 loadFile={this.loadFile}

@@ -4,6 +4,7 @@ import BarChart from "./BarChart.js";
 import { Handler } from "vega-tooltip";
 import { Grid } from "@material-ui/core";
 import vegaEmbed from "vega-embed";
+import { Rnd } from "react-rnd";
 
 // const vgEmbedOptions = { actions: false, renderer: 'svg', tooltip: true };
 const vgEmbedOptions = {};
@@ -14,6 +15,10 @@ export default class DatavisView extends React.Component {
     this.refList = this.props.visSpecList.map(() => React.createRef());
     this.state = {
       refListUpdated: false,
+      width: 320,
+      height: 200,
+      x: 0,
+      y: 0,
     };
     console.log(
       `[datavis view] vis spec list constructor: ${props.visSpecList}`
