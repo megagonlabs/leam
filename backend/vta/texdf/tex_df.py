@@ -50,6 +50,12 @@ class TexDF:
     def get_column_type(self, col_name: str) -> VTAColumnType:
         return self.columns[col_name].col_type
 
+    def get_column_types(self, col_names: List[str]) -> List[VTAColumnType]:
+        return [self.columns[col].col_type for col in col_names]
+
+    def get_all_column_types(self) -> List[str]:
+        return [self.columns[col].col_type.value for col in self.columns.keys()]
+
     def get_table_view(self):
         return self.table_view
 
@@ -107,7 +113,8 @@ class TexDF:
         else:
             data_type = "dataview"
             vis_data = self.get_columns_vega_format(columns, data_type)
-        new_vis = TexVis(vis_type, columns, vis_data)
+        col_types = self.get_column_types(columns)
+        new_vis = TexVis(vis_type, columns, col_types, vis_data)
         self.visualizations.append(new_vis)
         task = {"view": "datavis", "type": "add_vis"}
         self.add_to_uiq(task)
@@ -127,11 +134,13 @@ class TexDF:
                 row_vectors = (
                     row_vectors if is_column_list else [r[0] for r in row_vectors]
                 )
-                row_string_vectors = [[str(f) for f in r] for r in row_vectors]
-                row_string_vectors = map(lambda r: r[:10], row_string_vectors)
-                row_string_vectors = [", ".join(r) for r in row_string_vectors]
+                row_string_vectors = [[str(f)[:6] for f in r] for r in row_vectors]
+                row_string_vectors = map(lambda r: r[:6], row_string_vectors)
+                row_string_vectors = [
+                    ", ".join(r) + ", ..." for r in row_string_vectors
+                ]
                 readable_df[k] = row_string_vectors
-            elif v == VTAColumnType.FLOAT:
+            elif col_type == VTAColumnType.FLOAT:
                 float_column = readable_df[k]
                 row_floats = [round(f, 5) for f in float_column]
                 readable_df[k] = row_floats

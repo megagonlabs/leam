@@ -1,5 +1,7 @@
 import spacy
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 
 from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType
@@ -24,6 +26,30 @@ class Mutate:
         self.texdf = texdf
         self.col_name = column
         self.col_type = column_type
+
+    def kmeans(self, action=ActionType.Create):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+        tfidf_vectors = [v.todense() for v in column_value]
+        tfidf_2d = np.vstack(tfidf_vectors)
+        tfidf_2d = [list(v) for v in tfidf_2d.A]
+        tfidf_2d = np.stack(tfidf_2d, axis=0)
+        kmeans = KMeans(n_clusters=6, n_init=10).fit(tfidf_2d)
+        cluster_preds = kmeans.predict(tfidf_2d)
+        # log.info(
+        #     "the first 5 cluster values are: %s",
+        #     ", ".join([str(c) for c in cluster_preds[:5]]),
+        # )
+        col_name_prefix = self.col_name.split("_")[0]
+        new_col_name = col_name_prefix + "_kmeans"
+        if action is ActionType.Create:
+            self.texdf.create_dataview_column(
+                new_col_name, VTAColumnType.INT, cluster_preds
+            )
+            return new_col_name
+        else:
+            raise Exception(
+                "[kmeans] unknown action performed on column: %s", self.col_name,
+            )
 
     def tf_idf(self, action=ActionType.Create, metadata=ActionType.Add):
         column_value = self.texdf.get_dataview_column(self.col_name)

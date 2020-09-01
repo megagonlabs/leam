@@ -3,12 +3,13 @@ from typing import List
 import pandas as pd
 import numpy as np
 import spacy
+import nltk.app.nemo_app
 from sklearn.decomposition import PCA
 from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType
 
-
 spacy_nlp = spacy.load("en_core_web_sm")
+nltk.download("vader_lexicon")
 
 
 class Project:
@@ -81,7 +82,7 @@ class Project:
 
     def pca(self, action=ActionType.Create):
         column_value = self.texdf.get_dataview_column(self.col_name)
-        tfidf_vectors = [v for v in column_value]
+        tfidf_vectors = [v.todense() for v in column_value]
         tfidf_2d = np.vstack(tfidf_vectors)
         tfidf_2d = [list(v) for v in tfidf_2d.A]
         tfidf_2d = np.stack(tfidf_2d, axis=0)
@@ -92,10 +93,44 @@ class Project:
 
         if action is ActionType.Create:
             self.texdf.create_dataview_column(
-                new_col_name, VTAColumnType.TEXT, pca_vectors
+                new_col_name, VTAColumnType.VECTOR, pca_vectors
+            )
+            return new_col_name
+        else:
+            raise Exception(
+                "[pca] unknown action performed on column: %s", self.col_name
+            )
+
+    def indices(self, indices):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+        for i in indices:
+            col_name_suffix = self.col_name.split("_")[-1]
+            new_col_name = col_name_suffix + "_" + str(i)
+            new_col_value = column_value.map(lambda x: x[i])
+            # float is placeholder for now, could be other types, should infer from VECTOR type
+            self.texdf.create_dataview_column(
+                new_col_name, VTAColumnType.FLOAT, new_col_value
+            )
+
+    def sentiment(self, action=ActionType.Create):
+        from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+        column_value = self.texdf.get_dataview_column(self.col_name)
+        sid = SentimentIntensityAnalyzer()
+        sentiments = [sid.polarity_scores(r)["compound"] for r in column_value]
+        col_name_prefix = self.col_name.split("_")[0]
+        new_col_name = col_name_prefix + "_sentiment"
+
+        if action is ActionType.Create:
+            self.texdf.create_dataview_column(
+                new_col_name, VTAColumnType.FLOAT, sentiments
+            )
+            return new_col_name
+        elif action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.FLOAT, sentiments
             )
         else:
             raise Exception(
-                "[pca] unknown action performed on column: %s", self.col_name,
+                "[sentiment] unknown action performed on column: %s", self.col_name
             )
-

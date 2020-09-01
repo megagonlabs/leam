@@ -71,7 +71,7 @@ def get_dataset(name):
     tex_df_columns = json.dumps(tex_dataframe.get_table_view_columns())
     tex_df_metadata = json.dumps(tex_dataframe.get_all_metadata())
     tex_vis_list = json.dumps(tex_dataframe.get_visualizations())
-    # tex_df_types = json.dumps(tex_dataframe.get_df_types())
+    tex_df_types = json.dumps(tex_dataframe.get_all_column_types())
     # tex_df_idx = json.dumps(tex_dataframe.get_idx())
     tex_df_rows = json.dumps(tex_df_values)
 
@@ -81,7 +81,7 @@ def get_dataset(name):
             "columns": tex_df_columns,
             "metadata": tex_df_metadata,
             "visualizations": tex_vis_list,
-            # "columnTypes": tex_df_types,
+            "columnTypes": tex_df_types,
             # "encodings": tex_df_visual_encodings,
             # "vis_idx": tex_df_idx,
         }
