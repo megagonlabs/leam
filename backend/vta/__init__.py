@@ -11,6 +11,7 @@ from vta.column import VTAColumn
 from vta.visualization import VTAVisualization
 from vta.texdf.tex_df import TexDF
 from .types import VisType
+from vta.table import VTATable
 
 
 class VTA:
@@ -30,6 +31,9 @@ class VTA:
 
     def get_column(self, col_name):
         return VTAColumn(self.texdf, col_name)
+
+    def get_table(self):
+        return VTATable(self.texdf)
 
     def get_vis(self, idx):
         return VTAVisualization(self.texdf, idx)

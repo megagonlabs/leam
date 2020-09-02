@@ -86,6 +86,9 @@ class TexDF:
             all_metadata.append(col_metadata)
         return all_metadata
 
+    def get_vis_lookup_table(self, vis_idx):
+        return self.visualizations[vis_idx].row_lookup_table
+
     def get_columns_vega_format(self, columns, data_type, md_tag=None):
         # Take in list of columns, output data from those columns formatted
         # in vega-lite format: [{"id": 1, "x": 0.3}, {"id": 2, "x": 0.7}, ...]
@@ -111,16 +114,21 @@ class TexDF:
     def select_vis_element(self, vis_idx, item_idx):
         # TODO: add support for words in select like in topwords tf-idf barchart
         # TODO: add support for linking, where we might generate many new select ui tasks
-        task = {
-            "view": "datavis",
-            "type": "select",
-            "vis_idx": vis_idx,
-            "rows": item_idx
-        }
+        if vis_idx == "table":
+            task = {"view": "table", "type": "select", "rows": item_idx}
+        else:
+            task = {
+                "view": "datavis",
+                "type": "select",
+                "vis_idx": vis_idx,
+                "rows": item_idx,
+            }
         self.add_to_uiq(task)
         self.checkpoint_texdf()
 
-    def add_visualization(self, columns, vis_type, selection=None, md_tag=None):
+    def add_visualization(
+        self, columns, vis_type, selection=None, md_tag=None, row_lookup_table=None
+    ):
         # if aggregate type vis, using metadata, if not using column(s)
         if vis_type == VisType.barchart:
             data_type = "metadata"
@@ -130,7 +138,12 @@ class TexDF:
             vis_data = self.get_columns_vega_format(columns, data_type)
         col_types = self.get_column_types(columns)
         new_vis = TexVis(
-            vis_type, columns, col_types, vis_data, selection_type=selection
+            vis_type,
+            columns,
+            col_types,
+            vis_data,
+            selection_type=selection,
+            row_lookup_table=row_lookup_table,
         )
         self.visualizations.append(new_vis)
         vis_index = len(self.visualizations) - 1

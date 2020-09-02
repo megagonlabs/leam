@@ -34,8 +34,6 @@ export default class DatavisView extends React.Component {
 
     for (let key in this.refList) {
       let ref = this.refList[key];
-      const barchartIdx = this.props.reverseIdx["barchart"];
-      const barchartCoordFunc = this.props.highlightRows;
       vegaEmbed(ref.current, this.props.visSpecList[key], vgEmbedOptions)
         .then(({ _, view }) => {
           console.log(`view should be here!`);
@@ -60,11 +58,6 @@ export default class DatavisView extends React.Component {
       this.state.refListUpdated === true
     ) {
       this.setState({ refListUpdated: false });
-    } else if (
-      prevProps.reverseIdx["barchart"] == undefined &&
-      this.props.reverseIdx["barchart"] != undefined
-    ) {
-      // pass
     } else {
       return;
     }
@@ -77,8 +70,6 @@ export default class DatavisView extends React.Component {
 
     for (let key in this.refList) {
       let ref = this.refList[key];
-      const barchartIdx = this.props.reverseIdx["barchart"];
-      const barchartCoordFunc = this.props.highlightRows;
       const setVisView = this.props.setVisView;
       vegaEmbed(ref.current, this.props.visSpecList[key], vgEmbedOptions)
         .then(({ _, view }) => {
@@ -95,7 +86,6 @@ export default class DatavisView extends React.Component {
   }
 
   render() {
-    console.log(`[render] reflist is: ${this.reflist}`);
     return (
       <Grid container>
         {this.refList.map((r, index) => {

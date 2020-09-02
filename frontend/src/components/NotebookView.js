@@ -137,24 +137,30 @@ export default class NotebookView extends Component {
               // loadFile should take care of registering the external select functions
               this.props.loadFile(this.props.datasetName);
             } else if (responseType == "select") {
-              // pass (for now), but should call external select function
-              // and all select functions of linked views
-              // so be careful of the type of the selection
-              // if single selection, just pass one row into the select function
-              // if multiple selection, pass list of rows into the select function
-              const visIdx = task["vis_idx"];
-              const itemIdx = task["rows"]; // could either be single # or a list of #
-              let visView = this.props.visViews[visIdx];
-              console.log(
-                `[runCell] vis view for idx: ${visIdx} is ${visView}`
-              );
-              let visUpdateFunc = this.props.visSelectFunctions[visIdx]["func"];
-              console.log(
-                `[runCell] vis update func is of type ${visUpdateFunc["type"]} with value ${visUpdateFunc["func"]}`
-              );
-              visUpdateFunc(visView, itemIdx);
+              // TODO: handle table select!!!
+              // just call the highlight rows function fo
+              if (view == "table") {
+                const itemIdx = task["rows"];
+                console.log(`[runCell] highlighting table rows: ${itemIdx}`);
+                this.props.highlightRows(itemIdx, false);
+              } else {
+                const visIdx = task["vis_idx"];
+                const itemIdx = task["rows"]; // could either be single # or a list of #
+                let visView = this.props.visViews[visIdx];
+                console.log(
+                  `[runCell] vis view for idx: ${visIdx} is ${visView}`
+                );
+                let visUpdateFunc = this.props.visSelectFunctions[visIdx][
+                  "func"
+                ];
+                console.log(
+                  `[runCell] vis update func is of type ${visUpdateFunc["type"]} with value ${visUpdateFunc["func"]}`
+                );
+                visUpdateFunc(visView, itemIdx);
+              }
             } else if (responseType == "link") {
               // pass (for now), but should modify global linking data structure
+              // actually don't need this b/c can just manage on backend side, send a bunch of selects
             } else if (view == "table") {
               this.props.loadFile(this.props.datasetName);
             } else {

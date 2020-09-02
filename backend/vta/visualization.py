@@ -28,3 +28,7 @@ class VTAVisualization:
     def select(self, item_idx):
         self.texdf.select_vis_element(self.vis_idx, item_idx)
 
+    def select_word(self, item):
+        # just for now, we can only select a word on a barchart, need to make this more modular
+        assert self.vis_type is VisType.barchart
+

@@ -10,7 +10,7 @@ import {
   Box,
   Drawer,
 } from "@material-ui/core";
-import { Menu } from "@material-ui/icons";
+import { Menu, SignalCellularNoSim } from "@material-ui/icons";
 import axios from "axios";
 import classNames from "classnames";
 import DatasetDropdown from "./DatasetDropdown.js";
@@ -369,23 +369,44 @@ class App extends Component {
               func: externalSelectFunc,
             };
           } else if (selectionType == "multi") {
-            let externalSelectFunc = (vegaView, rowIndexes) => {
+            let externalSelectFunc = async (vegaView, rowIndexes) => {
               if (rowIndexes == -1) {
                 vegaView.signal("select_toggle", false).runAsync();
                 vegaView.signal("select_tuple", null).runAsync();
               } else {
-                for (let j = 0; j < rowIndexes.length; j++) {
-                  vegaView.signal("select_toggle", true);
-                  vegaView
+                let selectObject = {
+                  _vgsid_: [],
+                  vlMulti: {
+                    or: [],
+                  },
+                };
+                let j = 0;
+                for (; j < rowIndexes.length; j++) {
+                  selectObject._vgsid_.push(rowIndexes[j]);
+                  selectObject.vlMulti.or.push({
+                    _vgsid_: rowIndexes[j],
+                  });
+
+                  if (j == 0) {
+                    await vegaView.signal("select_toggle", false).runAsync();
+                  } else {
+                    await vegaView.signal("select_toggle", true).runAsync();
+                  }
+                  await vegaView
                     .signal("select_tuple", {
                       unit: "",
                       fields: [{ type: "E", field: "_vgsid_" }],
                       values: [rowIndexes[j]],
+                      // values: [3],
                     })
                     .runAsync();
+
+                  // vegaView.signal("select", selectObject).runAsync();
                 }
+
+                let signals = vegaView.getState().signals;
+                console.log("signals object is: \n" + JSON.stringify(signals));
               }
-              let _ = vegaView.getState().signals;
             };
             currVisSelectFunctions[i] = {
               type: "multiple",
@@ -485,6 +506,7 @@ class App extends Component {
                 datasetName={this.state.fileName}
                 visViews={this.state.visViews}
                 visSelectFunctions={this.state.visSelectFunctions}
+                highlightRows={this.highlightRows}
               />
             </Paper>
           </Grid>
