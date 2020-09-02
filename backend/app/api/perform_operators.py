@@ -57,6 +57,8 @@ def run_operator():
     spec_view = request.json.get("explorer_view")
     is_vta_script = request.json.get("vta_script_flag")
     log.info("VTA/VITAL command -> %s\n\n", vta_spec)
+    code_output = ""
+    new_ui_tasks = []
 
     if is_vta_script:
         log.info("parsing VITAL command\n")
@@ -68,6 +70,10 @@ def run_operator():
             VTA_globals = {"pd": pd, "VTA": VTA}
             VTA_locals = vta_session
             code = vta_spec
+            if os.path.exists("/app/UI_QUEUE.pkl"):
+                UI_QUEUE_BEFORE = pickle.load(open("UI_QUEUE.pkl", "rb"))
+            else:
+                UI_QUEUE_BEFORE = []
             # col = None
             # col = data.select().select_column("review")
             with stdoutIO() as s:
@@ -75,12 +81,16 @@ def run_operator():
             for var in VTA_locals:
                 log.info("VTA locals var name: %s has value: %s", var, VTA_locals[var])
             if os.path.exists("/app/UI_QUEUE.pkl"):
-                UI_QUEUE = pickle.load(open("UI_QUEUE.pkl", "rb"))
+                UI_QUEUE_AFTER = pickle.load(open("UI_QUEUE.pkl", "rb"))
             else:
-                UI_QUEUE = []
-            for task in UI_QUEUE:
-                log.info("VTA ui queue has value: %s", task)
-            # TODO: check if UI queue has new tasks pushed onto it, need to send these to the front-end
+                UI_QUEUE_AFTER = []
+
+            # TODO: if UI queue has new tasks pushed onto it, need to send these to the front-end
+            if len(UI_QUEUE_AFTER) > len(UI_QUEUE_BEFORE):
+                log.info("UI QUEUE HAS NEW ITEMS!")
+                for task in UI_QUEUE_AFTER[len(UI_QUEUE_BEFORE) :]:
+                    log.info("New VTA task has value: %s", task)
+                    new_ui_tasks.append(task)
             code_output = s.getvalue()
             log.info("python code output is: %s", code_output)
             vta_session = VTA_locals
@@ -89,7 +99,7 @@ def run_operator():
             log.error("python command had error: %s", str(e))
 
         log.debug("generated VTA spec is: %s\n", vta_spec)
-        return jsonify({"output": code_output})
+        return jsonify({"output": code_output, "tasks": new_ui_tasks})
 
     # result = compiler.compile_vta(vta_spec)
     time_diff = round(time.time() - start_time, 3)

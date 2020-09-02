@@ -62,6 +62,9 @@ class TexDF:
     def get_table_view_columns(self):
         return [i for i in self.data_view.columns]
 
+    def get_vis(self, i):
+        return self.visualizations[i]
+
     def get_visualizations(self):
         vis_list = [i.to_dict() for i in self.visualizations]
         return vis_list
@@ -105,7 +108,19 @@ class TexDF:
 
         return vega_rows
 
-    def add_visualization(self, columns, vis_type, md_tag=None):
+    def select_vis_element(self, vis_idx, item_idx):
+        # TODO: add support for words in select like in topwords tf-idf barchart
+        # TODO: add support for linking, where we might generate many new select ui tasks
+        task = {
+            "view": "datavis",
+            "type": "select",
+            "vis_idx": vis_idx,
+            "rows": item_idx
+        }
+        self.add_to_uiq(task)
+        self.checkpoint_texdf()
+
+    def add_visualization(self, columns, vis_type, selection=None, md_tag=None):
         # if aggregate type vis, using metadata, if not using column(s)
         if vis_type == VisType.barchart:
             data_type = "metadata"
@@ -114,9 +129,18 @@ class TexDF:
             data_type = "dataview"
             vis_data = self.get_columns_vega_format(columns, data_type)
         col_types = self.get_column_types(columns)
-        new_vis = TexVis(vis_type, columns, col_types, vis_data)
+        new_vis = TexVis(
+            vis_type, columns, col_types, vis_data, selection_type=selection
+        )
         self.visualizations.append(new_vis)
-        task = {"view": "datavis", "type": "add_vis"}
+        vis_index = len(self.visualizations) - 1
+        task = {
+            "view": "datavis",
+            "type": "add_vis",
+            "idx": vis_index,
+            "vis_type": new_vis.vis_type.value,
+            "selection_type": new_vis.selection_type,
+        }
         self.add_to_uiq(task)
         self.checkpoint_texdf()
 
@@ -163,7 +187,7 @@ class TexDF:
     ):
         self.data_view[new_col_name] = new_column
         self.columns[new_col_name] = TexColumn(new_col_name, col_type)
-        task = {"view": "table", "type": "update_metadata"}
+        task = {"view": "table", "type": "create_column"}
         self.add_to_uiq(task)
         self.update_table_view()
         self.checkpoint_texdf()
@@ -176,7 +200,9 @@ class TexDF:
         new_metadata = MetadataItem(tag, col_name, md_type, md_value)
         col = self.columns[col_name]
         col.metadata[tag] = new_metadata
-        # TODO: add a table view type thing maybe metadata view for presenting metadata if needed
+        task = {"view": "table", "type": "add_metadata"}
+        self.add_to_uiq(task)
+        # TODO: update table view to create presentable version of metadata???
         self.checkpoint_texdf()
 
     def add_to_uiq(self, task):

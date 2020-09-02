@@ -17,7 +17,7 @@ class TexVis:
         columns: List[str],
         col_types: List[VTAColumnType],
         data: List[Dict],
-        selection_type: Dict = None,
+        selection_type: str = None,
     ):
         if selection_type is None:
             # TODO: specify what how we turn selections into event handlers
@@ -72,7 +72,11 @@ class TexVis:
                             "VTAColumnType %s doesn't work for coloring graph",
                             col_types[idx].value,
                         )
-            # TODO: handle selection types for scatterplot
+        # TODO: handle selection types for scatterplot
+        # handle more options for specifying selection type...
+        # come up with comprehensive strategy across barcharts, scatterplots, etc.
+        if selection_type == "multi":
+            self.vis_spec["selection"]["select"]["type"] = "multi"
 
         # TODO: dynamically change visualization based on col names
         # TODO: assert that there are 2 column with certain types

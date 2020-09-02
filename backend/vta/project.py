@@ -3,7 +3,7 @@ from typing import List
 import pandas as pd
 import numpy as np
 import spacy
-import nltk.app.nemo_app
+import nltk
 from sklearn.decomposition import PCA
 from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType

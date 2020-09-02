@@ -3,10 +3,20 @@
   "data": { "values": [] },
   "width": 150,
   "height": 200,
+  "selection": {
+    "select": { "type": "single" }
+  },
   "mark": { "type": "point", "tooltip": true },
   "encoding": {
     "y": {},
     "x": {},
-    "color": {}
+    "color": {},
+    "strokeWidth": {
+      "condition": {
+        "selection": "select",
+        "value": 4
+      },
+      "value": 0.5
+    }
   }
 }

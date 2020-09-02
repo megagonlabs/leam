@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from app.models import Dataset
 from flask import current_app
 from vta.column import VTAColumn
+from vta.visualization import VTAVisualization
 from vta.texdf.tex_df import TexDF
 from .types import VisType
 
@@ -30,21 +31,31 @@ class VTA:
     def get_column(self, col_name):
         return VTAColumn(self.texdf, col_name)
 
+    def get_vis(self, idx):
+        return VTAVisualization(self.texdf, idx)
+
     def visualize(self, columns, vis_type, md_tag=None):
         # create visualization on tex dataframe
         # how do we do multi-col visualizations
         if vis_type == "barchart":
             internal_vis_type = VisType.barchart
+            selection_type = "single"
         elif vis_type == "scatterplot":
             internal_vis_type = VisType.scatterplot
+            selection_type = "multi"
         elif vis_type == "heatmap":
             internal_vis_type = VisType.heatmap
+            selection_type = "single"  # idk what heatmap selection should default to...
         else:
             internal_vis_type = None
         if md_tag == None:
-            self.texdf.add_visualization(columns, internal_vis_type)
+            self.texdf.add_visualization(
+                columns, internal_vis_type, selection=selection_type
+            )
         else:
-            self.texdf.add_visualization(columns, internal_vis_type, md_tag=md_tag)
+            self.texdf.add_visualization(
+                columns, internal_vis_type, selection=selection_type, md_tag=md_tag
+            )
 
 
 if __name__ == "__main__":

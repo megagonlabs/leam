@@ -82,6 +82,8 @@ class App extends Component {
       columnSizes: [],
       selectedColumn: null,
       dataVisSpec: [],
+      visSelectFunctions: {}, // map vis_idx -> select func object
+      visViews: {},
       reverseIndex: {},
       highlightedRows: [],
       filtering: false,
@@ -94,7 +96,14 @@ class App extends Component {
     this.selectColumn = this.selectColumn.bind(this);
     this.classes = this.props.classes;
     this.highlightRows = this.highlightRows.bind(this);
+    this.setVisView = this.setVisView.bind(this);
   }
+
+  setVisView = (visIdx, view) => {
+    let visViewsNew = this.state.visViews;
+    visViewsNew[visIdx] = view;
+    this.setState({ visViews: visViewsNew });
+  };
 
   highlightRows = (rows, isMouseover) => {
     const normalizedRows = rows.map((val, _) => val + 1);
@@ -332,76 +341,65 @@ class App extends Component {
         const columns = JSON.parse(response.data["columns"]);
         let visSpecList = [];
         const visualizations = JSON.parse(response.data["visualizations"]);
+        let currVisSelectFunctions = this.state.visSelectFunctions;
         for (let i = 0; i < visualizations.length; i++) {
           const visValue = visualizations[i];
+          const selectionType = visValue["selection_type"];
+          const visType = visValue["vis_type"];
+          console.log(
+            `registering vis type ${visType} with selection type ${selectionType}`
+          );
+          if (selectionType == "single") {
+            let externalSelectFunc = (vegaView, rowIdx) => {
+              if (rowIdx == -1) {
+                vegaView.signal("select_tuple", null).runAsync();
+              } else {
+                vegaView
+                  .signal("select_tuple", {
+                    unit: "",
+                    fields: [{ type: "E", field: "_vgsid_" }],
+                    values: [rowIdx],
+                  })
+                  .runAsync();
+              }
+              let _ = vegaView.getState().signals;
+            };
+            currVisSelectFunctions[i] = {
+              type: "single",
+              func: externalSelectFunc,
+            };
+          } else if (selectionType == "multi") {
+            let externalSelectFunc = (vegaView, rowIndexes) => {
+              if (rowIndexes == -1) {
+                vegaView.signal("select_toggle", false).runAsync();
+                vegaView.signal("select_tuple", null).runAsync();
+              } else {
+                for (let j = 0; j < rowIndexes.length; j++) {
+                  vegaView.signal("select_toggle", true);
+                  vegaView
+                    .signal("select_tuple", {
+                      unit: "",
+                      fields: [{ type: "E", field: "_vgsid_" }],
+                      values: [rowIndexes[j]],
+                    })
+                    .runAsync();
+                }
+              }
+              let _ = vegaView.getState().signals;
+            };
+            currVisSelectFunctions[i] = {
+              type: "multiple",
+              func: externalSelectFunc,
+            };
+          } else {
+            console.log(
+              "[loadFile] unknown selection type -> " + selectionType
+            );
+          }
           visSpecList.push(visValue["spec"]);
         }
 
         const columnTypes = JSON.parse(response.data["columnTypes"]);
-        // const visualEncodings = JSON.parse(response.data["encodings"]);
-        // const visIndexes = JSON.parse(response.data["vis_idx"]);
-        // let visualEncodingRows = [];
-        // let visTypes = {};
-
-        // console.log(`visIndex is: ${visIndexes["barchart"]}`);
-        // const indexes = {
-        //   ...this.state.reverseIndex,
-        //   barchart: visIndexes["barchart"],
-        // };
-        // this.setState({ reverseIndex: indexes });
-
-        // for (let key in visualEncodings) {
-        //   const visData = visualEncodings[key];
-        //   const visKeys = Object.keys(visData);
-        //   if (visKeys.length > 0) {
-        //     const rows = visData[visKeys[0]];
-        //     for (let rowIdx in rows) {
-        //       const rowVal = rows[rowIdx];
-        //       if (visualEncodingRows.length >= rowIdx - 1) {
-        //         visualEncodingRows[rowIdx] = {
-        //           ...visualEncodingRows[rowIdx],
-        //           ...rowVal,
-        //         };
-        //       } else {
-        //         visualEncodingRows.push(rowVal);
-        //       }
-        //     }
-        //   }
-        // }
-
-        // for (let key in visualEncodings) {
-        //   const visData = visualEncodings[key];
-        //   const visKeys = Object.keys(visData);
-        //   if (visKeys.length > 0) {
-        //     console.log(
-        //       `vis data of key ${key} contains a visualization object with type ${visKeys[0]}`
-        //     );
-        //     visTypes[key] = visKeys[0];
-        //     if (
-        //       key == "<pca_0_pca_1_review-sentiment>" ||
-        //       key == "<pca_0_pca_1_review-sentiment_review>" ||
-        //       key == "<review_pca_0_pca_1_review-sentiment>"
-        //     ) {
-        //       // spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
-        //       scatterplotSentimentSpec.data.values = visualEncodingRows;
-        //       specList.push(scatterplotSentimentSpec);
-        //     } else if (
-        //       key == "<pca_0_pca_1_review-tfidf-kmeans>" ||
-        //       key == "<pca_0_pca_1_review-tfidf-kmeans_review>" ||
-        //       key == "<review_pca_0_pca_1_review-tfidf-kmeans>"
-        //     ) {
-        //       // spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
-        //       scatterplotClusterSpec.data.values = visualEncodingRows;
-        //       specList.push(scatterplotClusterSpec);
-        //     } else if (key == "review-tfidf") {
-        //       // spec.hconcat = [...spec.hconcat, distributionSpec];
-        //       distributionSpec.data.values = visualEncodingRows;
-        //       specList.push(distributionSpec);
-        //     }
-        //   }
-        // }
-
-        // const newVisualEncodings = { all: visualEncodingRows };
 
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
@@ -440,6 +438,7 @@ class App extends Component {
           columnSizes: columnWidths,
           dataVisSpec: visSpecList,
           columnTypes,
+          visSelectFunctions: currVisSelectFunctions,
           // visualEncodings: newVisualEncodings,
           // visualizationTypes: visTypes,
           // dataVisSpec: specList,
@@ -475,6 +474,7 @@ class App extends Component {
                 height={200}
                 reverseIdx={this.state.reverseIndex}
                 highlightRows={this.highlightRows}
+                setVisView={this.setVisView}
               />
             </Paper>
           </Grid>
@@ -483,6 +483,8 @@ class App extends Component {
               <NotebookView
                 loadFile={this.loadFile}
                 datasetName={this.state.fileName}
+                visViews={this.state.visViews}
+                visSelectFunctions={this.state.visSelectFunctions}
               />
             </Paper>
           </Grid>

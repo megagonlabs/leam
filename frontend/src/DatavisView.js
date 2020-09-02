@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { PropTypes } from "react";
 import { VegaLite } from "react-vega";
 import BarChart from "./BarChart.js";
@@ -39,15 +40,6 @@ export default class DatavisView extends React.Component {
         .then(({ _, view }) => {
           console.log(`view should be here!`);
           console.log(view);
-          if (key == 0) {
-            view.addEventListener("mouseover", function (event, item) {
-              if (item != undefined && item.datum != undefined) {
-                console.log(item.datum);
-                const rows = barchartIdx[item.datum.topword];
-                barchartCoordFunc(rows, false);
-              }
-            });
-          }
         })
         .catch((err) => {
           console.log("error:");
@@ -87,19 +79,13 @@ export default class DatavisView extends React.Component {
       let ref = this.refList[key];
       const barchartIdx = this.props.reverseIdx["barchart"];
       const barchartCoordFunc = this.props.highlightRows;
+      const setVisView = this.props.setVisView;
       vegaEmbed(ref.current, this.props.visSpecList[key], vgEmbedOptions)
         .then(({ _, view }) => {
           console.log(`view should be here!`);
           console.log(view);
-          if (key == 0) {
-            view.addEventListener("mouseover", function (event, item) {
-              if (item != undefined && item.datum != undefined) {
-                console.log(item.datum);
-                const rows = barchartIdx[item.datum.topword];
-                barchartCoordFunc(rows, false);
-              }
-            });
-          }
+          // add to global views object
+          setVisView(key, view);
         })
         .catch((err) => {
           console.log("error:");
