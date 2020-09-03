@@ -49,10 +49,20 @@ class Aggregate:
                 # Pick the top k word, find its average tfidf from the
                 # precomputed dictionary using nanmean and save it to later use
                 result[names[ordered[i, 0, t]]] = means[names[ordered[i, 0, t]]]
-
-        # tfidf_word_list = result.items()
-        # flat_list = sorted(tfidf_word_list, key=lambda tup: tup[1])
-        # log.info(flat_list)
-        # log.info(result)
         self.texdf.add_metadata(self.col_name, "top_scores", VTAColumnType.MAP, result)
 
+        # add coordination index
+        # tfidf_vectors = np.array([v.todense() for v in df[column]])
+        top_word_list = result.keys()
+        reverse_idx_src = {l: [] for l in names}
+        reverse_idx_target = {}
+        for i in range(len(tfidf_vectors)):
+            for j in range(len(names)):
+                tfidf_value = tfidf_vectors[i, 0, j]
+                if tfidf_value > 0.0 and names[j] in top_word_list:
+                    reverse_idx_src[names[j]].append(i)
+                    reverse_idx_target[i] = names[j]
+
+        self.texdf.add_coord_idx("top_scores_src", reverse_idx_src)
+        self.texdf.add_coord_idx("top_scores_target", reverse_idx_target)
+        return "top_scores"

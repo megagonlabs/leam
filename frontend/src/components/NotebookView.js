@@ -142,7 +142,13 @@ export default class NotebookView extends Component {
               if (view == "table") {
                 const itemIdx = task["rows"];
                 console.log(`[runCell] highlighting table rows: ${itemIdx}`);
-                this.props.highlightRows(itemIdx, false);
+                if (itemIdx == -1) {
+                  this.props.highlightRows([]);
+                } else {
+                  let tableRows = Object.assign(itemIdx);
+                  tableRows = tableRows.map((val, idx) => val - 1);
+                  this.props.highlightRows(tableRows, false);
+                }
               } else {
                 const visIdx = task["vis_idx"];
                 const itemIdx = task["rows"]; // could either be single # or a list of #

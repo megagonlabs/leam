@@ -350,11 +350,11 @@ class App extends Component {
             `registering vis type ${visType} with selection type ${selectionType}`
           );
           if (selectionType == "single") {
-            let externalSelectFunc = (vegaView, rowIdx) => {
+            let externalSelectFunc = async (vegaView, rowIdx) => {
               if (rowIdx == -1) {
-                vegaView.signal("select_tuple", null).runAsync();
+                await vegaView.signal("select_tuple", null).runAsync();
               } else {
-                vegaView
+                await vegaView
                   .signal("select_tuple", {
                     unit: "",
                     fields: [{ type: "E", field: "_vgsid_" }],
@@ -362,7 +362,7 @@ class App extends Component {
                   })
                   .runAsync();
               }
-              let _ = vegaView.getState().signals;
+              // let _ = vegaView.getState().signals;
             };
             currVisSelectFunctions[i] = {
               type: "single",
@@ -371,8 +371,8 @@ class App extends Component {
           } else if (selectionType == "multi") {
             let externalSelectFunc = async (vegaView, rowIndexes) => {
               if (rowIndexes == -1) {
-                vegaView.signal("select_toggle", false).runAsync();
-                vegaView.signal("select_tuple", null).runAsync();
+                await vegaView.signal("select_toggle", false).runAsync();
+                await vegaView.signal("select_tuple", null).runAsync();
               } else {
                 let selectObject = {
                   _vgsid_: [],
@@ -403,9 +403,6 @@ class App extends Component {
 
                   // vegaView.signal("select", selectObject).runAsync();
                 }
-
-                let signals = vegaView.getState().signals;
-                console.log("signals object is: \n" + JSON.stringify(signals));
               }
             };
             currVisSelectFunctions[i] = {

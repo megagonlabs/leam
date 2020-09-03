@@ -41,15 +41,32 @@ class VTAColumn:
     def aggregate(self):
         return Aggregate(self.selection_type, self.texdf, self.col_name, self.col_type)
 
-    def visualize(self, vis_type, md_tag=None):
+    def visualize(self, vis_type, md_tag=None, selection=None):
         # how do we do multi-col visualizations
         if vis_type == "barchart":
             internal_vis_type = VisType.barchart
+            # build target coordination index
+            # coord_idx = self.texdf.get_coordination_idx("top_scores_target")
+            # coord_idx_new = coord_idx
+            # for row, word in coord_idx.values():
+            #     tword = coord_idx[row]
+            #     barchart_idx = 1
+            #     vis_data = self.texdf.get_columns_vega_format(
+            #         self.col_name, "metadata", md_tag="top_scores"
+            #     )
+            #     for i, val in enumerate(vis_data):
+            #         tw_val = val["topword"]
+            #         if tw_val == tword:
+            #             barchart_idx = i + 1
+            #             coord_idx_new[row] = barchart_idx
+            # self.texdf.add_coord_idx("top_scores_target", coord_idx_new)
         else:
             internal_vis_type = None
         if md_tag == None:
-            self.texdf.add_visualization([self.col_name], internal_vis_type)
+            self.texdf.add_visualization(
+                [self.col_name], internal_vis_type, selection=selection
+            )
         else:
             self.texdf.add_visualization(
-                [self.col_name], internal_vis_type, md_tag=md_tag
+                [self.col_name], internal_vis_type, selection=selection, md_tag=md_tag
             )

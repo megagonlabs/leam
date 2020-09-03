@@ -21,6 +21,7 @@ class VisType(Enum):
     barchart = "barchart"
     scatterplot = "scatterplot"
     heatmap = "heatmap"
+    table = "table"
 
 
 class ActionType(Enum):

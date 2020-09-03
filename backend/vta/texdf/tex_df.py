@@ -26,15 +26,19 @@ class TexDF:
     dataset_name: str
     data_view: pd.DataFrame
     table_view: []
+    table_links: []
     columns: Dict[str, TexColumn]
     visualizations: List[TexVis]
+    coordination_indexes: Dict[str, Dict]
 
     def __init__(self, df, name):
         self.dataset_name = name
         self.data_view = df
         self.table_view = []
+        self.table_links = []
         self.columns = {i: TexColumn(i, VTAColumnType.TEXT) for i in df.columns}
         self.visualizations = []
+        self.coordination_indexes = {}
         # self.cached_visual_encodings = {i: {} for i in self.df.columns}
         # self.view_indexes = {}
         self.update_table_view()
@@ -89,6 +93,14 @@ class TexDF:
     def get_vis_lookup_table(self, vis_idx):
         return self.visualizations[vis_idx].row_lookup_table
 
+    def get_coordination_idx(self, metadata_name):
+        return self.coordination_indexes[metadata_name]
+
+    def get_vis_links(self, vis_idx):
+        if vis_idx == "table":
+            return self.table_links
+        return self.visualizations[vis_idx].links
+
     def get_columns_vega_format(self, columns, data_type, md_tag=None):
         # Take in list of columns, output data from those columns formatted
         # in vega-lite format: [{"id": 1, "x": 0.3}, {"id": 2, "x": 0.7}, ...]
@@ -124,6 +136,43 @@ class TexDF:
                 "rows": item_idx,
             }
         self.add_to_uiq(task)
+        self.checkpoint_texdf()
+
+    def add_coord_idx(self, metadata, coord_idx):
+        self.coordination_indexes[metadata] = coord_idx
+        self.checkpoint_texdf()
+
+    def remove_link(self, src, target):
+        if src == "table":
+            vis_obj = self.table_links
+        else:
+            vis_obj = self.visualizations[src].links
+        if target in vis_obj:
+            vis_obj.remove(target)
+            self.checkpoint_texdf()
+
+    def add_uni_link(self, src, target):
+        if src == "table":
+            vis_obj = self.table_links
+        else:
+            vis_obj = self.visualizations[src].links
+        if target not in vis_obj:
+            vis_obj.append(target)
+            self.checkpoint_texdf()
+
+    def add_bi_link(self, src, target):
+        if src == "table":
+            vis_obj_src = self.table_links
+        else:
+            vis_obj_src = self.visualizations[src].links
+        if target == "table":
+            vis_obj_target = self.table_links
+        else:
+            vis_obj_target = self.visualizations[target].links
+        if target not in vis_obj_src:
+            vis_obj_src.append(target)
+        if src not in vis_obj_target:
+            vis_obj_target.append(src)
         self.checkpoint_texdf()
 
     def add_visualization(
