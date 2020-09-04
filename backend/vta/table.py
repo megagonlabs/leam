@@ -21,6 +21,19 @@ class VTATable:
         self.selection_type = SelectionType.column
         self.texdf = texdf
 
+    # TODO: maybe support target input being VTAVisualization object itself!
+    def uni_link(self, target):
+        assert target != "table"
+        self.texdf.add_uni_link("table", target)
+
+    def rm_link(self, target):
+        assert target != "table"
+        self.texdf.remove_link("table", target)
+
+    def bi_link(self, target):
+        assert target != "table"
+        self.texdf.add_bi_link("table", target)
+
     def select(self, select_data):
         item_idx = select_data
         modified_vis = set()
@@ -44,19 +57,22 @@ class VTATable:
                 self.texdf.select_vis_element(l, -1)
             elif target_vis_type is VisType.barchart:
                 # handle coordinating many -> 1 or many -> many with vis like barchart
-                # coord_idx = self.texdf.get_coordination_idx("top_scores_target")
-                # if isinstance(select_data, list):
-                #     # select all words in barchart
-                #     target_rows = []
-                #     for row in select_data:
-                #         barchart_idx = coord_idx[row]
-                #         target_rows.append(barchart_idx)
-                #     self.texdf.select_vis_element(l, target_rows)
-                # else:
-                #     # select just the word corresponding to the number
-                #     barchart_idx = coord_idx[row]
-                #     self.texdf.select_vis_element(l, barchart_idx)
-                pass
+                coord_idx = self.texdf.get_coordination_idx("top_scores_target")
+                if isinstance(select_data, list):
+                    # select all words in barchart
+                    target_rows = []
+                    for row in select_data:
+                        barchart_indexes = coord_idx[row]
+                        for b in barchart_indexes:
+                            target_rows.append(b + 1)
+                    self.texdf.select_vis_element(l, target_rows)
+                else:
+                    # select just the word corresponding to the number
+                    target_rows = []
+                    barchart_indexes = coord_idx[row]
+                    for b in barchart_indexes:
+                        target_rows.append(b + 1)
+                    self.texdf.select_vis_element(l, target_rows)
             else:
                 # default value is linked to a scatterplot, no cardinality change required
                 self.texdf.select_vis_element(l, item_idx)

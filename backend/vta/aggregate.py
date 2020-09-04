@@ -3,6 +3,8 @@ from typing import List
 import pandas as pd
 import numpy as np
 import spacy
+from heapq import nlargest
+from collections import OrderedDict
 from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType
 
@@ -49,19 +51,42 @@ class Aggregate:
                 # Pick the top k word, find its average tfidf from the
                 # precomputed dictionary using nanmean and save it to later use
                 result[names[ordered[i, 0, t]]] = means[names[ordered[i, 0, t]]]
-        self.texdf.add_metadata(self.col_name, "top_scores", VTAColumnType.MAP, result)
+        top_k_words = nlargest(top_k, result, key=result.get)
+        result_ordered = OrderedDict({k: result[k] for k in top_k_words})
+        # result_ordered = {k: result[k] for k in top_k_words}
+        # new_label_idx = {k: idx for idx, k in enumerate(top_k_words)}
+
+        print("top words dict: ")
+        print(result)
+        self.texdf.add_metadata(
+            self.col_name, "top_scores", VTAColumnType.MAP, result_ordered
+        )
 
         # add coordination index
         # tfidf_vectors = np.array([v.todense() for v in df[column]])
-        top_word_list = result.keys()
-        reverse_idx_src = {l: [] for l in names}
-        reverse_idx_target = {}
+        # TODO: make this more efficient
+        reverse_idx_src = OrderedDict({l: [] for l in result_ordered.keys()})
+        reverse_idx_target = {i: [] for i in range(len(tfidf_vectors))}
         for i in range(len(tfidf_vectors)):
             for j in range(len(names)):
                 tfidf_value = tfidf_vectors[i, 0, j]
-                if tfidf_value > 0.0 and names[j] in top_word_list:
-                    reverse_idx_src[names[j]].append(i)
-                    reverse_idx_target[i] = names[j]
+                if names[j] in top_k_words:
+                    if tfidf_value > 0.0:
+                        reverse_idx_src[names[j]].append(i)
+
+        label_idx = {k: idx for idx, k in enumerate(reverse_idx_src.keys())}
+        for k, v in reverse_idx_src.items():
+            for idx in v:
+                if reverse_idx_target.get(idx) is None:
+                    reverse_idx_target[idx] = [label_idx[k]]
+                else:
+                    reverse_idx_target[idx].append(label_idx[k])
+
+        print("top_scores_src: ")
+        print(reverse_idx_src)
+
+        print("top_scores_target: ")
+        print(reverse_idx_target)
 
         self.texdf.add_coord_idx("top_scores_src", reverse_idx_src)
         self.texdf.add_coord_idx("top_scores_target", reverse_idx_target)
