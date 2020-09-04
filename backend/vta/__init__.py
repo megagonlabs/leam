@@ -38,6 +38,12 @@ class VTA:
     def get_vis(self, idx):
         return VTAVisualization(self.texdf, idx)
 
+    def print_metadata(self):
+        self.texdf.print_metadata()
+
+    def rm_vis(self, vis_idx):
+        self.texdf.remove_vis(vis_idx)
+
     def visualize(self, columns, vis_type, md_tag=None):
         # create visualization on tex dataframe
         # how do we do multi-col visualizations

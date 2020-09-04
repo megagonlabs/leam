@@ -29,8 +29,7 @@ class VTAColumn:
         return col_series.to_string()
 
     def print_metadata(self):
-        tex_col = self.texdf.get_column_metadata(self.col_name)
-        return tex_col
+        self.texdf.print_metadata()
 
     def project(self):
         return Project(self.selection_type, self.texdf, self.col_name, self.col_type)

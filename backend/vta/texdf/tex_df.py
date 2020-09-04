@@ -90,6 +90,19 @@ class TexDF:
             all_metadata.append(col_metadata)
         return all_metadata
 
+    def print_metadata(self):
+        # metadata will be a table with 3 columns: tag | data_type | data
+        pretty_print = ""
+        for _, col in self.columns.items():
+            for _, md in col.metadata.items():
+                col_metadata_item = {}
+                col_metadata_item["column"] = col.col_name
+                col_metadata_item["tag_name"] = md.tag
+                col_metadata_item["metadata_type"] = md.md_type.value
+                col_metadata_item["value"] = str(md.value)[:80] + "..."
+                pretty_print += str(col_metadata_item) + "\n\n"
+        print(pretty_print)
+
     def get_vis_lookup_table(self, vis_idx):
         return self.visualizations[vis_idx].row_lookup_table
 
@@ -140,6 +153,18 @@ class TexDF:
 
     def add_coord_idx(self, metadata, coord_idx):
         self.coordination_indexes[metadata] = coord_idx
+        self.checkpoint_texdf()
+
+    def remove_vis(self, vis_idx):
+        if vis_idx < 0 or vis_idx >= len(self.visualizations):
+            return
+        # remove vis in place and save
+        del self.visualizations[vis_idx]
+        task = {
+            "view": "table",
+            "type": "update_vis",
+        }  # change this to be related to vis
+        self.add_to_uiq(task)
         self.checkpoint_texdf()
 
     def remove_link(self, src, target):

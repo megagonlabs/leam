@@ -481,31 +481,33 @@ class App extends Component {
             />
           </Grid>
           <Grid item xs={12}>
-            <Paper className={this.classes.paper}>
-              <DatavisView
-                key="datavis-view"
-                visualData={this.state.visualEncodings}
-                visSpecList={this.state.dataVisSpec}
-                visTypes={this.state.visualizationTypes}
-                selectedColumn={this.state.selectedColumn}
-                width={350}
-                height={200}
-                reverseIdx={this.state.reverseIndex}
-                highlightRows={this.highlightRows}
-                setVisView={this.setVisView}
-              />
-            </Paper>
+            {/* <Paper className={this.classes.paper}> */}
+            <DatavisView
+              key="datavis-view"
+              visualData={this.state.visualEncodings}
+              visSpecList={this.state.dataVisSpec}
+              visTypes={this.state.visualizationTypes}
+              selectedColumn={this.state.selectedColumn}
+              width={350}
+              height={200}
+              reverseIdx={this.state.reverseIndex}
+              highlightRows={this.highlightRows}
+              setVisView={this.setVisView}
+            />
+            {/* </Paper> */}
           </Grid>
           <Grid item xs={6}>
-            <Paper className={this.classes.paper}>
-              <NotebookView
-                loadFile={this.loadFile}
-                datasetName={this.state.fileName}
-                visViews={this.state.visViews}
-                visSelectFunctions={this.state.visSelectFunctions}
-                highlightRows={this.highlightRows}
-              />
-            </Paper>
+            <Box ml={1} border={1}>
+              <Paper className={this.classes.paper}>
+                <NotebookView
+                  loadFile={this.loadFile}
+                  datasetName={this.state.fileName}
+                  visViews={this.state.visViews}
+                  visSelectFunctions={this.state.visSelectFunctions}
+                  highlightRows={this.highlightRows}
+                />
+              </Paper>
+            </Box>
           </Grid>
           <Grid item xs={6}>
             <Box ml={1} border={1}>
