@@ -197,6 +197,11 @@ export default class GridExample extends React.Component {
 
   _highlightRow = (event) => {
     // this.setState({ highlightedRow: event.target.id });
+    if (this.props.selectedVisIdx > -1) {
+      event.preventDefault();
+      return;
+    }
+
     const rowNum = parseInt(event.target.id);
     if (rowNum > 1) {
       this.props.highlight([rowNum], true);
@@ -206,6 +211,10 @@ export default class GridExample extends React.Component {
 
   _unHighlightRow = (event) => {
     // this.setState({ highlightedRow: -1 });
+    if (this.props.selectedVisIdx > -1) {
+      event.preventDefault();
+      return;
+    }
     this.props.highlight([]);
   };
 

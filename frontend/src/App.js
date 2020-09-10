@@ -2,6 +2,7 @@ import React, { Component, useCallback } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import {
   Grid,
+  Box,
   Paper,
   AppBar,
   Toolbar,
@@ -77,6 +78,7 @@ class App extends Component {
       datasets: [],
       datasetRows: [],
       visualEncodings: {},
+      selectedVisIdx: -1,
       visualizationTypes: {},
       columnTypes: {},
       columnSizes: [],
@@ -87,6 +89,8 @@ class App extends Component {
       reverseIndex: {},
       highlightedRows: [],
       filtering: false,
+      coordinatingScatterPlot: false,
+      coordinatingTable: false,
     };
     this.fileReader = new FileReader();
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
@@ -127,90 +131,64 @@ class App extends Component {
     //   }
   };
 
-  applyOperator = (
-    operatorCategory,
-    columnNames,
-    operator,
-    selectedIndices
-  ) => {
+  applyOperator = (operatorName, columnNames, actionName, selectedIndices) => {
     console.log(
-      `doing operator type: ${operatorCategory} columns -> ${columnNames} with operator -> ${operator} with indices -> ${selectedIndices}`
+      `doing operator: ${operatorName} columns -> ${columnNames} with action -> ${actionName} with indices -> ${selectedIndices}`
     );
     const datasetName = this.state.fileName;
-    let opCategory;
-    switch (operatorCategory) {
+    let operator;
+    switch (operatorName) {
       case "Clean":
-        opCategory = "clean";
+        operator = "clean";
         break;
       case "Featurize":
-        opCategory = "featurize";
+        operator = "featurize";
         break;
       case "Select":
-        opCategory = "select";
+        operator = "select";
         break;
       default:
-        opCategory = "clean";
+        operator = "clean";
     }
     let op;
     let action;
-    switch (operator) {
+    switch (actionName) {
       case "Lowercase":
-        op = "lowercase";
-        action = "update";
+        action = "lowercase";
         break;
       case "Remove Stopwords":
-        op = "stopword";
-        action = "update";
+        action = "stopword";
         break;
       case "Stemming":
-        op = "stemming";
-        action = "update";
+        action = "stemming";
         break;
       case "Remove Punctuation":
-        op = "punctuation";
-        action = "update";
+        action = "punctuation";
         break;
       case "TF-IDF":
-        op = "tfidf";
-        action = "create";
+        action = "tfidf";
         break;
       case "K-Means":
-        op = "kmeans";
-        action = "create";
+        action = "kmeans";
         break;
       case "PCA":
-        op = "pca";
-        action = "create";
+        action = "pca";
         break;
       case "Sentiment":
-        op = "sentiment";
-        action = "create";
+        action = "sentiment";
         break;
       case "Projection":
-        op = "projection";
-        action = "create";
+        action = "projection";
         break;
       case "Visualization":
-        op = "visualization";
-        action = "create";
+        action = "visualization";
         const visName = `<${columnNames.join("_")}>`;
         this.setState({ selectedColumn: visName });
         break;
       default:
         // default is lowercase action
-        op = operator.toLowerCase();
-        action = "create";
+        action = actionName.toLowerCase();
     }
-
-    const vtaSpec = generateVTASpec(
-      opCategory,
-      op,
-      action,
-      columnNames,
-      datasetName
-    );
-
-    console.log(vtaSpec);
 
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
@@ -309,6 +287,14 @@ class App extends Component {
 
   componentDidMount() {
     this.getFiles();
+  }
+
+  addScatterPlotCoordination() {
+    this.setState({ coordinatingScatterPlot: true });
+  }
+
+  addTableCoordination() {
+    this.setState({ coordinatingTable: true });
   }
 
   loadFile = (name) => {
@@ -516,6 +502,8 @@ class App extends Component {
                 datasetRows={this.state.datasetRows}
                 datasetHeader={this.state.fileHeaders}
                 visualData={this.state.visualEncodings}
+                selectedVisIdx={this.state.selectedVisIdx}
+                selectVisIdxFunc={this.selectVisIdx}
                 visTypes={this.state.visualizationTypes}
                 colTypes={this.state.columnTypes}
                 selectColumn={this.selectColumn}
