@@ -19,3 +19,6 @@ This will create three containers
 - Postgres (the DB container running a Postgres instance)
 
 After these containers are fully started, you should be able to visit the frontend by visiting the following url in your browser: http://localhost:3000
+
+
+
