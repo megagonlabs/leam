@@ -1,6 +1,13 @@
-# Explorer
+# Leam
+`Leam` is a research prototype for integrated visual text analytics that aims to combine the advantages of computational notebooks, spreadsheets, and visualization tools.
 
-## Building the app
+## System Archictecture
+
+`Leam` backend features an in-memory dataframe, a versioning database, a compiler for translating visual text algebra (`vta`) commands that the execution engine runs, and a session manager to manage data, code, and visualizations. The following figure shows the overview of the `Leam` system architecture. The components with dashed borders ("--") are partially implemented and require further refinement.
+
+![Alt text](/images/leam-arch.png?raw=true "Leam System Architecture")
+
+###  Building the app
 
 1. Do `cd frontend` to move into the react folder
 2. Run `yarn install` - if you don't have yarn you can install via brew or other popular package managers (https://classic.yarnpkg.com/en/docs/install#mac-stable). Sorry this step is a workaround that should be fixed soon!
