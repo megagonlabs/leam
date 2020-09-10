@@ -62,8 +62,13 @@ export const OperatorMenu = () => {
           parentMenuOpen={!!menuPosition}
           onClick={handleItemClick}
         >
+          <MenuItem onClick={handleItemClick}>Correct Spellings</MenuItem>
           <MenuItem onClick={handleItemClick}>Lowercase</MenuItem>
+          <MenuItem onClick={handleItemClick}>Remove Emoji</MenuItem>
           <MenuItem onClick={handleItemClick}>Remove Punctuation</MenuItem>
+          <MenuItem onClick={handleItemClick}>Remove Square Brackets</MenuItem>
+          <MenuItem onClick={handleItemClick}>Remove URLs</MenuItem>
+          <MenuItem onClick={handleItemClick}>Strip HTML</MenuItem>
           <NestedMenuItem
             label="Lemmatize"
             parentMenuOpen={!!menuPosition}

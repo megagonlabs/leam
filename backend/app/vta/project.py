@@ -4,13 +4,16 @@ import pandas as pd
 import numpy as np
 import spacy
 import nltk
+import re
 from sklearn.decomposition import PCA
+from bs4 import BeautifulSoup
+from spellchecker import SpellChecker
 from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType
 
 spacy_nlp = spacy.load("en_core_web_sm")
 nltk.download("vader_lexicon")
-
+spell = SpellChecker()
 
 class Project:
     selection_type: SelectionType
@@ -38,6 +41,61 @@ class Project:
         else:
             raise Exception(
                 "[lowercase] unknown action performed on column: %s", self.col_name
+            )
+
+    def strip_html(self, action=ActionType.Update):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+
+        def strip_html_helper(text):
+            soup = BeautifulSoup(text, "html.parser")
+            return soup.get_text()
+
+        new_column_value = column_value.map(strip_html_helper)
+
+        if action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
+        else:
+            raise Exception(
+                "[strip_html] unknown action performed on column: %s",
+                self.col_name,
+            )
+
+    def remove_square_brackets(self, action=ActionType.Update):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+
+        def remove_sq_brackets_helper(text):
+            return re.sub('\[[^]]*\]', '', text)
+
+        new_column_value = column_value.map(remove_sq_brackets_helper)
+
+        if action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
+        else:
+            raise Exception(
+                "[remove_square_brackets] unknown action performed on column: %s",
+                self.col_name,
+            )
+
+    def remove_urls(self, action=ActionType.Update):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+
+        def remove_urls_helper(text):
+            return re.sub(r'http\S+', '', text)
+
+        new_column_value = column_value.map(remove_urls_helper)
+
+        if action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
+        else:
+            raise Exception(
+                "[remove_urls] unknown action performed on column: %s",
+                self.col_name,
             )
 
     def remove_punctuation(self, action=ActionType.Update):
@@ -77,6 +135,50 @@ class Project:
         else:
             raise Exception(
                 "[remove_stopwords] unknown action performed on column: %s",
+                self.col_name,
+            )
+
+    def remove_emoji(self, action=ActionType.Update):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+
+        def remove_emoji_helper(text):
+            emoji_pattern = re.compile('[\U00010000-\U0010ffff]', flags=re.UNICODE)
+            return emoji_pattern.sub(r'', text)
+
+        new_column_value = column_value.map(remove_emoji_helper)
+
+        if action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
+        else:
+            raise Exception(
+                "[remove_emoji] unknown action performed on column: %s",
+                self.col_name,
+            )
+
+    def correct_spellings(self, action=ActionType.Update):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+
+        def correct_spellings_helper(text):
+            corrected_text = []
+            misspelled_words = spell.unknown(text.split())
+            for word in text.split():
+                if word in misspelled_words:
+                    corrected_text.append(spell.correction(word))
+                else:
+                    corrected_text.append(word)
+            return " ".join(corrected_text)
+
+        new_column_value = column_value.map(correct_spellings_helper)
+
+        if action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
+        else:
+            raise Exception(
+                "[correct_spellings] unknown action performed on column: %s",
                 self.col_name,
             )
 
