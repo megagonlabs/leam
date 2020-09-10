@@ -48,10 +48,15 @@ export default class OperatorView extends Component {
     if (newOperator == "Clean") {
       // Clean
       operatorTypes = [
+        "Correct Spellings",
         "Lemmatize",
         "Lowercase",
-        "Remove Stopwords",
+        "Remove Emoji",
         "Remove Punctuation",
+        "Remove Stopwords",
+        "Remove Square Brackets",
+        "Remove URLs",
+        "Strip HTML"
       ];
     } else if (newOperator == "Featurize") {
       // Featurize
