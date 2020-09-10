@@ -27,6 +27,3 @@ After these containers are fully started, you should be able to visit the fronte
 ### License
 
 MIT
-
-
-

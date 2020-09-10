@@ -162,6 +162,26 @@ class App extends Component {
     let op;
     let action;
     switch (operator) {
+      case "Correct Spellings":
+        op = "correct_spellings";
+        action = "update";
+        break;
+      case "Remove Emoji":
+        op = "remove_emoji";
+        action = "update";
+        break;
+      case "Remove Square Brackets":
+        op = "remove_square_brackets";
+        action = "update";
+        break;
+      case "Remove URLs":
+        op = "remove_urls";
+        action = "update";
+        break;
+      case "Strip HTML":
+        op = "strip_html";
+        action = "update";
+        break;
       case "Lowercase":
         op = "lowercase";
         action = "update";
