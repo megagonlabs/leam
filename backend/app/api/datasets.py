@@ -14,8 +14,8 @@ from app import log
 from app.models import Dataset
 from app import db
 
-from vta.texdf.tex_df import TexDF
-from vta import VTA
+from ..vta.texdf.tex_df import TexDF
+from ..vta import VTA
 
 POSTGRES = {
     "user": "postgres",

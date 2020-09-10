@@ -61,7 +61,6 @@ tqdm==4.47.0
 typed-ast==1.4.1
 urllib3==1.25.9
 vega-datasets==0.8.0
--e git+git@github.com:rit-git/explorer.git@0f1c70f1e37044caa0ba14813ee1d56690dac212#egg=vta&subdirectory=backend
 wasabi==0.7.0
 Werkzeug==1.0.1
 wrapt==1.12.1

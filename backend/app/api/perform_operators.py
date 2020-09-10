@@ -18,8 +18,8 @@ from . import v1
 from .. import log
 
 # from ..models import Dataset
-from vta import VTA
-from vta.texdf.tex_df import TexDF
+from ..vta import VTA
+from ..vta.texdf.tex_df import TexDF
 
 POSTGRES = {
     "user": "postgres",

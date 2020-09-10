@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List
-from vta.types import VTAColumnType
+from ..types import VTAColumnType
 
 
 class MetadataItem:

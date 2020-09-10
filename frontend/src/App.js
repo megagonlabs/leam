@@ -8,7 +8,6 @@ import {
   Toolbar,
   IconButton,
   Typography,
-  Box,
   Drawer,
 } from "@material-ui/core";
 import { Menu, SignalCellularNoSim } from "@material-ui/icons";
@@ -131,69 +130,95 @@ class App extends Component {
     //   }
   };
 
-  applyOperator = (operatorName, columnNames, actionName, selectedIndices) => {
+  applyOperator = (
+    operatorCategory,
+    columnNames,
+    operator,
+    selectedIndices
+  ) => {
     console.log(
-      `doing operator: ${operatorName} columns -> ${columnNames} with action -> ${actionName} with indices -> ${selectedIndices}`
+      `doing operator type: ${operatorCategory} columns -> ${columnNames} with operator -> ${operator} with indices -> ${selectedIndices}`
     );
     const datasetName = this.state.fileName;
-    let operator;
-    switch (operatorName) {
+    let opCategory;
+    switch (operatorCategory) {
       case "Clean":
-        operator = "clean";
+        opCategory = "clean";
         break;
       case "Featurize":
-        operator = "featurize";
+        opCategory = "featurize";
         break;
       case "Select":
-        operator = "select";
+        opCategory = "select";
         break;
       default:
-        operator = "clean";
+        opCategory = "clean";
     }
     let op;
     let action;
-    switch (actionName) {
+    switch (operator) {
       case "Lowercase":
-        action = "lowercase";
+        op = "lowercase";
+        action = "update";
         break;
       case "Remove Stopwords":
-        action = "stopword";
+        op = "stopword";
+        action = "update";
         break;
       case "Stemming":
-        action = "stemming";
+        op = "stemming";
+        action = "update";
         break;
       case "Remove Punctuation":
-        action = "punctuation";
+        op = "punctuation";
+        action = "update";
         break;
       case "TF-IDF":
-        action = "tfidf";
+        op = "tfidf";
+        action = "create";
         break;
       case "K-Means":
-        action = "kmeans";
+        op = "kmeans";
+        action = "create";
         break;
       case "PCA":
-        action = "pca";
+        op = "pca";
+        action = "create";
         break;
       case "Sentiment":
-        action = "sentiment";
+        op = "sentiment";
+        action = "create";
         break;
       case "Projection":
-        action = "projection";
+        op = "projection";
+        action = "create";
         break;
       case "Visualization":
-        action = "visualization";
+        op = "visualization";
+        action = "create";
         const visName = `<${columnNames.join("_")}>`;
         this.setState({ selectedColumn: visName });
         break;
       default:
         // default is lowercase action
-        action = actionName.toLowerCase();
+        op = operator.toLowerCase();
+        action = "create";
     }
+
+    const vtaSpec = generateVTASpec(
+      opCategory,
+      op,
+      action,
+      columnNames,
+      datasetName
+    );
+
+    console.log(vtaSpec);
 
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
     axios
-      .post(url, { vta_spec: vtaSpec, vta_script_flag: 0 })
+      .post(url, { vta_spec: vtaSpec })
       .then((response) => {
         console.log(`operator response body is ${response.body}`);
       })

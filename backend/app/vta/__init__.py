@@ -7,11 +7,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.models import Dataset
 from flask import current_app
-from vta.column import VTAColumn
-from vta.visualization import VTAVisualization
-from vta.texdf.tex_df import TexDF
+from .column import VTAColumn
+from .visualization import VTAVisualization
+from .texdf.tex_df import TexDF
 from .types import VisType
-from vta.table import VTATable
+from .table import VTATable
 
 
 class VTA:

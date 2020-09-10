@@ -33,7 +33,7 @@ class TexVis:
             self.row_lookup_table = row_lookup_table
         self.vis_type = vis_type
         vis_spec_path = (
-            "/app/vta/texdf/" + vis_type.value + ".json"
+            "/app/app/vta/texdf/" + vis_type.value + ".json"
         )  # e.g. barchart.json
         with open(vis_spec_path, "r") as f:
             self.vis_spec = json.loads(f.read())

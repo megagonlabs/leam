@@ -2,9 +2,9 @@ from enum import Enum
 from typing import List
 from .texdf import tex_df
 from .texdf import tex_column
-from vta.types import SelectionType, VTAColumnType, ActionType, VisType
-from vta.project import Project
-from vta.mutate import Mutate
+from .types import SelectionType, VTAColumnType, ActionType, VisType
+from .project import Project
+from .mutate import Mutate
 from .aggregate import Aggregate
 
 
