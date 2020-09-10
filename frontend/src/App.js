@@ -1,5 +1,4 @@
-import React, { Component } from "react";
-import { Row, Col, Container } from "react-bootstrap";
+import React, { Component, useCallback } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import {
   Grid,
@@ -9,8 +8,9 @@ import {
   Toolbar,
   IconButton,
   Typography,
+  Drawer,
 } from "@material-ui/core";
-import { Menu } from "@material-ui/icons";
+import { Menu, SignalCellularNoSim } from "@material-ui/icons";
 import axios from "axios";
 import classNames from "classnames";
 import DatasetDropdown from "./DatasetDropdown.js";
@@ -18,12 +18,14 @@ import BarChart from "./BarChart";
 import OperatorView from "./OperatorView.js";
 import DatavisView from "./DatavisView.js";
 import TableView from "./GridExample.js";
-import NotebookView from "./NotebookView.js";
+import LeamAppBar from "./components/LeamAppBar.js";
+import NotebookView from "./components/NotebookView.js";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "fontsource-roboto";
 import stopwords from "./stopwords.json";
 import generateVTASpec from "./vta/VtaGenerator.js";
+import Draggable from "react-draggable";
 
 const useStyles = (theme) => ({
   root: {
@@ -36,7 +38,7 @@ const useStyles = (theme) => ({
   },
   paper: {
     // marginTop: theme.spacing(1),
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
     textAlign: "start",
     color: theme.palette.text.secondary,
   },
@@ -44,7 +46,7 @@ const useStyles = (theme) => ({
     display: "block",
   },
   formControl: {
-    minWidth: 200,
+    minWidth: 150,
   },
   grid: {
     margin: theme.spacing(2),
@@ -81,6 +83,8 @@ class App extends Component {
       columnSizes: [],
       selectedColumn: null,
       dataVisSpec: [],
+      visSelectFunctions: {}, // map vis_idx -> select func object
+      visViews: {},
       reverseIndex: {},
       highlightedRows: [],
       filtering: false,
@@ -95,15 +99,13 @@ class App extends Component {
     this.selectColumn = this.selectColumn.bind(this);
     this.classes = this.props.classes;
     this.highlightRows = this.highlightRows.bind(this);
-    this.selectVisIdx = this.selectVisIdx.bind(this);
-    this.addScatterPlotCoordination = this.addScatterPlotCoordination.bind(
-      this
-    );
-    this.addTableCoordination = this.addTableCoordination.bind(this);
+    this.setVisView = this.setVisView.bind(this);
   }
 
-  selectVisIdx = (idx) => {
-    this.setState({ selectedVisIdx: idx });
+  setVisView = (visIdx, view) => {
+    let visViewsNew = this.state.visViews;
+    visViewsNew[visIdx] = view;
+    this.setState({ visViews: visViewsNew });
   };
 
   highlightRows = (rows, isMouseover) => {
@@ -128,80 +130,95 @@ class App extends Component {
     //   }
   };
 
-  applyOperator = (operatorName, columnNames, actionName, selectedIndices) => {
+  applyOperator = (
+    operatorCategory,
+    columnNames,
+    operator,
+    selectedIndices
+  ) => {
     console.log(
-      `doing operator: ${operatorName} columns -> ${columnNames} with action -> ${actionName} with indices -> ${selectedIndices}`
+      `doing operator type: ${operatorCategory} columns -> ${columnNames} with operator -> ${operator} with indices -> ${selectedIndices}`
     );
     const datasetName = this.state.fileName;
-    let operator;
-    switch (operatorName) {
+    let opCategory;
+    switch (operatorCategory) {
       case "Clean":
-        operator = "clean";
+        opCategory = "clean";
         break;
       case "Featurize":
-        operator = "featurize";
+        opCategory = "featurize";
         break;
       case "Select":
-        operator = "select";
+        opCategory = "select";
         break;
       default:
-        operator = "clean";
+        opCategory = "clean";
     }
     let op;
     let action;
-    switch (actionName) {
+    switch (operator) {
       case "Lowercase":
-        action = "lowercase";
+        op = "lowercase";
+        action = "update";
         break;
       case "Remove Stopwords":
-        action = "stopword";
+        op = "stopword";
+        action = "update";
         break;
       case "Stemming":
-        action = "stemming";
+        op = "stemming";
+        action = "update";
         break;
       case "Remove Punctuation":
-        action = "punctuation";
+        op = "punctuation";
+        action = "update";
         break;
       case "TF-IDF":
-        action = "tfidf";
+        op = "tfidf";
+        action = "create";
         break;
       case "K-Means":
-        action = "kmeans";
+        op = "kmeans";
+        action = "create";
         break;
       case "PCA":
-        action = "pca";
+        op = "pca";
+        action = "create";
         break;
       case "Sentiment":
-        action = "sentiment";
+        op = "sentiment";
+        action = "create";
         break;
       case "Projection":
-        action = "projection";
+        op = "projection";
+        action = "create";
         break;
       case "Visualization":
-        action = "visualization";
+        op = "visualization";
+        action = "create";
         const visName = `<${columnNames.join("_")}>`;
         this.setState({ selectedColumn: visName });
         break;
       default:
         // default is lowercase action
-        action = actionName.toLowerCase();
+        op = operator.toLowerCase();
+        action = "create";
     }
+
+    const vtaSpec = generateVTASpec(
+      opCategory,
+      op,
+      action,
+      columnNames,
+      datasetName
+    );
+
+    console.log(vtaSpec);
 
     const url = "http://localhost:5000/v1/run-operator";
     // fetch the actual rows
     axios
-      .post(
-        url,
-        { indices: selectedIndices, columns: columnNames },
-        {
-          params: {
-            operator: operator,
-            action: action,
-            dataset: datasetName,
-            visualization: "review-tfidf",
-          },
-        }
-      )
+      .post(url, { vta_spec: vtaSpec })
       .then((response) => {
         console.log(`operator response body is ${response.body}`);
       })
@@ -223,6 +240,10 @@ class App extends Component {
     this.fileReader.onloadend = this.handleFileRead;
     this.fileReader.readAsText(file);
     this.setState({ fileName: file.name, fileType: file.type });
+    console.log(
+      `in ONFILECHANGE, name is ${this.state.fileName} locally is ${file.name}`
+    );
+    this.loadFile(file.name);
   };
 
   handleFileRead = () => {
@@ -231,6 +252,8 @@ class App extends Component {
     formData.append("filename", this.state.fileName);
     formData.append("filetype", this.state.fileType);
     formData.append("filedata", fileData);
+    console.log("filedata: ");
+    console.log(fileData);
     // console.log("uploading filename: ", this.state.fileName);
     // console.log("uploading filetype: ", this.state.fileType);
     // console.log("uploading file contents: ", this.state.fileData);
@@ -327,199 +350,85 @@ class App extends Component {
         let chartRow = [];
         chartRow.push("");
         const columns = JSON.parse(response.data["columns"]);
-        const columnTypes = JSON.parse(response.data["columnTypes"]);
-        const visualEncodings = JSON.parse(response.data["encodings"]);
-        const visIndexes = JSON.parse(response.data["vis_idx"]);
-        let visualEncodingRows = [];
-        let visTypes = {};
-
-        console.log(`visIndex is: ${visIndexes["barchart"]}`);
-        const indexes = {
-          ...this.state.reverseIndex,
-          barchart: visIndexes["barchart"],
-        };
-        this.setState({ reverseIndex: indexes });
-
-        // let spec = {
-        //     $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-        //     hconcat: [
-        //     ],
-        //     data: { values: [] },
-        // };
-        const specList = [];
-        // let distributionSpec = {
-        //   $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-        //   data: { values: [] },
-        //   width: 200,
-        //   height: 200,
-        //   layer: [
-        //     {
-        //       selection: {
-        //         Number: {
-        //           type: "single",
-        //           fields: ["TopWords"],
-        //           init: { TopWords: 10 },
-        //           bind: {
-        //             TopWords: { input: "range", min: 1, max: 50, step: 1 },
-        //           },
-        //         },
-        //       },
-        //       transform: [
-        //         {
-        //           filter: "datum.order <= Number.TopWords",
-        //         },
-        //       ],
-        //       mark: { type: "bar", tooltip: true },
-        //       encoding: {
-        //         y: { field: "topword", type: "ordinal", sort: "-x" },
-        //         x: { field: "score", type: "quantitative" },
-        //       },
-        //     },
-        //   ],
-        // };
-
-        let distributionSpec = {
-          $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-          data: {
-            values: [],
-          },
-          width: 200,
-          height: 200,
-          selection: {
-            select: { type: "single" },
-            Number: {
-              type: "single",
-              fields: ["TopWords"],
-              init: { TopWords: 10 },
-              bind: {
-                TopWords: { input: "range", min: 1, max: 50, step: 1 },
-              },
-            },
-          },
-          transform: [
-            {
-              filter: "datum.order <= Number.TopWords",
-            },
-          ],
-          mark: {
-            type: "bar",
-            fill: "#4C78A8",
-            cursor: "pointer",
-            tooltip: true,
-          },
-          encoding: {
-            y: { field: "topword", type: "ordinal", sort: "-x" },
-            x: { field: "score", type: "quantitative" },
-            fillOpacity: {
-              condition: { selection: "select", value: 1 },
-              value: 0.3,
-            },
-            strokeWidth: {
-              condition: { selection: "select", value: 1 },
-              value: 0,
-            },
-          },
-          config: {
-            scale: {
-              bandPaddingInner: 0.2,
-            },
-          },
-        };
-
-        let scatterplotSentimentSpec = {
-          $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-          data: { values: [] },
-          width: 150,
-          height: 200,
-          selection: {
-            select: { type: "multi" },
-          },
-          mark: { type: "point", tooltip: true },
-          encoding: {
-            y: { field: "pca_1", type: "quantitative" },
-            x: { field: "pca_0", type: "quantitative" },
-            color: {
-              field: "review-sentiment",
-              type: "quantitative",
-              scale: {
-                range: ["crimson", "royalblue"],
-              },
-            },
-            strokeWidth: {
-              condition: { selection: "select", value: 4 },
-              value: 0.5,
-            },
-          },
-        };
-
-        let scatterplotClusterSpec = {
-          $schema: "https://vega.github.io/schema/vega-lite/v4.json",
-          data: { values: [] },
-          width: 150,
-          height: 200,
-          mark: "circle",
-          encoding: {
-            y: { field: "pca_1", type: "quantitative" },
-            x: { field: "pca_0", type: "quantitative" },
-            tooltip: { field: "review", type: "nominal" },
-            color: {
-              field: "review-tfidf-kmeans",
-              type: "nominal",
-            },
-          },
-        };
-        for (let key in visualEncodings) {
-          const visData = visualEncodings[key];
-          const visKeys = Object.keys(visData);
-          if (visKeys.length > 0) {
-            const rows = visData[visKeys[0]];
-            for (let rowIdx in rows) {
-              const rowVal = rows[rowIdx];
-              if (visualEncodingRows.length >= rowIdx - 1) {
-                visualEncodingRows[rowIdx] = {
-                  ...visualEncodingRows[rowIdx],
-                  ...rowVal,
-                };
+        let visSpecList = [];
+        const visualizations = JSON.parse(response.data["visualizations"]);
+        let currVisSelectFunctions = this.state.visSelectFunctions;
+        for (let i = 0; i < visualizations.length; i++) {
+          const visValue = visualizations[i];
+          const selectionType = visValue["selection_type"];
+          const visType = visValue["vis_type"];
+          console.log(
+            `registering vis type ${visType} with selection type ${selectionType}`
+          );
+          if (selectionType == "single") {
+            let externalSelectFunc = async (vegaView, rowIdx) => {
+              if (rowIdx == -1) {
+                await vegaView.signal("select_tuple", null).runAsync();
               } else {
-                visualEncodingRows.push(rowVal);
+                await vegaView
+                  .signal("select_tuple", {
+                    unit: "",
+                    fields: [{ type: "E", field: "_vgsid_" }],
+                    values: [rowIdx],
+                  })
+                  .runAsync();
               }
-            }
-          }
-        }
+              // let _ = vegaView.getState().signals;
+            };
+            currVisSelectFunctions[i] = {
+              type: "single",
+              func: externalSelectFunc,
+            };
+          } else if (selectionType == "multi") {
+            let externalSelectFunc = async (vegaView, rowIndexes) => {
+              if (rowIndexes == -1) {
+                await vegaView.signal("select_toggle", false).runAsync();
+                await vegaView.signal("select_tuple", null).runAsync();
+              } else {
+                let selectObject = {
+                  _vgsid_: [],
+                  vlMulti: {
+                    or: [],
+                  },
+                };
+                let j = 0;
+                for (; j < rowIndexes.length; j++) {
+                  selectObject._vgsid_.push(rowIndexes[j]);
+                  selectObject.vlMulti.or.push({
+                    _vgsid_: rowIndexes[j],
+                  });
 
-        for (let key in visualEncodings) {
-          const visData = visualEncodings[key];
-          const visKeys = Object.keys(visData);
-          if (visKeys.length > 0) {
+                  if (j == 0) {
+                    await vegaView.signal("select_toggle", false).runAsync();
+                  } else {
+                    await vegaView.signal("select_toggle", true).runAsync();
+                  }
+                  await vegaView
+                    .signal("select_tuple", {
+                      unit: "",
+                      fields: [{ type: "E", field: "_vgsid_" }],
+                      values: [rowIndexes[j]],
+                      // values: [3],
+                    })
+                    .runAsync();
+
+                  // vegaView.signal("select", selectObject).runAsync();
+                }
+              }
+            };
+            currVisSelectFunctions[i] = {
+              type: "multiple",
+              func: externalSelectFunc,
+            };
+          } else {
             console.log(
-              `vis data of key ${key} contains a visualization object with type ${visKeys[0]}`
+              "[loadFile] unknown selection type -> " + selectionType
             );
-            visTypes[key] = visKeys[0];
-            if (
-              key == "<pca_0_pca_1_review-sentiment>" ||
-              key == "<pca_0_pca_1_review-sentiment_review>" ||
-              key == "<review_pca_0_pca_1_review-sentiment>"
-            ) {
-              // spec.hconcat = [...spec.hconcat, scatterplotSentimentSpec];
-              scatterplotSentimentSpec.data.values = visualEncodingRows;
-              specList.push(scatterplotSentimentSpec);
-            } else if (
-              key == "<pca_0_pca_1_review-tfidf-kmeans>" ||
-              key == "<pca_0_pca_1_review-tfidf-kmeans_review>" ||
-              key == "<review_pca_0_pca_1_review-tfidf-kmeans>"
-            ) {
-              // spec.hconcat = [...spec.hconcat, scatterplotClusterSpec];
-              scatterplotClusterSpec.data.values = visualEncodingRows;
-              specList.push(scatterplotClusterSpec);
-            } else if (key == "review-tfidf") {
-              // spec.hconcat = [...spec.hconcat, distributionSpec];
-              distributionSpec.data.values = visualEncodingRows;
-              specList.push(distributionSpec);
-            }
           }
+          visSpecList.push(visValue["spec"]);
         }
 
-        const newVisualEncodings = { all: visualEncodingRows };
+        const columnTypes = JSON.parse(response.data["columnTypes"]);
 
         this.setState({ fileHeaders: columns });
         for (let key in columns) {
@@ -556,10 +465,12 @@ class App extends Component {
         this.setState({
           datasetRows: rows,
           columnSizes: columnWidths,
+          dataVisSpec: visSpecList,
           columnTypes,
-          visualEncodings: newVisualEncodings,
-          visualizationTypes: visTypes,
-          dataVisSpec: specList,
+          visSelectFunctions: currVisSelectFunctions,
+          // visualEncodings: newVisualEncodings,
+          // visualizationTypes: visTypes,
+          // dataVisSpec: specList,
         });
       })
       .catch(function (error) {
@@ -570,63 +481,47 @@ class App extends Component {
   render() {
     return (
       <div className={this.classes.root}>
-        <Grid container className={this.classes.root} spacing={2}>
+        <Grid container className={this.classes.root} spacing={1}>
           <Grid item xs={12}>
-            <AppBar position="static" color="primary">
-              <Toolbar variant="dense">
-                <IconButton edge="start" color="inherit" aria-label="menu">
-                  <Menu />
-                </IconButton>
-                <Typography variant="h5" color="inherit">
-                  Text Explorer
-                </Typography>
-              </Toolbar>
-            </AppBar>
-          </Grid>
-          <Grid item xs={5}>
-            <Paper className={this.classes.paper}>
-              <DatasetDropdown
-                key="dataset-dropdown"
-                datasets={this.state.datasets}
-                onFileChange={this.onFileChange}
-                fileName={this.state.fileName}
-                loadFile={this.loadFile}
-                getFiles={this.getFiles}
-                classes={this.classes}
-              />
-            </Paper>
-          </Grid>
-          <Grid item xs={7}>
-            <Paper className={this.classes.paper}>
-              <OperatorView
-                key="operator-view"
-                classes={this.classes}
-                columns={this.state.fileHeaders}
-                applyOperator={this.applyOperator}
-              />
-            </Paper>
+            <LeamAppBar
+              onFileChange={this.onFileChange}
+              fileName={this.state.fileName}
+              loadFile={this.loadFile}
+              datasets={this.state.datasets}
+              columns={this.state.fileHeaders}
+            />
           </Grid>
           <Grid item xs={12}>
-            <Paper className={this.classes.paper}>
-              <DatavisView
-                key="datavis-view"
-                visualData={this.state.visualEncodings}
-                visSpecList={this.state.dataVisSpec}
-                selectedIdx={this.state.selectedVisIdx}
-                selectVisIdxFunc={this.selectVisIdx}
-                visTypes={this.state.visualizationTypes}
-                selectedColumn={this.state.selectedColumn}
-                width={350}
-                height={200}
-                reverseIdx={this.state.reverseIndex}
-                highlightRows={this.highlightRows}
-                coordinatingScatterPlot={this.state.coordinatingScatterPlot}
-                coordinatingTable={this.state.coordinatingTable}
-              />
-            </Paper>
+            {/* <Paper className={this.classes.paper}> */}
+            <DatavisView
+              key="datavis-view"
+              visualData={this.state.visualEncodings}
+              visSpecList={this.state.dataVisSpec}
+              visTypes={this.state.visualizationTypes}
+              selectedColumn={this.state.selectedColumn}
+              width={350}
+              height={200}
+              reverseIdx={this.state.reverseIndex}
+              highlightRows={this.highlightRows}
+              setVisView={this.setVisView}
+            />
+            {/* </Paper> */}
           </Grid>
-          <Grid item xs={8}>
-            <Box ml={2}>
+          <Grid item xs={6}>
+            <Box ml={1} border={1}>
+              <Paper className={this.classes.paper}>
+                <NotebookView
+                  loadFile={this.loadFile}
+                  datasetName={this.state.fileName}
+                  visViews={this.state.visViews}
+                  visSelectFunctions={this.state.visSelectFunctions}
+                  highlightRows={this.highlightRows}
+                />
+              </Paper>
+            </Box>
+          </Grid>
+          <Grid item xs={6}>
+            <Box ml={1} border={1}>
               <TableView
                 key="table-view"
                 datasetRows={this.state.datasetRows}
@@ -643,22 +538,6 @@ class App extends Component {
                 isFiltering={this.state.filtering}
               />
             </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Paper className={this.classes.paper}>
-              <NotebookView
-                loadFile={this.loadFile}
-                datasetName={this.state.fileName}
-                selectVisIdxFunc={this.selectVisIdx}
-                visualData={this.state.visualEncodings}
-                reverseIdx={this.state.reverseIndex}
-                highlightRows={this.highlightRows}
-                applyOperator={this.applyOperator}
-                addScatterPlotCoordination={this.addScatterPlotCoordination}
-                coordinatingTable={this.state.coordinatingTable}
-                addTableCoordination={this.addTableCoordination}
-              />
-            </Paper>
           </Grid>
         </Grid>
       </div>

@@ -34,10 +34,10 @@ export default class GridExample extends React.Component {
 
     this.state = {
       columnCount: props.datasetHeader.length,
-      height: 500,
+      height: 350,
       overscanColumnCount: 0,
       overscanRowCount: 10,
-      rowHeight: 50,
+      rowHeight: 40,
       rowCount: 500,
       scrollToColumn: undefined,
       scrollToRow: undefined,
@@ -134,13 +134,16 @@ export default class GridExample extends React.Component {
     //     return 80;
     // }
 
-    if (this.props.colSizes.length == 0) {
-      return 150;
+    const numCols = this.props.colSizes.length;
+    if (numCols == 0) {
+      return 300;
     } else {
       const preWidth = this.props.colSizes[index];
       // console.log(`prewidth of index ${index} -> ${preWidth}`);
       if (preWidth == null) {
         return 100;
+      } else if (index == 0) {
+        return 30;
       } else if (10 * preWidth > 400) {
         return 400;
       } else if (10 * preWidth > 80) {
@@ -184,7 +187,7 @@ export default class GridExample extends React.Component {
     if (index == 1) {
       return this.state.isCollapsed ? 0 : 150;
     } else {
-      return 70;
+      return 50;
     }
   }
 
@@ -217,14 +220,13 @@ export default class GridExample extends React.Component {
 
   _collapseCell = (event) => {
     if (event.target.id == "0") {
-      this.props.selectVisIdxFunc(-1);
-      // const collapse = this.state.isCollapsed ? false : true;
-      // this.setState({ isCollapsed: collapse });
+      const collapse = this.state.isCollapsed ? false : true;
+      this.setState({ isCollapsed: collapse });
       const clickedColName = event.target.innerText;
       console.log(`clicked header cell of column ${clickedColName}`);
       this.grid.recomputeGridSize();
       this.grid.forceUpdate();
-      // this.props.selectColumn(clickedColName);
+      this.props.selectColumn(clickedColName);
     }
   };
 
@@ -263,6 +265,7 @@ export default class GridExample extends React.Component {
 
     style = {
       ...style,
+      overflow: "hidden",
     };
 
     return (

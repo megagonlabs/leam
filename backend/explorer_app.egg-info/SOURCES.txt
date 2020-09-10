@@ -1,5 +1,0 @@
-setup.py
-explorer_app.egg-info/PKG-INFO
-explorer_app.egg-info/SOURCES.txt
-explorer_app.egg-info/dependency_links.txt
-explorer_app.egg-info/top_level.txt

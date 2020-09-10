@@ -4,12 +4,6 @@ RUN apt-get update \
     && apt-get install -y postgresql-client
 
 ENV FLASK_APP explorer.py
-
 WORKDIR /app
-ADD ./explorer_app/* /app/
-ADD requirements.txt /app/
+ADD . /app
 RUN pip install -r /app/requirements.txt
-# CMD ["python", "explorer.py"]
-
-# RUN chmod +x ./entrypoint.sh
-# ENTRYPOINT ["./entrypoint.sh"]
