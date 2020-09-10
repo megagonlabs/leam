@@ -160,6 +160,21 @@ class TexDF:
             return
         # remove vis in place and save
         del self.visualizations[vis_idx]
+        for v in self.visualizations:
+            if vis_idx in v.links:
+                v.links.remove(vis_idx)
+        # update the rest of the links to correspond to their new positions
+        for v in self.visualizations:
+            for link_idx, link in enumerate(v.links):
+                if vis_idx > link:
+                    pass
+                elif vis_idx < link:
+                    v.links[link_idx] = link - 1
+                else:
+                    raise Exception(
+                        "there should be no link with vis idx %d it was deleted",
+                        vis_idx,
+                    )
         task = {
             "view": "table",
             "type": "update_vis",
