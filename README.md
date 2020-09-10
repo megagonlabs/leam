@@ -7,7 +7,7 @@
 
 ![Alt text](/images/leam-arch.png?raw=true "Leam System Architecture")
 
-###  Building the app
+##  Building the app
 
 1. Do `cd frontend` to move into the react folder
 2. Run `yarn install` - if you don't have yarn you can install via brew or other popular package managers (https://classic.yarnpkg.com/en/docs/install#mac-stable). Sorry this step is a workaround that should be fixed soon!
@@ -19,6 +19,14 @@ This will create three containers
 - Postgres (the DB container running a Postgres instance)
 
 After these containers are fully started, you should be able to visit the frontend by visiting the following url in your browser: http://localhost:3000
+
+## Meet Leam
+
+![Alt text](/images/leam.jpeg?raw=true "Leam <3")
+
+### License
+
+MIT
 
 
 
