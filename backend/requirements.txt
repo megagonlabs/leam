@@ -5,6 +5,7 @@ appdirs==1.4.4
 astroid==2.4.2
 astunparse==1.6.3
 attrs==19.3.0
+beautifulsoup4==4.9.1
 black==19.10b0
 blis==0.4.1
 cachelib==0.1.1
@@ -59,6 +60,7 @@ pylint==2.5.3
 pylint-flask==0.6
 pylint-plugin-utils==0.6
 pyrsistent==0.16.0
+pyspellchecker==0.5.4
 python-dateutil==2.8.1
 python-editor==1.0.4
 pytz==2020.1

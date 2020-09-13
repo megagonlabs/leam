@@ -162,6 +162,26 @@ class App extends Component {
     let op;
     let action;
     switch (operator) {
+      case "Correct Spellings":
+        op = "correct_spellings";
+        action = "update";
+        break;
+      case "Remove Emoji":
+        op = "remove_emoji";
+        action = "update";
+        break;
+      case "Remove Square Brackets":
+        op = "remove_square_brackets";
+        action = "update";
+        break;
+      case "Remove URLs":
+        op = "remove_urls";
+        action = "update";
+        break;
+      case "Strip HTML":
+        op = "strip_html";
+        action = "update";
+        break;
       case "Lowercase":
         op = "lowercase";
         action = "update";
@@ -464,6 +484,7 @@ class App extends Component {
         const columnTypes = JSON.parse(response.data["columnTypes"]);
 
         this.setState({ fileHeaders: columns });
+
         for (let key in columns) {
           chartRow.push("");
         }
@@ -483,15 +504,16 @@ class App extends Component {
 
         // determining correct widths of the columns
         let columnWidths = new Array(this.state.fileHeaders.length).fill(0);
-        columnWidths[0] = 100; // fixed size column
+        
         // determine column widths by taking average of lengths over first 20 rows
-        for (let i = 0; i < 20; i++) {
+        for (let i = 1; i < 21; i++) {
           const rowData = rows[i];
           for (let j = 0; j < this.state.fileHeaders.length; j++) {
             const colLength = rowData[j].length;
-            columnWidths[j + 1] += colLength;
+            columnWidths[j] += colLength;
           }
         }
+        columnWidths[0] = 100; // fixed size column
         columnWidths = columnWidths.map((val) => {
           return val / 20;
         });
