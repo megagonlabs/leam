@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "#FFF",
   },
   menuButton: {
-    marginRight: theme.spacing(2),
+    marginRight: theme.spacing(1),
   },
   menuDialog: {
     marginBottom: 0,
@@ -49,21 +49,36 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(4),
   },
   datasetButton: {
-    marginRight: theme.spacing(2),
+    marginRight: theme.spacing(1),
     minWidth: 150,
     select: {
       color: "#FFF",
     },
   },
+  dsUploadButton: {
+    marginRight: theme.spacing(1),
+    minWidth: 80,
+    select: {
+      color: "#FFF",
+    },
+    marginBottom: -6,
+  },
   uploadButton: {
-    marginRight: theme.spacing(2),
+    marginRight: theme.spacing(1),
     marginBottom: -8,
   },
 }));
 
 export default function LeamAppBar(props) {
   const classes = useStyles();
-  const { onFileChange, fileName, loadFile, datasets, columns } = props;
+  const {
+    onFileChange,
+    onModelChange,
+    fileName,
+    loadFile,
+    datasets,
+    columns,
+  } = props;
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [columnAnchorEl, setColumnAnchorEl] = React.useState(null);
   const [colSelected, setColSelected] = React.useState([]);
@@ -221,14 +236,47 @@ export default function LeamAppBar(props) {
             onChange={onFileChange}
           />
           <label htmlFor="selectedFile">
-            <IconButton
+            {/* <IconButton
               color="inherit"
               aria-label="upload file"
               component="span"
               className={classes.uploadButton}
             >
               <CloudUpload fontSize="medium" />
-            </IconButton>
+            </IconButton> */}
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              component="span"
+              aria-controls="menu-appbar"
+              aria-label="Upload Dataset"
+              className={classes.dsUploadButton}
+              endIcon={<CloudUpload />}
+            >
+              Dataset
+            </Button>
+          </label>
+          <input
+            type="file"
+            accept=""
+            id="selectedModel"
+            className={classes.input}
+            onChange={onModelChange}
+          />
+          <label htmlFor="selectedModel">
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              component="span"
+              aria-controls="menu-appbar"
+              aria-label="Upload Model"
+              className={classes.dsUploadButton}
+              endIcon={<CloudUpload />}
+            >
+              Model
+            </Button>
           </label>
         </Toolbar>
       </AppBar>

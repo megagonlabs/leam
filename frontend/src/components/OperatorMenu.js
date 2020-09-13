@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   datasetButton: {
-    marginRight: theme.spacing(2),
+    marginRight: theme.spacing(1),
     minWidth: 150,
     select: {
       color: "#FFF",

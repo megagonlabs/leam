@@ -74,6 +74,8 @@ class App extends Component {
       fileData: null,
       fileNumRows: null,
       fileHeaders: [],
+      modelName: null,
+      modelType: null,
       datasets: [],
       datasetRows: [],
       visualEncodings: {},
@@ -92,6 +94,9 @@ class App extends Component {
       coordinatingTable: false,
     };
     this.fileReader = new FileReader();
+    this.modelReader = new FileReader();
+    this.onModelChange = this.onModelChange.bind(this);
+    this.handleModelUpload = this.handleModelUpload.bind(this);
     // this.getDropdownFiles = this.getDropdownFiles.bind(this);
     this.loadFile = this.loadFile.bind(this);
     this.getFiles = this.getFiles.bind(this);
@@ -232,6 +237,34 @@ class App extends Component {
 
   selectColumn = (colName) => {
     this.setState({ selectedColumn: colName });
+  };
+
+  onModelChange = (event) => {
+    let file = event.target.files[0];
+    this.modelReader.onloadend = this.handleModelUpload;
+    this.modelReader.readAsDataURL(file);
+    console.log(
+      `starting model upload with model name ${file.name} and type ${file.type}`
+    );
+    this.setState({ modelName: file.name, modelType: file.type });
+  };
+
+  handleModelUpload = () => {
+    const modelData = this.modelReader.result;
+    const formData = new FormData();
+    formData.append("modelName", this.state.modelName);
+    formData.append("modelType", this.state.modelType);
+    formData.append("modelData", modelData);
+    console.log("modelData: ");
+    console.log(modelData);
+    // console.log("uploading filename: ", this.state.fileName);
+    // console.log("uploading filetype: ", this.state.fileType);
+    // console.log("uploading file contents: ", this.state.fileData);
+
+    // TODO: implement uploadfile endpoint in Flask
+    axios.post("http://localhost:5000/v1/upload-model", formData).then(() => {
+      console.log(`uploaded model: ${this.state.modelName}`);
+    });
   };
 
   onFileChange = (event) => {
@@ -485,6 +518,7 @@ class App extends Component {
           <Grid item xs={12}>
             <LeamAppBar
               onFileChange={this.onFileChange}
+              onModelChange={this.onModelChange}
               fileName={this.state.fileName}
               loadFile={this.loadFile}
               datasets={this.state.datasets}

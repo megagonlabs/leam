@@ -5,7 +5,7 @@ import scipy
 from io import StringIO, BytesIO
 from flask import jsonify, request, session, current_app
 from flask_cors import CORS
-
+import base64
 from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -86,6 +86,23 @@ def get_dataset(name):
             # "vis_idx": tex_df_idx,
         }
     )
+
+
+@v1.route("/upload-model", methods=(["POST"]))
+def upload_model():
+    log.info("\n\n-----------------------------------------")
+    log.info("Uploading Model\n")
+    formKeys = request.form.keys()
+    model_name = request.form["modelName"]
+    model_data = request.form["modelData"]
+    model_data = model_data.split(",")[1]
+    model_bytes = base64.b64decode(model_data)
+    # file = BytesIO(model_data)
+    # model_bytes = file.read()
+    file_name = "/app/" + model_name
+    with open(file_name, "wb") as f:
+        f.write(model_bytes)
+    return jsonify(success=True)
 
 
 @v1.route("/upload-file", methods=(["POST"]))
