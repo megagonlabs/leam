@@ -15,6 +15,7 @@ spacy_nlp = spacy.load("en_core_web_sm")
 nltk.download("vader_lexicon")
 spell = SpellChecker()
 
+
 class Project:
     selection_type: SelectionType
     texdf: tex_df.TexDF
@@ -58,15 +59,14 @@ class Project:
             )
         else:
             raise Exception(
-                "[strip_html] unknown action performed on column: %s",
-                self.col_name,
+                "[strip_html] unknown action performed on column: %s", self.col_name,
             )
 
     def remove_square_brackets(self, action=ActionType.Update):
         column_value = self.texdf.get_dataview_column(self.col_name)
 
         def remove_sq_brackets_helper(text):
-            return re.sub('\[[^]]*\]', '', text)
+            return re.sub("\[[^]]*\]", "", text)
 
         new_column_value = column_value.map(remove_sq_brackets_helper)
 
@@ -84,7 +84,7 @@ class Project:
         column_value = self.texdf.get_dataview_column(self.col_name)
 
         def remove_urls_helper(text):
-            return re.sub(r'http\S+', '', text)
+            return re.sub(r"http\S+", "", text)
 
         new_column_value = column_value.map(remove_urls_helper)
 
@@ -94,8 +94,7 @@ class Project:
             )
         else:
             raise Exception(
-                "[remove_urls] unknown action performed on column: %s",
-                self.col_name,
+                "[remove_urls] unknown action performed on column: %s", self.col_name,
             )
 
     def remove_punctuation(self, action=ActionType.Update):
@@ -104,7 +103,9 @@ class Project:
 
         column_value = self.texdf.get_dataview_column(self.col_name)
         filtered_tokens = []
-        for doc in spacy_nlp.pipe(column_value, n_threads=12):
+        for doc in spacy_nlp.pipe(
+            column_value, disable=["parser", "ner"], batch_size=100
+        ):
             tokens = [token.text for token in doc if remove_punc_helper(token)]
             filtered_tokens.append(" ".join(tokens))
 
@@ -118,19 +119,23 @@ class Project:
                 self.col_name,
             )
 
+    # TODO: improve performance using spacy pipelines!
     def remove_stopwords(self, action=ActionType.Update):
         column_value = self.texdf.get_dataview_column(self.col_name)
 
-        def remove_stopwords_helper(text):
-            doc = spacy_nlp(text)
-            toks = [token.text for token in doc if not token.is_stop]
-            return " ".join(toks)
+        def remove_stopwords_helper(token):
+            return not token.is_stop
 
-        new_column_value = column_value.map(remove_stopwords_helper)
+        filtered_tokens = []
+        for doc in spacy_nlp.pipe(
+            column_value, disable=["parser", "ner"], batch_size=100
+        ):
+            tokens = [token.text for token in doc if remove_stopwords_helper(token)]
+            filtered_tokens.append(" ".join(tokens))
 
         if action is ActionType.Update:
             self.texdf.update_dataview_column(
-                self.col_name, VTAColumnType.TEXT, new_column_value
+                self.col_name, VTAColumnType.TEXT, filtered_tokens
             )
         else:
             raise Exception(
@@ -142,8 +147,8 @@ class Project:
         column_value = self.texdf.get_dataview_column(self.col_name)
 
         def remove_emoji_helper(text):
-            emoji_pattern = re.compile('[\U00010000-\U0010ffff]', flags=re.UNICODE)
-            return emoji_pattern.sub(r'', text)
+            emoji_pattern = re.compile("[\U00010000-\U0010ffff]", flags=re.UNICODE)
+            return emoji_pattern.sub(r"", text)
 
         new_column_value = column_value.map(remove_emoji_helper)
 
@@ -153,8 +158,7 @@ class Project:
             )
         else:
             raise Exception(
-                "[remove_emoji] unknown action performed on column: %s",
-                self.col_name,
+                "[remove_emoji] unknown action performed on column: %s", self.col_name,
             )
 
     def correct_spellings(self, action=ActionType.Update):

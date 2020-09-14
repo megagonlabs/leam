@@ -48,7 +48,6 @@ def stdoutIO(stdout=None):
 
 @v1.route("/run-operator", methods=(["POST"]))
 def run_operator():
-    start_time = time.time()
     log.info("\n\n-----------------------------------------")
     log.info("Running Operator\n")
 
@@ -76,6 +75,7 @@ def run_operator():
                 UI_QUEUE_BEFORE = []
             # col = None
             # col = data.select().select_column("review")
+            start = time.time()
             with stdoutIO() as s:
                 exec(compile(code, "VITAL", "exec"), VTA_globals, VTA_locals)
             for var in VTA_locals:
@@ -92,7 +92,9 @@ def run_operator():
                     log.info("New VTA task has value: %s", task)
                     new_ui_tasks.append(task)
             code_output = s.getvalue()
+            time_diff = round(time.time() - start, 3)
             log.info("python code output is: %s", code_output)
+            log.info("[PERFORM_OPERATOR] total time was %s seconds", time_diff)
             vta_session = VTA_locals
             pickle.dump(vta_session, open("vta_session.pkl", "wb"))
         except Exception as e:
@@ -102,6 +104,4 @@ def run_operator():
         return jsonify({"output": code_output, "tasks": new_ui_tasks})
 
     # result = compiler.compile_vta(vta_spec)
-    time_diff = round(time.time() - start_time, 3)
-    log.info("[PERFORM_OPERATOR] total time was %s seconds", time_diff)
     return jsonify({"result": "true"})

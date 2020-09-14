@@ -1,5 +1,6 @@
 import spacy
-import json, os, pickle
+import json, os
+import dill as pickle
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -30,6 +31,7 @@ class TexDF:
     columns: Dict[str, TexColumn]
     visualizations: List[TexVis]
     coordination_indexes: Dict[str, Dict]
+    udf: Dict[str, Any]  # TODO: specify typing of function expected
 
     def __init__(self, df, name):
         self.dataset_name = name
@@ -39,6 +41,7 @@ class TexDF:
         self.columns = {i: TexColumn(i, VTAColumnType.TEXT) for i in df.columns}
         self.visualizations = []
         self.coordination_indexes = {}
+        self.udf = {}
         # self.cached_visual_encodings = {i: {} for i in self.df.columns}
         # self.view_indexes = {}
         self.update_table_view()
@@ -126,15 +129,48 @@ class TexDF:
             col_name = columns[0]
             data = self.get_column_metadata(col_name).get_metadata_by_tag(md_tag)
             # add some way to handle different types of metadata
-            tw_list = [(k, v) for k, v in data.value.items()]
-            tw_list = sorted(tw_list, key=lambda word: word[1], reverse=True)
-            tw_list = [(v[0], v[1], i + 1) for i, v in enumerate(tw_list)]
-            # log.info("top words list:")
-            # log.info(tw_list)
-            for v in tw_list:
-                vega_rows.append({"topword": v[0], "score": v[1], "order": v[2]})
+            if md_tag == "top_scores":
+                tw_list = [(k, v) for k, v in data.value.items()]
+                tw_list = sorted(tw_list, key=lambda word: word[1], reverse=True)
+                tw_list = [(v[0], v[1], i + 1) for i, v in enumerate(tw_list)]
+                # log.info("top words list:")
+                # log.info(tw_list)
+                for v in tw_list:
+                    vega_rows.append({"topword": v[0], "score": v[1], "order": v[2]})
+            else:
+                print("data is: ")
+                print(data.value)
+                assert isinstance(data.value, dict)
+                for label, count in data.value.items():
+                    vega_rows.append({"label": label, "count": count})
 
         return vega_rows
+
+    # TODO: specify a certain function params/return values
+    def add_udf(self, func):
+        self.udf[func.__name__] = func
+        self.checkpoint_texdf()
+
+    def print_udfs(self):
+        print(self.udf)
+
+    def rename_column(self, old_col, new_col):
+        self.data_view = self.data_view.rename(columns={old_col: new_col})
+        self.columns[new_col] = self.columns[old_col]
+        del self.columns[old_col]
+        self.update_table_view()
+        task = {"view": "table", "type": "update_column"}
+        self.add_to_uiq(task)
+        self.checkpoint_texdf()
+
+    # TODO: add regex to this
+    def replace_column_value(self, col_name, old_value, new_value):
+        # data_view["category"].replace("ham", 0, inplace=True)
+        self.data_view[col_name].replace(old_value, new_value, inplace=True)
+        self.update_table_view()
+        task = {"view": "table", "type": "update_column"}
+        self.add_to_uiq(task)
+        self.checkpoint_texdf()
 
     def select_vis_element(self, vis_idx, item_idx):
         # TODO: add support for words in select like in topwords tf-idf barchart
@@ -219,7 +255,7 @@ class TexDF:
         self, columns, vis_type, selection=None, md_tag=None, row_lookup_table=None
     ):
         # if aggregate type vis, using metadata, if not using column(s)
-        if vis_type == VisType.barchart:
+        if vis_type == VisType.tw_barchart or vis_type == VisType.barchart:
             data_type = "metadata"
             vis_data = self.get_columns_vega_format(columns, data_type, md_tag=md_tag)
         else:
@@ -315,119 +351,3 @@ class TexDF:
         name = self.dataset_name.split(".")[0]
         dataframe_pkl_file = "/app/" + name + ".pkl"
         pickle.dump(self, open(dataframe_pkl_file, "wb"))
-
-    # def get_visual_encodings(self):
-    #     return self.cached_visual_encodings
-
-    # def get_idx(self):
-    #     return self.view_indexes
-
-    # # spec is a json specification that describes what should be used to generate the visualization
-    # def create_visualization(self, columns, spec):
-    #     # column_types = self.df_types[column]
-    #     column_types = [self.df_types[c] for c in columns]
-    #     if spec == "distribution":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         labels = self.metadata[column]
-    #         top_words = featurize.generate_tfidf_visualization(self.df, column, labels)
-    #         visual_encoding = featurize.get_top_words(top_words)
-    #         return visual_encoding
-    #     elif spec == "scatterplot":
-    #         # generate a list of maps to specific fields
-    #         # do type check logic
-    #         # for i in column_types:
-    #         #     assert(i == "float")
-    #         vega_rows = []
-    #         for _, row in self.df[columns].iterrows():
-    #             vega_row = {c: row[c] for c in columns}
-    #             vega_rows.append(vega_row)
-    #         return vega_rows
-    #     else:
-    #         # raise Exception('invalid visualization: %s on column %s of type %s', spec, column, column_type)
-    #         return {}
-
-    # # TODO: use static types for typechecking column operations, different handlers for each type
-    # def run_operator(self, columns, operator_class, operator, action, indices=None):
-    #     # do some error handling here
-    #     if operator == "lowercase":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_columns = clean.lowercase(self.df, column)
-    #     elif operator == "stopword":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_columns = clean.remove_stopwords(self.df, column)
-    #     elif operator == "punctuation":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_columns = clean.remove_punctuation(self.df, column)
-    #     elif operator == "tfidf":
-    #         # define a new column in the dataframe to assign tf-idf vectors
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_column_names = [column + "-tfidf"]
-    #         spec = "distribution"  # hard-code this spec for now, but it could be a dynamic json spec in the future
-    #         new_columns, feature_names = featurize.generate_tfidf_features(
-    #             self.df, column
-    #         )
-    #         self.df_types[new_column_names[0]] = "vector"
-    #         self.metadata[new_column_names[0]] = feature_names
-    #         # encoding = self.create_visualization(new_column_names, spec)
-    #         # self.cached_visual_encodings[new_column_names[0]] = {
-    #         #     "distribution": encoding
-    #         # }
-    #     elif operator == "pca":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_column_names = [column + "-pca"]
-    #         spec = "scatterplot"  # hard-code this spec for now, but it could be dynamic json in future, also put this in separate visualization operator
-    #         new_columns = featurize.generate_pca_features(self.df, column)
-    #         self.df_types[new_column_names[0]] = "vector"
-    #         self.metadata[new_column_names[0]] = {"num_components": 10}
-    #     elif operator == "kmeans":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_column_names = [column + "-kmeans"]
-    #         new_columns = featurize.generate_kmeans_clusters(self.df, column)
-    #         self.df_types[new_column_names[0]] = "float"
-    #         self.metadata[new_column_names[0]] = {"num_clusters": 5}
-    #     elif operator == "sentiment":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_column_names = [column + "-sentiment"]
-    #         new_columns = featurize.generate_sentiment_features(self.df, column)
-    #         self.df_types[new_column_names[0]] = "float"
-    #     elif operator == "projection":
-    #         assert len(columns) == 1
-    #         column = columns[0]
-    #         new_column_names = [column + "_" + str(i) for i in indices]
-    #         new_columns, column_type = select.projection(self.df, column, indices)
-    #         for nc in new_column_names:
-    #             self.df_types[nc] = column_type
-    #     elif operator == "visualization":
-    #         log.info("[run-operator] in visualizationi operator")
-    #         spec = "scatterplot"  # need to make this part of vta inference, or user can define their own spec maybe?
-    #         visual_encoding = self.create_visualization(columns, spec)
-    #         vis_name = "<" + "_".join(columns) + ">"
-    #         self.cached_visual_encodings[vis_name] = {"scatterplot": visual_encoding}
-    #         return
-    #     elif operator == "coordination":
-    #         column = columns[0]
-    #         labels = self.metadata[column]
-    #         log.info("[Coordinate]: labels are -> %s", labels.__str__())
-    #         self.view_indexes["barchart"] = select.coordinate(self.df, column, labels)
-    #         return
-    #     else:
-    #         raise Exception("unknown operator: %s", operator)
-
-    #     if action == "update":
-    #         # update dataframe column(s)
-    #         for i, col in enumerate(new_columns):
-    #             self.df[columns[i]] = col
-    #         # TODO: update metadata if exists
-    #     elif action == "create":
-    #         # create new dataframe column(s)
-    #         for i, col in enumerate(new_columns):
-    #             self.df[new_column_names[i]] = col
-    #         # TODO: update metadata if exists

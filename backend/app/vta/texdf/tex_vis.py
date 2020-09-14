@@ -77,6 +77,14 @@ class TexVis:
                             "VTAColumnType %s doesn't work for coloring graph",
                             col_types[idx].value,
                         )
+        elif vis_type is VisType.histogram:
+            for idx, col in enumerate(columns):
+                # TODO: check column types!
+                if idx == 0:
+                    self.vis_spec["encoding"]["x"]["field"] = col
+                elif idx == 1:
+                    self.vis_spec["encoding"]["color"]["field"] = col
+
         # TODO: handle selection types for scatterplot
         # handle more options for specifying selection type...
         # come up with comprehensive strategy across barcharts, scatterplots, etc.

@@ -44,7 +44,7 @@ class VTAVisualization:
         modified_vis = set()
         if isinstance(item_idx, str):
             # just for now, we can only select a word on a barchart, need to make this more modular
-            assert self.vis_type is VisType.barchart
+            assert self.vis_type is VisType.tw_barchart
             word = select_data
             item_idx = 1
             vis_data = self.texdf.get_columns_vega_format(
@@ -78,7 +78,7 @@ class VTAVisualization:
                     self.texdf.select_vis_element("table", -1)
                 else:
                     self.texdf.select_vis_element(l, -1)
-            elif self.vis_type is VisType.barchart:
+            elif self.vis_type is VisType.tw_barchart:
 
                 # handle coordinating 1 -> many with vis like scatterplot
                 coord_idx = self.texdf.get_coordination_idx("top_scores_src")
@@ -86,7 +86,7 @@ class VTAVisualization:
                 assert isinstance(select_data, str)
                 target_rows = [i + 1 for i in coord_idx[select_data]]
                 self.texdf.select_vis_element(l, target_rows)
-            elif target_vis_type is VisType.barchart:
+            elif target_vis_type is VisType.tw_barchart:
                 # handle coordinating many -> 1 or many -> many with vis like barchart
                 coord_idx = self.texdf.get_coordination_idx("top_scores_target")
                 if isinstance(select_data, list):

@@ -55,7 +55,7 @@ class VTATable:
 
             if item_idx == -1:
                 self.texdf.select_vis_element(l, -1)
-            elif target_vis_type is VisType.barchart:
+            elif target_vis_type is VisType.tw_barchart:
                 # handle coordinating many -> 1 or many -> many with vis like barchart
                 coord_idx = self.texdf.get_coordination_idx("top_scores_target")
                 if isinstance(select_data, list):

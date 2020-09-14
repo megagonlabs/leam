@@ -19,6 +19,8 @@ class VTAColumnType(Enum):
 
 class VisType(Enum):
     barchart = "barchart"
+    tw_barchart = "tw_barchart"
+    histogram = "histogram"
     scatterplot = "scatterplot"
     heatmap = "heatmap"
     table = "table"

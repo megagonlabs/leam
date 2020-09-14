@@ -88,3 +88,15 @@ class Mutate:
             raise Exception(
                 "[tf_idf] unknown action performed on column: %s", self.col_name,
             )
+
+    def num_words(self, action=ActionType.Create):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+        words = column_value.str.split().map(lambda x: len(x))
+        new_col_name = self.col_name + "_nwords"
+        if action is ActionType.Create:
+            self.texdf.create_dataview_column(new_col_name, VTAColumnType.INT, words)
+            return new_col_name
+        else:
+            raise Exception(
+                "[num_words] unknown action performed on column: %s", self.col_name,
+            )

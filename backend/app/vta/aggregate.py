@@ -3,6 +3,7 @@ from typing import List
 import pandas as pd
 import numpy as np
 import spacy
+from sklearn.metrics import confusion_matrix
 from heapq import nlargest
 from collections import OrderedDict
 from .texdf import tex_df
@@ -24,6 +25,31 @@ class Aggregate:
     def __str__(self):
         col_series = self.texdf.get_dataview_column(self.col_name)
         return col_series.to_string()
+
+    def confusion_matrix(self, md_tag, y_test, predictions, action=ActionType.Add):
+        cm = confusion_matrix(y_test, predictions)
+        metadata = []
+        metadata.append({"Value": cm[0][0], "first": "Not Spam", "second": "Not Spam"})
+        metadata.append({"Value": cm[0][1], "first": "Not Spam", "second": "Spam"})
+        metadata.append({"Value": cm[1][0], "first": "Spam", "second": "Not Spam"})
+        metadata.append({"Value": cm[1][1], "first": "Spam", "second": "Spam"})
+        print("confusion matrix metadata: ")
+        print(metadata)
+        self.texdf.add_metadata(
+            self.col_name, "confusion_matrix", VTAColumnType.MAP, metadata
+        )
+        return "confusion_matrix"
+
+    def count(self, md_tag, action=ActionType.Add):
+        rows = self.texdf.get_dataview_column(self.col_name)
+        counts = rows.value_counts().to_dict()
+        print("counts are: ")
+        print(counts)
+        self.texdf.add_metadata(
+            self.col_name, md_tag, VTAColumnType.MAP, counts
+        )
+        return md_tag
+
 
     def word_scores(self, md_tag, action=ActionType.Add):
         print("in word scores!")

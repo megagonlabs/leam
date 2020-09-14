@@ -41,14 +41,32 @@ class VTA:
     def print_metadata(self):
         self.texdf.print_metadata()
 
+    def print_udf(self):
+        self.texdf.print_udfs()
+
     def rm_vis(self, vis_idx):
         self.texdf.remove_vis(vis_idx)
+
+    def add_udf(self, func):
+        self.texdf.add_udf(func)
+
+    def rename(self, old_col, new_col):
+        self.texdf.rename_column(old_col, new_col)
+
+    def replace(self, col_name, old_val, new_val):
+        self.texdf.replace_column_value(col_name, old_val, new_val)
 
     def visualize(self, columns, vis_type, md_tag=None):
         # create visualization on tex dataframe
         # how do we do multi-col visualizations
-        if vis_type == "barchart":
+        if vis_type == "tw_barchart":
+            internal_vis_type = VisType.tw_barchart
+            selection_type = "single"
+        elif vis_type == "barchart":
             internal_vis_type = VisType.barchart
+            selection_type = "single"
+        elif vis_type == "histogram":
+            internal_vis_type = VisType.histogram
             selection_type = "single"
         elif vis_type == "scatterplot":
             internal_vis_type = VisType.scatterplot

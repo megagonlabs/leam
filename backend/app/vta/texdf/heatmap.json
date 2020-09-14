@@ -1,0 +1,24 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+  "data": {
+    "values": []
+  },
+  "width": 150,
+  "height": 200,
+  "selection": {
+    "select": { "type": "single" }
+  },
+  "mark": { "type": "rect", "tooltip": true },
+  "encoding": {
+    "y": { "type": "ordinal", "field": "second", "title": "" },
+    "x": { "type": "ordinal", "field": "first", "title": "" },
+    "color": {},
+    "opacity": {
+      "condition": {
+        "selection": "select",
+        "value": 1.0
+      },
+      "value": 0.8
+    }
+  }
+}

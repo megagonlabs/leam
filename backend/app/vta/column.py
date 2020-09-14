@@ -40,10 +40,13 @@ class VTAColumn:
     def aggregate(self):
         return Aggregate(self.selection_type, self.texdf, self.col_name, self.col_type)
 
+    def replace(self, old_val, new_val):
+        self.texdf.replace_column_value(self.col_name, old_val, new_val)
+
     def visualize(self, vis_type, md_tag=None, selection=None):
         # how do we do multi-col visualizations
-        if vis_type == "barchart":
-            internal_vis_type = VisType.barchart
+        if vis_type == "tw_barchart":
+            internal_vis_type = VisType.tw_barchart
             # build target coordination index
             # coord_idx = self.texdf.get_coordination_idx("top_scores_target")
             # coord_idx_new = coord_idx
@@ -59,6 +62,8 @@ class VTAColumn:
             #             barchart_idx = i + 1
             #             coord_idx_new[row] = barchart_idx
             # self.texdf.add_coord_idx("top_scores_target", coord_idx_new)
+        elif vis_type == "barchart":
+            internal_vis_type = VisType.barchart
         else:
             internal_vis_type = None
         if md_tag == None:
