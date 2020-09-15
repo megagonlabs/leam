@@ -78,7 +78,10 @@ def run_operator():
             # col = data.select().select_column("review")
             start = time.time()
             with stdoutIO() as s:
-                exec(compile(code, "VITAL", "exec"), VTA_globals, VTA_locals)
+                try:
+                    exec(compile(code, "VITAL", "exec"), VTA_globals, VTA_locals)
+                except Error as e:
+                    print(e)
             for var in VTA_locals:
                 log.info("VTA locals var name: %s", var)
             if os.path.exists("/app/UI_QUEUE.pkl"):

@@ -21,6 +21,7 @@ import TableView from "./GridExample.js";
 import LeamAppBar from "./components/LeamAppBar.js";
 import NotebookView from "./components/NotebookView.js";
 import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "fontsource-roboto";
 import stopwords from "./stopwords.json";
 import generateVTASpec from "./vta/VtaGenerator.js";

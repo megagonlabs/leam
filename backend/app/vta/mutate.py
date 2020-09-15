@@ -2,17 +2,12 @@ import spacy
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
-
+import nltk
 from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType
 
 nlp = spacy.load("en_core_web_sm")
-
-
-def basic_tokenizer(sentence):
-    doc = nlp(sentence)
-    tokens = [token.text for token in doc]
-    return tokens
+nltk.download("vader_lexicon")
 
 
 class Mutate:
@@ -52,9 +47,13 @@ class Mutate:
             )
 
     def tf_idf(self, action=ActionType.Create, metadata=ActionType.Add):
-        column_value = self.texdf.get_dataview_column(self.col_name)
-        vectorizer = TfidfVectorizer(tokenizer=basic_tokenizer)
+        column_value = self.texdf.get_dataview_column(self.col_name).tolist()
+        vectorizer = TfidfVectorizer(
+            min_df=1, analyzer="word", max_features=20000, ngram_range=(1, 2)
+        )
         vectors = vectorizer.fit_transform(column_value)
+        print("finished transforming tfidf vectors")
+        print(vectors[:5])
         tfidf_vectors = list(vectors)
         new_column_name = self.col_name + "_tf_idf"
         if action is ActionType.Create:
@@ -100,3 +99,27 @@ class Mutate:
             raise Exception(
                 "[num_words] unknown action performed on column: %s", self.col_name,
             )
+
+    def sentiment(self, action=ActionType.Create):
+        from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+        column_value = self.texdf.get_dataview_column(self.col_name)
+        sid = SentimentIntensityAnalyzer()
+        sentiments = [sid.polarity_scores(r)["compound"] for r in column_value]
+        col_name_prefix = self.col_name.split("_")[0]
+        new_col_name = col_name_prefix + "_sentiment"
+
+        if action is ActionType.Create:
+            self.texdf.create_dataview_column(
+                new_col_name, VTAColumnType.FLOAT, sentiments
+            )
+            return new_col_name
+        elif action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.FLOAT, sentiments
+            )
+        else:
+            raise Exception(
+                "[sentiment] unknown action performed on column: %s", self.col_name
+            )
+

@@ -3,7 +3,6 @@ from typing import List
 import pandas as pd
 import numpy as np
 import spacy
-import nltk
 import re
 from sklearn.decomposition import PCA
 from bs4 import BeautifulSoup
@@ -12,7 +11,6 @@ from .texdf import tex_df
 from .types import SelectionType, VTAColumnType, ActionType
 
 spacy_nlp = spacy.load("en_core_web_sm")
-nltk.download("vader_lexicon")
 spell = SpellChecker()
 
 
@@ -143,6 +141,24 @@ class Project:
                 self.col_name,
             )
 
+    def remove_symbols(self, action=ActionType.Update):
+        column_value = self.texdf.get_dataview_column(self.col_name)
+
+        def remove_symbols_helper(text):
+            return re.sub(r"[^\w]", " ", text)
+
+        new_column_value = column_value.map(remove_symbols_helper)
+
+        if action is ActionType.Update:
+            self.texdf.update_dataview_column(
+                self.col_name, VTAColumnType.TEXT, new_column_value
+            )
+        else:
+            raise Exception(
+                "[remove_symbols] unknown action performed on column: %s",
+                self.col_name,
+            )
+
     def remove_emoji(self, action=ActionType.Update):
         column_value = self.texdf.get_dataview_column(self.col_name)
 
@@ -216,27 +232,4 @@ class Project:
             # float is placeholder for now, could be other types, should infer from VECTOR type
             self.texdf.create_dataview_column(
                 new_col_name, VTAColumnType.FLOAT, new_col_value
-            )
-
-    def sentiment(self, action=ActionType.Create):
-        from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
-        column_value = self.texdf.get_dataview_column(self.col_name)
-        sid = SentimentIntensityAnalyzer()
-        sentiments = [sid.polarity_scores(r)["compound"] for r in column_value]
-        col_name_prefix = self.col_name.split("_")[0]
-        new_col_name = col_name_prefix + "_sentiment"
-
-        if action is ActionType.Create:
-            self.texdf.create_dataview_column(
-                new_col_name, VTAColumnType.FLOAT, sentiments
-            )
-            return new_col_name
-        elif action is ActionType.Update:
-            self.texdf.update_dataview_column(
-                self.col_name, VTAColumnType.FLOAT, sentiments
-            )
-        else:
-            raise Exception(
-                "[sentiment] unknown action performed on column: %s", self.col_name
             )
