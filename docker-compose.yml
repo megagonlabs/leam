@@ -38,10 +38,11 @@ services:
         build:
             context: ./frontend/
             dockerfile: Dockerfile
+        command: ["nginx", "-g", "daemon off;"]
         expose:
-            - "3000"
+            - "80"
         ports:
-            - "3000:3000"
-        stdin_open: true
+            - "80:80"
+        # stdin_open: true
         volumes:
             - ./frontend:/usr/src/app

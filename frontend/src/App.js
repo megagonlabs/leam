@@ -21,7 +21,6 @@ import TableView from "./GridExample.js";
 import LeamAppBar from "./components/LeamAppBar.js";
 import NotebookView from "./components/NotebookView.js";
 import "./App.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "fontsource-roboto";
 import stopwords from "./stopwords.json";
 import generateVTASpec from "./vta/VtaGenerator.js";
@@ -240,7 +239,7 @@ class App extends Component {
 
     console.log(vtaSpec);
 
-    const url = "http://localhost:5000/v1/run-operator";
+    const url = "v1/run-operator";
     // fetch the actual rows
     axios
       .post(url, { vta_spec: vtaSpec })
@@ -282,7 +281,7 @@ class App extends Component {
     // console.log("uploading file contents: ", this.state.fileData);
 
     // TODO: implement uploadfile endpoint in Flask
-    axios.post("http://localhost:5000/v1/upload-model", formData).then(() => {
+    axios.post("v1/upload-model", formData).then(() => {
       console.log(`uploaded model: ${this.state.modelName}`);
     });
   };
@@ -313,7 +312,7 @@ class App extends Component {
 
     // TODO: implement uploadfile endpoint in Flask
     axios
-      .post("http://localhost:5000/v1/upload-file", formData)
+      .post("v1/upload-file", formData)
       .then(() => {
         this.getFiles();
       })
@@ -344,7 +343,7 @@ class App extends Component {
 
   getFiles = () => {
     axios
-      .get("http://localhost:5000/v1/get-datasets")
+      .get("v1/get-datasets")
       .then((response) => {
         let allDatasets = response.data["datasets"];
         // let newDatasets = Object.assign({}, this.state.datasets);
@@ -389,7 +388,7 @@ class App extends Component {
       fileNumRows: fileRows,
     });
 
-    const url = "http://localhost:5000/v1/get-datasets/" + fileName;
+    const url = "v1/get-datasets/" + fileName;
     // fetch the actual rows
     axios
       .get(url, {
@@ -504,7 +503,7 @@ class App extends Component {
 
         // determining correct widths of the columns
         let columnWidths = new Array(this.state.fileHeaders.length).fill(0);
-        
+
         // determine column widths by taking average of lengths over first 20 rows
         for (let i = 1; i < 21; i++) {
           const rowData = rows[i];

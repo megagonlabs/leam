@@ -37,8 +37,7 @@ export default class NotebookView extends Component {
   }
 
   resetDataset = () => {
-    let resetUrl =
-      "http://localhost:5000/v1/reset-dataset/" + this.props.datasetName;
+    let resetUrl = "v1/reset-dataset/" + this.props.datasetName;
     axios
       .get(resetUrl)
       .then((response) => {
@@ -122,7 +121,7 @@ export default class NotebookView extends Component {
     // do something
     if (!command.startsWith(":")) {
       console.log(`COMMAND: ${command}`);
-      const url = "http://localhost:5000/v1/run-operator";
+      const url = "v1/run-operator";
       // fetch the actual rows
       axios
         .post(url, { vta_spec: command, vta_script_flag: 1 })
