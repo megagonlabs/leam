@@ -1,5 +1,6 @@
 #!/bin/sh
 rm *.pkl
+rm *.h5
 flask db upgrade
 cd /app
 # flask run --host=0.0.0.0 --port=5000

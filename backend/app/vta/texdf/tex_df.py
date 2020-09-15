@@ -146,6 +146,9 @@ class TexDF:
 
         return vega_rows
 
+    def get_udf(self, func_name):
+        return self.udf[func_name]
+
     # TODO: specify a certain function params/return values
     def add_udf(self, func):
         self.udf[func.__name__] = func

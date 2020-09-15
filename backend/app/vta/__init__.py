@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from app.models import Dataset
 from flask import current_app
 from .column import VTAColumn
+from .model import VTAModel
 from .visualization import VTAVisualization
 from .texdf.tex_df import TexDF
 from .types import VisType
@@ -31,6 +32,9 @@ class VTA:
 
     def get_column(self, col_name):
         return VTAColumn(self.texdf, col_name)
+
+    def get_model(self, model_name):
+        return VTAModel(self.texdf, model_name)
 
     def get_table(self):
         return VTATable(self.texdf)

@@ -8,8 +8,8 @@
   "width": 200,
   "height": 150,
   "encoding": {
-    "x": { "field": "label", "type": "nominal", "axis": { "labelAngle": 0 } },
-    "y": { "field": "count", "type": "quantitative" },
+    "y": { "field": "label", "type": "nominal", "axis": { "labelAngle": 0 } },
+    "x": { "field": "count", "type": "quantitative" },
     "color": { "field": "count", "legend": null }
   }
 }

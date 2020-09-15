@@ -4,10 +4,11 @@ related to running operators on dataset columns."""
 import json, os, time
 import pandas as pd
 from flask import jsonify, request
-import pickle
+import dill as pickle
 import sys
 from io import StringIO
 import contextlib
+from sklearn.feature_extraction.text import CountVectorizer
 
 # from sqlalchemy import create_engine, select, MetaData, Table, Column, Integer, String
 # from sqlalchemy.ext.declarative import declarative_base
@@ -66,7 +67,7 @@ def run_operator():
                 vta_session = pickle.load(open("vta_session.pkl", "rb"))
             else:
                 vta_session = {}
-            VTA_globals = {"pd": pd, "VTA": VTA}
+            VTA_globals = {"pd": pd, "VTA": VTA, "CountVectorizer": CountVectorizer}
             VTA_locals = vta_session
             code = vta_spec
             if os.path.exists("/app/UI_QUEUE.pkl"):

@@ -43,6 +43,22 @@ class VTAColumn:
     def replace(self, old_val, new_val):
         self.texdf.replace_column_value(self.col_name, old_val, new_val)
 
+    def apply_udf(self, udf_name, *args, md_tag=None):
+        udf = self.texdf.get_udf(udf_name)
+        column_value = self.texdf.get_dataview_column(self.col_name)
+        metadata = udf(column_value, *args)
+        if md_tag is not None:
+            self.texdf.add_metadata(
+                self.col_name,
+                md_tag,
+                VTAColumnType.MAP,  # TODO: handle dynamic typing of metadata
+                metadata,
+            )
+        else:
+            raise Exception(
+                "[apply_udf] using udf to not make metadata on col: %s", self.col_name
+            )
+
     def visualize(self, vis_type, md_tag=None, selection=None):
         # how do we do multi-col visualizations
         if vis_type == "tw_barchart":
