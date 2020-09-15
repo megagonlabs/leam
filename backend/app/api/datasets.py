@@ -39,6 +39,32 @@ def get_datasets():
     return jsonify({"datasets": [dataset.to_json() for dataset in datasets]})
 
 
+@v1.route("/reset-dataset/<string:name>", methods=(["GET"]))
+def reset_dataset(name):
+    log.info("\n\n-----------------------------------------")
+    log.info("RESET DATASET: %s\n", name)
+    engine = create_engine(current_app.config["SQLALCHEMY_DATABASE_URI"])
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+    query = session.query(Dataset).filter(Dataset.name == name)
+    dataset_row = query.first()
+    table_name = dataset_row.table_name
+    dataset_name = name.split(".")[0]
+    dataframe_pkl_file = "/app/" + dataset_name + ".pkl"
+    log.info("deleting dataset pickle file")
+    os.remove(dataframe_pkl_file)
+    if os.path.exists("/app/UI_QUEUE.pkl"):
+        os.remove("/app/UI_QUEUE.pkl")
+    if os.path.exists("/app/vta_session.pkl"):
+        os.remove("/app/vta_session.pkl")
+    log.info("getting dataset from db")
+    df = pd.read_sql_table(table_name, current_app.config["SQLALCHEMY_DATABASE_URI"])
+    tex_dataframe = TexDF(df, name)
+    pickle.dump(tex_dataframe, open(dataframe_pkl_file, "wb"))
+    return jsonify(success=True)
+
+
 @v1.route("/get-datasets/<string:name>", methods=(["GET"]))
 def get_dataset(name):
     log.info("\n\n-----------------------------------------")

@@ -8,10 +8,11 @@ import {
   CircularProgress,
   Divider,
   Typography,
+  Button,
   Box,
   Grid,
 } from "@material-ui/core";
-import { Star } from "@material-ui/icons";
+import DeleteIcon from "@material-ui/icons/Delete";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/theme-kuroir";
@@ -32,7 +33,26 @@ export default class NotebookView extends Component {
     // this.remoteRun = this.remoteRun.bind(this);
     this.onAceLoad = this.onAceLoad.bind(this);
     this.changeLineNum = this.changeLineNum.bind(this);
+    this.resetDataset = this.resetDataset.bind(this);
   }
+
+  resetDataset = () => {
+    let resetUrl =
+      "http://localhost:5000/v1/reset-dataset/" + this.props.datasetName;
+    axios
+      .get(resetUrl)
+      .then((response) => {
+        console.log(`RESET of datset ${this.props.datasetName} worked!`);
+        this.setState({ editorValue: "", history: [] });
+        this.props.loadFile(this.props.datasetName);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    // .then(function () {
+    //   // always executed
+    // });
+  };
 
   changeLineNum = () => {
     const currCellNum = this.state.cellNum;
@@ -195,6 +215,17 @@ export default class NotebookView extends Component {
             <Box fontWeight="fontWeightBold">ln[{this.state.cellNum}]:</Box>
           </Typography>
         </Grid> */}
+        <Box ml={2} mb={2}>
+          <Button
+            ml={2}
+            variant="contained"
+            color="secondary"
+            startIcon={<DeleteIcon />}
+            onClick={this.resetDataset}
+          >
+            Reset Dataset
+          </Button>
+        </Box>
         <Grid item xs={12}>
           <Box ml={-2}>
             <AceEditor
