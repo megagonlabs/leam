@@ -4,6 +4,9 @@
   "data": {
     "values": []
   },
+  "selection": {
+    "select": { "type": "single" }
+  },
   "mark": { "type": "bar", "tooltip": true },
   "width": 200,
   "height": 150,
@@ -13,6 +16,13 @@
       "field": ""
     },
     "y": { "aggregate": "count" },
-    "color": { "field": "" }
+    "color": { "field": "" },
+    "opacity": {
+      "condition": {
+        "selection": "select",
+        "value": 1.0
+      },
+      "value": 0.5
+    }
   }
 }

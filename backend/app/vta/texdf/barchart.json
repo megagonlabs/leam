@@ -4,12 +4,22 @@
   "data": {
     "values": []
   },
+  "selection": {
+    "select": { "type": "single" }
+  },
   "mark": { "type": "bar", "tooltip": true },
   "width": 200,
   "height": 150,
   "encoding": {
     "y": { "field": "label", "type": "nominal", "axis": { "labelAngle": 0 } },
     "x": { "field": "count", "type": "quantitative" },
-    "color": { "field": "count", "legend": null }
+    "color": { "field": "count", "legend": null },
+    "opacity": {
+      "condition": {
+        "selection": "select",
+        "value": 1.0
+      },
+      "value": 0.5
+    }
   }
 }

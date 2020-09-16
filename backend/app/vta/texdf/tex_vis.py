@@ -10,6 +10,7 @@ class TexVis:
     col_types: List
     selection_type: Dict
     links: List
+    md_tag: str
 
     def __init__(
         self,
@@ -18,7 +19,7 @@ class TexVis:
         col_types: List[VTAColumnType],
         data: List[Dict],
         selection_type: str = None,
-        row_lookup_table: Dict[str, List[int]] = None,
+        md_tag: str = None,
     ):
         if selection_type is None:
             # TODO: specify what how we turn selections into event handlers
@@ -27,10 +28,8 @@ class TexVis:
             self.selection_type = "single"
         else:
             self.selection_type = selection_type
-        if row_lookup_table is None:
-            self.row_lookup_table = {}
-        else:
-            self.row_lookup_table = row_lookup_table
+
+        self.md_tag = md_tag
         self.vis_type = vis_type
         vis_spec_path = (
             "/app/app/vta/texdf/" + vis_type.value + ".json"

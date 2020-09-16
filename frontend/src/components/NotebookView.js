@@ -37,9 +37,14 @@ export default class NotebookView extends Component {
   }
 
   resetDataset = () => {
-    let resetUrl = "v1/reset-dataset/" + this.props.datasetName;
+    let url;
+    if (this.props.testing) {
+      url = "http://localhost:5000/v1/reset-dataset/" + this.props.datasetName;
+    } else {
+      url = "v1/reset-dataset/" + this.props.datasetName;
+    }
     axios
-      .get(resetUrl)
+      .get(url)
       .then((response) => {
         console.log(`RESET of datset ${this.props.datasetName} worked!`);
         this.setState({ editorValue: "", history: [] });
@@ -121,7 +126,12 @@ export default class NotebookView extends Component {
     // do something
     if (!command.startsWith(":")) {
       console.log(`COMMAND: ${command}`);
-      const url = "v1/run-operator";
+      let url;
+      if (this.props.testing) {
+        url = "http://localhost:5000/v1/run-operator";
+      } else {
+        url = "v1/run-operator/";
+      }
       // fetch the actual rows
       axios
         .post(url, { vta_spec: command, vta_script_flag: 1 })

@@ -254,9 +254,7 @@ class TexDF:
             vis_obj_target.append(src)
         self.checkpoint_texdf()
 
-    def add_visualization(
-        self, columns, vis_type, selection=None, md_tag=None, row_lookup_table=None
-    ):
+    def add_visualization(self, columns, vis_type, selection=None, md_tag=None):
         # if aggregate type vis, using metadata, if not using column(s)
         if vis_type == VisType.tw_barchart or vis_type == VisType.barchart:
             data_type = "metadata"
@@ -271,7 +269,7 @@ class TexDF:
             col_types,
             vis_data,
             selection_type=selection,
-            row_lookup_table=row_lookup_table,
+            md_tag=md_tag,
         )
         self.visualizations.append(new_vis)
         vis_index = len(self.visualizations) - 1

@@ -65,6 +65,8 @@ const useStyles = (theme) => ({
   },
 });
 
+const testing = 0;
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -105,6 +107,7 @@ class App extends Component {
     this.classes = this.props.classes;
     this.highlightRows = this.highlightRows.bind(this);
     this.setVisView = this.setVisView.bind(this);
+    this.testing = testing;
   }
 
   setVisView = (visIdx, view) => {
@@ -240,7 +243,12 @@ class App extends Component {
 
     console.log(vtaSpec);
 
-    const url = "v1/run-operator";
+    let url;
+    if (this.testing) {
+      url = "http://localhost:5000/v1/run-operator";
+    } else {
+      url = "v1/run-operator";
+    }
     // fetch the actual rows
     axios
       .post(url, { vta_spec: vtaSpec })
@@ -282,7 +290,13 @@ class App extends Component {
     // console.log("uploading file contents: ", this.state.fileData);
 
     // TODO: implement uploadfile endpoint in Flask
-    axios.post("v1/upload-model", formData).then(() => {
+    let url;
+    if (this.testing) {
+      url = "http://localhost:5000/v1/upload-model";
+    } else {
+      url = "v1/upload-model";
+    }
+    axios.post(url, formData).then(() => {
       console.log(`uploaded model: ${this.state.modelName}`);
     });
   };
@@ -312,8 +326,14 @@ class App extends Component {
     // console.log("uploading file contents: ", this.state.fileData);
 
     // TODO: implement uploadfile endpoint in Flask
+    let url;
+    if (this.testing) {
+      url = "http://localhost:5000/v1/upload-file";
+    } else {
+      url = "v1/upload-file";
+    }
     axios
-      .post("v1/upload-file", formData)
+      .post(url, formData)
       .then(() => {
         this.getFiles();
       })
@@ -343,8 +363,14 @@ class App extends Component {
   };
 
   getFiles = () => {
+    let url;
+    if (this.testing) {
+      url = "http://localhost:5000/v1/get-datasets";
+    } else {
+      url = "v1/get-datasets";
+    }
     axios
-      .get("v1/get-datasets")
+      .get(url)
       .then((response) => {
         let allDatasets = response.data["datasets"];
         // let newDatasets = Object.assign({}, this.state.datasets);
@@ -389,7 +415,12 @@ class App extends Component {
       fileNumRows: fileRows,
     });
 
-    const url = "v1/get-datasets/" + fileName;
+    let url;
+    if (this.testing) {
+      url = "http://localhost:5000/v1/get-datasets/" + fileName;
+    } else {
+      url = "v1/get-datasets/" + fileName;
+    }
     // fetch the actual rows
     axios
       .get(url, {
@@ -572,6 +603,7 @@ class App extends Component {
                   visViews={this.state.visViews}
                   visSelectFunctions={this.state.visSelectFunctions}
                   highlightRows={this.highlightRows}
+                  testing={this.testing}
                 />
               </Paper>
             </Box>

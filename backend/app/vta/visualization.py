@@ -17,6 +17,7 @@ class VTAVisualization:
     texdf: tex_df.TexDF
     vis_idx: int
     vis_type: VisType
+    md_tag: str
 
     def __init__(self, texdf, vis_idx):
         self.selection_type = SelectionType.column
@@ -24,6 +25,7 @@ class VTAVisualization:
         self.vis_idx = vis_idx
         vis_obj = texdf.get_vis(vis_idx)
         self.vis_type = vis_obj.vis_type
+        self.md_tag = vis_obj.md_tag
         self.columns = vis_obj.columns
 
     # TODO: maybe support target input being VTAVisualization object itself!
@@ -44,16 +46,28 @@ class VTAVisualization:
         modified_vis = set()
         if isinstance(item_idx, str):
             # just for now, we can only select a word on a barchart, need to make this more modular
-            assert self.vis_type is VisType.tw_barchart
+            # TODO: spam_counts is hard-coded rn need a way to look up metadata associated with a vis
+            # or generally what data is associated with a vis
+            assert (
+                self.vis_type is VisType.tw_barchart
+                or self.vis_type is VisType.barchart
+            )
+            assert self.md_tag is not None
+            if self.vis_type is VisType.tw_barchart:
+                label = "topword"
+            else:
+                label = "label"
+
             word = select_data
-            item_idx = 1
+            item_idx = -1
             vis_data = self.texdf.get_columns_vega_format(
-                self.columns, "metadata", md_tag="top_scores"
+                self.columns, "metadata", md_tag=self.md_tag
             )
             for i, val in enumerate(vis_data):
-                tw_val = val["topword"]
+                tw_val = val[label]
                 if tw_val == word:
                     item_idx = i + 1
+
         elif isinstance(item_idx, list):
             item_idx = [i + 1 for i in item_idx]
         elif item_idx == -1:
@@ -78,6 +92,13 @@ class VTAVisualization:
                     self.texdf.select_vis_element("table", -1)
                 else:
                     self.texdf.select_vis_element(l, -1)
+            elif self.vis_type is VisType.barchart:
+                assert len(self.columns) == 1
+                base_rows = self.texdf.data_view.index[
+                    self.texdf.data_view[self.columns[0]] == select_data
+                ].tolist()
+                base_rows = [i + 1 for i in base_rows]
+                self.texdf.select_vis_element(l, base_rows)
             elif self.vis_type is VisType.tw_barchart:
 
                 # handle coordinating 1 -> many with vis like scatterplot
