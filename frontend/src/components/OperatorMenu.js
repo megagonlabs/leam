@@ -88,6 +88,18 @@ export const OperatorMenu = (props) => {
           <MenuItem onClick={handleItemClick} id="endAction">
             Remove Punctuation
           </MenuItem>
+          <MenuItem onClick={handleItemClick} id="endAction">
+            Remove URLs
+          </MenuItem>
+          <MenuItem onClick={handleItemClick} id="endAction">
+            Strip HTML
+          </MenuItem>
+          <MenuItem onClick={handleItemClick} id="endAction">
+            Remove Emoji
+          </MenuItem>
+          <MenuItem onClick={handleItemClick} id="endAction">
+            Remove Stopwords
+          </MenuItem>
         </NestedMenuItem>
         <NestedMenuItem
           label="Visualize"
@@ -122,6 +134,19 @@ export const OperatorMenu = (props) => {
           <MenuItem onClick={handleItemClick} id="endAction">
             Number Words
           </MenuItem>
+        </NestedMenuItem>
+        <NestedMenuItem
+          label="Model"
+          parentMenuOpen={!!menuPosition}
+          onClick={handleItemClick}
+        >
+          {models.map((val, idx) => {
+            return (
+              <MenuItem onClick={handleItemClick} id="endAction">
+                {val}
+              </MenuItem>
+            );
+          })}
         </NestedMenuItem>
       </Menu>
     </div>

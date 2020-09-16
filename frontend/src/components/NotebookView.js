@@ -131,6 +131,8 @@ export default class NotebookView extends Component {
   // }
 
   render() {
+    const reverseHistory = [...this.props.history].reverse();
+    const histLen = reverseHistory.length;
     return (
       <Grid container>
         {/* <Grid item xs={1}>
@@ -174,13 +176,13 @@ export default class NotebookView extends Component {
         </Grid>
         <Grid item xs={12}>
           <List component="nav" style={{ overflow: "auto", maxHeight: 300 }}>
-            {this.props.history.map((x, i) => (
+            {reverseHistory.map((x, i) => (
               <React.Fragment>
                 {/* <Box border={1} borderColor="gray"> */}
                 <ListItem button key={i} border={1}>
                   <Typography variant="h7">
                     <Box fontWeight="fontWeightBold" mr={4} ml={-1}>
-                      ln[{i}]:
+                      ln[{histLen - i}]:
                     </Box>
                   </Typography>
                   <Box style={{ backgroundColor: "#E8E9E8" }}>

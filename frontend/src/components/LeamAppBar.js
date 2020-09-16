@@ -94,7 +94,7 @@ export default function LeamAppBar(props) {
     // console.log(`COMMAND: ${command}`);
     let cmd = "";
     if (cellNum == 0) {
-      cmd += `data = VTA('${fileName}', started=True)\n`;
+      cmd += `data = VTA('${fileName}')\n`;
     }
 
     if (colSelected.length == 0) {
@@ -107,6 +107,18 @@ export default function LeamAppBar(props) {
     } else if (opName == "RemovePunctuation") {
       cmd += `col = data.get_column('${colSelected[0]}')\n`;
       cmd += `col.project().remove_punctuation()\n`;
+    } else if (opName == "RemoveURLs") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.project().remove_urls()\n`;
+    } else if (opName == "RemoveStopwords") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.project().remove_stopwords()\n`;
+    } else if (opName == "RemoveEmoji") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.project().remove_emoji()\n`;
+    } else if (opName == "StripHTML") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.project().strip_html()\n`;
     } else if (opName == "NumberWords") {
       cmd += `col = data.get_column('${colSelected[0]}')\n`;
       cmd += `col.mutate().num_words()\n`;
@@ -123,6 +135,10 @@ export default function LeamAppBar(props) {
       console.log(`metadata includes op ${opName}`);
       cmd += `col = data.get_column('${colSelected[0]}')\n`;
       cmd += `col.visualize("barchart", md_tag="${opName}")\n`;
+    } else if (models.includes(opName)) {
+      console.log(`models includes op ${opName}`);
+      cmd += `model = data.get_model('${opName}')\n`;
+      cmd += `model.predict("${colSelected[0]}")\n`;
     }
 
     runCommand(cmd);

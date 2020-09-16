@@ -12,7 +12,6 @@ import {
 } from "@material-ui/core";
 import { Menu, SignalCellularNoSim } from "@material-ui/icons";
 import axios from "axios";
-import iconv from "iconv-lite";
 import classNames from "classnames";
 import DatasetDropdown from "./DatasetDropdown.js";
 import BarChart from "./BarChart";
@@ -66,7 +65,7 @@ const useStyles = (theme) => ({
   },
 });
 
-const testing = 0;
+const testing = 1;
 
 class App extends Component {
   constructor(props) {
@@ -434,7 +433,7 @@ class App extends Component {
     // console.log("event: ", event)
     var file = event.target.files[0];
     this.fileReader.onloadend = this.handleFileRead;
-    this.fileReader.readAsBinaryString(file);
+    this.fileReader.readAsText(file);
     this.setState({ fileName: file.name, fileType: file.type });
     console.log(
       `in ONFILECHANGE, name is ${this.state.fileName} locally is ${file.name}`
@@ -444,12 +443,10 @@ class App extends Component {
 
   handleFileRead = () => {
     const fileData = this.fileReader.result;
-    const output = iconv.decode(fileData, "ISO-8859-1");
-    console.log(`decoded file data: ${output}`);
     const formData = new FormData();
     formData.append("filename", this.state.fileName);
     formData.append("filetype", this.state.fileType);
-    formData.append("filedata", output);
+    formData.append("filedata", fileData);
     console.log("filedata: ");
     console.log(fileData);
     // console.log("uploading filename: ", this.state.fileName);

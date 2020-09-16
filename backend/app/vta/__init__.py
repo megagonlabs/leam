@@ -16,7 +16,7 @@ from .table import VTATable
 
 
 class VTA:
-    def __init__(self, dataset_name: str, texdf=None, started=False):
+    def __init__(self, dataset_name: str, texdf=None, started=True):
         # for now assume this is tex dataframe but can be a plain pandas df
         self.dataset = dataset_name
         if started is True:
