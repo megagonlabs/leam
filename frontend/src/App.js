@@ -12,6 +12,7 @@ import {
 } from "@material-ui/core";
 import { Menu, SignalCellularNoSim } from "@material-ui/icons";
 import axios from "axios";
+import iconv from "iconv-lite";
 import classNames from "classnames";
 import DatasetDropdown from "./DatasetDropdown.js";
 import BarChart from "./BarChart";
@@ -79,6 +80,8 @@ class App extends Component {
       modelName: null,
       modelType: null,
       datasets: [],
+      models: [],
+      metadata: [],
       datasetRows: [],
       visualEncodings: {},
       selectedVisIdx: -1,
@@ -94,6 +97,8 @@ class App extends Component {
       filtering: false,
       coordinatingScatterPlot: false,
       coordinatingTable: false,
+      history: [],
+      cellNum: 0,
     };
     this.fileReader = new FileReader();
     this.modelReader = new FileReader();
@@ -108,7 +113,35 @@ class App extends Component {
     this.highlightRows = this.highlightRows.bind(this);
     this.setVisView = this.setVisView.bind(this);
     this.testing = testing;
+    this.runCommand = this.runCommand.bind(this);
+    this.changeLineNum = this.changeLineNum.bind(this);
+    this.changeHistory = this.changeHistory.bind(this);
+    this.resetHistory = this.resetHistory.bind(this);
+    this.getModels = this.getModels.bind(this);
   }
+
+  getModels = () => {
+    let url;
+    if (this.testing) {
+      url = "http://localhost:5000/v1/get-models";
+    } else {
+      url = "v1/get-models";
+    }
+    axios
+      .get(url)
+      .then((response) => {
+        let allModels = response.data["models"];
+        // let newModels = [];
+        // for (let key in allDatasets) {
+        //   let datasetInfo = allDatasets[key];
+        //   newDatasets.push(datasetInfo);
+        // }
+        this.setState({ models: allModels });
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  };
 
   setVisView = (visIdx, view) => {
     let visViewsNew = this.state.visViews;
@@ -136,6 +169,101 @@ class App extends Component {
     //       newDatasetRows = [...newDatasetRows, ...remainingRows];
     //       this.setState({datasetRows: newDatasetRows});
     //   }
+  };
+
+  resetHistory = () => {
+    this.setState({ history: [], cellNum: 0 });
+  };
+
+  changeHistory = (cell) => {
+    this.setState({
+      history: [...this.state.history, { command: cell, status: "finished" }],
+    });
+  };
+
+  changeLineNum = () => {
+    const currCellNum = this.state.cellNum;
+    this.setState({ cellNum: currCellNum + 1 });
+  };
+
+  runCommand = (command) => {
+    let url;
+    if (this.testing) {
+      url = "http://localhost:5000/v1/run-operator";
+    } else {
+      url = "v1/run-operator";
+    }
+    // fetch the actual rows
+    axios
+      .post(url, { vta_spec: command, vta_script_flag: 1 })
+      .then((response) => {
+        console.log(
+          `operator response body is ${JSON.stringify(response.data)}`
+        );
+        // Do one of three actions based on the reponse
+        // (1) if view update like add_vis response, then update vis state
+        //     attach event listener based on selection type
+        //      (b) - view update to table view like update_table
+        // (2) if add_link response, then update links
+        //     TODO: look at master branch to see how to do this...
+        // (3) if select response, then highlight using manual
+        //      highlight function (which may be chained)
+        const success = response.data["success"];
+        if (success !== "true") {
+          return;
+        }
+        this.changeHistory(command);
+        this.changeLineNum();
+        const uiTasks = response.data["tasks"];
+        for (let i = 0; i < uiTasks.length; i++) {
+          const task = uiTasks[i];
+          const responseType = task["type"];
+          const view = task["view"];
+          if (responseType == "add_vis") {
+            // add the function to vis idx -> function map besides loading file
+            // TODO: register external select function
+            // const selectionType = task["selection_type"];
+            // loadFile should take care of registering the external select functions
+            this.loadFile(this.state.fileName);
+          } else if (responseType == "select") {
+            // TODO: handle table select!!!
+            // just call the highlight rows function fo
+            if (view == "table") {
+              const itemIdx = task["rows"];
+              console.log(`[runCell] highlighting table rows: ${itemIdx}`);
+              if (itemIdx == -1) {
+                this.highlightRows([]);
+              } else {
+                let tableRows = Object.assign(itemIdx);
+                tableRows = tableRows.map((val, idx) => val - 1);
+                this.highlightRows(tableRows, false);
+              }
+            } else {
+              const visIdx = task["vis_idx"];
+              const itemIdx = task["rows"]; // could either be single # or a list of #
+              let visView = this.state.visViews[visIdx];
+              console.log(
+                `[runCell] vis view for idx: ${visIdx} is ${visView}`
+              );
+              let visUpdateFunc = this.state.visSelectFunctions[visIdx]["func"];
+              console.log(
+                `[runCell] vis update func is of type ${visUpdateFunc["type"]} with value ${visUpdateFunc["func"]}`
+              );
+              visUpdateFunc(visView, itemIdx);
+            }
+          } else if (responseType == "link") {
+            // pass (for now), but should modify global linking data structure
+            // actually don't need this b/c can just manage on backend side, send a bunch of selects
+          } else if (view == "table") {
+            this.loadFile(this.state.fileName);
+          } else {
+            console.log("wrong ui task response type: " + responseType);
+          }
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   };
 
   applyOperator = (
@@ -298,6 +426,7 @@ class App extends Component {
     }
     axios.post(url, formData).then(() => {
       console.log(`uploaded model: ${this.state.modelName}`);
+      this.getModels();
     });
   };
 
@@ -305,7 +434,7 @@ class App extends Component {
     // console.log("event: ", event)
     var file = event.target.files[0];
     this.fileReader.onloadend = this.handleFileRead;
-    this.fileReader.readAsText(file);
+    this.fileReader.readAsBinaryString(file);
     this.setState({ fileName: file.name, fileType: file.type });
     console.log(
       `in ONFILECHANGE, name is ${this.state.fileName} locally is ${file.name}`
@@ -315,10 +444,12 @@ class App extends Component {
 
   handleFileRead = () => {
     const fileData = this.fileReader.result;
+    const output = iconv.decode(fileData, "ISO-8859-1");
+    console.log(`decoded file data: ${output}`);
     const formData = new FormData();
     formData.append("filename", this.state.fileName);
     formData.append("filetype", this.state.fileType);
-    formData.append("filedata", fileData);
+    formData.append("filedata", output);
     console.log("filedata: ");
     console.log(fileData);
     // console.log("uploading filename: ", this.state.fileName);
@@ -522,6 +653,13 @@ class App extends Component {
         rows.push(chartRow);
         rows.push(...JSON.parse(response.data["rows"]));
 
+        let metadata = JSON.parse(response.data["metadata"]);
+        let metadataNames = [];
+        for (let key in metadata) {
+          let val = metadata[key];
+          metadataNames.push(val["tag"]);
+        }
+
         // let processedVisualEncodings = {...visualEncodings};
         // // set visual encoding data
         // for (let key in columnTypes) {
@@ -554,6 +692,7 @@ class App extends Component {
           dataVisSpec: visSpecList,
           columnTypes,
           visSelectFunctions: currVisSelectFunctions,
+          metadata: metadataNames,
           // visualEncodings: newVisualEncodings,
           // visualizationTypes: visTypes,
           // dataVisSpec: specList,
@@ -576,6 +715,10 @@ class App extends Component {
               loadFile={this.loadFile}
               datasets={this.state.datasets}
               columns={this.state.fileHeaders}
+              cellNum={this.state.cellNum}
+              runCommand={this.runCommand}
+              models={this.state.models}
+              metadata={this.state.metadata}
             />
           </Grid>
           <Grid item xs={12}>
@@ -604,6 +747,10 @@ class App extends Component {
                   visSelectFunctions={this.state.visSelectFunctions}
                   highlightRows={this.highlightRows}
                   testing={this.testing}
+                  runCommand={this.runCommand}
+                  changeLineNum={this.changeLineNum}
+                  history={this.state.history}
+                  resetHistory={this.resetHistory}
                 />
               </Paper>
             </Box>

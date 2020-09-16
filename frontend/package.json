@@ -13,6 +13,7 @@
     "classnames": "^2.2.6",
     "clsx": "^1.1.1",
     "fontsource-roboto": "^2.1.4",
+    "iconv-lite": "^0.6.2",
     "immutable": "^4.0.0-rc.12",
     "json-loader": "^0.5.7",
     "material-ui-nested-menu-item": "^1.0.2",

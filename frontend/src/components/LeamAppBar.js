@@ -16,6 +16,7 @@ import AccountCircle from "@material-ui/icons/AccountCircle";
 import Menu from "@material-ui/core/Menu";
 import { CloudUpload } from "@material-ui/icons";
 import OperatorMenu from "./OperatorMenu.js";
+import axios from "axios";
 import clsx from "clsx";
 
 const useStyles = makeStyles((theme) => ({
@@ -78,12 +79,54 @@ export default function LeamAppBar(props) {
     loadFile,
     datasets,
     columns,
+    cellNum,
+    runCommand,
+    models,
+    metadata,
   } = props;
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [columnAnchorEl, setColumnAnchorEl] = React.useState(null);
   const [colSelected, setColSelected] = React.useState([]);
   const open = Boolean(anchorEl);
   const columnOpen = Boolean(columnAnchorEl);
+
+  const runOpCommand = (opName) => {
+    // console.log(`COMMAND: ${command}`);
+    let cmd = "";
+    if (cellNum == 0) {
+      cmd += `data = VTA('${fileName}', started=True)\n`;
+    }
+
+    if (colSelected.length == 0) {
+      console.log("[runOpCommand] ERROR: no column specified");
+    }
+
+    if (opName == "Lowercase") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.project().lowercase()\n`;
+    } else if (opName == "RemovePunctuation") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.project().remove_punctuation()\n`;
+    } else if (opName == "NumberWords") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.mutate().num_words()\n`;
+    } else if (opName == "Sentiment") {
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.mutate().sentiment()\n`;
+    } else if (opName == "Histogram") {
+      if (colSelected.length !== 2) {
+        console.log("[runOpCommand] ERROR: no 2 columns specified");
+        return;
+      }
+      cmd += `data.visualize(["${colSelected[0]}", "${colSelected[1]}"], "histogram")\n`;
+    } else if (metadata.includes(opName)) {
+      console.log(`metadata includes op ${opName}`);
+      cmd += `col = data.get_column('${colSelected[0]}')\n`;
+      cmd += `col.visualize("barchart", md_tag="${opName}")\n`;
+    }
+
+    runCommand(cmd);
+  };
 
   const handleColMenu = (event) => {
     setColumnAnchorEl(event.currentTarget);
@@ -184,7 +227,11 @@ export default function LeamAppBar(props) {
             })}
           </Menu>
 
-          <OperatorMenu />
+          <OperatorMenu
+            runOpCommand={runOpCommand}
+            models={models}
+            metadata={metadata}
+          />
 
           <Button
             size="small"

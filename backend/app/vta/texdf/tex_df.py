@@ -83,14 +83,10 @@ class TexDF:
         # metadata will be a table with 3 columns: tag | data_type | data
         all_metadata = []
         for _, col in self.columns.items():
-            col_metadata = []
             for _, md in col.metadata.items():
-                col_metadata_item = []
-                col_metadata_item.append(md.tag)
-                col_metadata_item.append(md.md_type.value)
-                col_metadata_item.append(md.value)
-                col_metadata.append(col_metadata_item)
-            all_metadata.append(col_metadata)
+                all_metadata.append(
+                    {"tag": md.tag, "type": md.md_type.value, "value": md.value}
+                )
         return all_metadata
 
     def print_metadata(self):

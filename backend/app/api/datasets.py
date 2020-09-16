@@ -33,6 +33,18 @@ SQLALCHEMY_DATABASE_URI = (
 CORS(v1)
 
 
+@v1.route("/get-models", methods=(["GET"]))
+def get_models():
+    m_path = "/app/"
+    files = os.listdir(m_path)
+    models = []
+    for f in files:
+        ending = f.split(".")[-1]
+        if ending == "h5":
+            models.append(f)
+    return jsonify({"models": models})
+
+
 @v1.route("/get-datasets", methods=(["GET"]))
 def get_datasets():
     datasets = Dataset.query.all()

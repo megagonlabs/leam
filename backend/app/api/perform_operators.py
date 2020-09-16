@@ -59,6 +59,7 @@ def run_operator():
     log.info("VTA/VITAL command -> %s\n\n", vta_spec)
     code_output = ""
     new_ui_tasks = []
+    success = "true"
 
     if is_vta_script:
         log.info("parsing VITAL command\n")
@@ -102,10 +103,13 @@ def run_operator():
             vta_session = VTA_locals
             pickle.dump(vta_session, open("vta_session.pkl", "wb"))
         except Exception as e:
+            success = "false"
             log.error("python command had error: %s", str(e))
 
         log.debug("generated VTA spec is: %s\n", vta_spec)
-        return jsonify({"output": code_output, "tasks": new_ui_tasks})
+        return jsonify(
+            {"output": code_output, "tasks": new_ui_tasks, "success": success}
+        )
 
     # result = compiler.compile_vta(vta_spec)
     return jsonify({"result": "true"})
