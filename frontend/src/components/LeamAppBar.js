@@ -190,7 +190,7 @@ export default function LeamAppBar(props) {
       <AppBar position="static">
         <Toolbar className={clsx(classes.primary, classes.customizeToolbar)}>
           <Typography variant="h6" className={classes.title}>
-            Leam
+            System X
           </Typography>
 
           <Button
