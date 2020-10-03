@@ -135,6 +135,9 @@ def upload_model():
     model_data = request.form["modelData"]
     model_data = model_data.split(",")[1]
     model_bytes = base64.b64decode(model_data)
+    if not (model_name == "disaster_tweets.h5" or model_name == "sms_spam.h5"):
+        log.info("rejecting data upload for model: %s", model_name)
+        return jsonify(success=False)
     # file = BytesIO(model_data)
     # model_bytes = file.read()
     file_name = "/app/" + model_name
