@@ -49,7 +49,7 @@ class Mutate:
     def tf_idf(self, action=ActionType.Create, metadata=ActionType.Add):
         column_value = self.texdf.get_dataview_column(self.col_name).tolist()
         vectorizer = TfidfVectorizer(
-            min_df=1, analyzer="word", max_features=20000, ngram_range=(1, 2)
+            min_df=1, analyzer="word", max_features=20000, ngram_range=(1, 1)
         )
         vectors = vectorizer.fit_transform(column_value)
         print("finished transforming tfidf vectors")

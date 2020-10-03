@@ -151,6 +151,14 @@ def upload_file():
     file_name = request.form["filename"]
     file_type = request.form["filetype"]
     file_text = request.form["filedata"]
+    if not (
+        file_name == "reviews.csv"
+        or file_name == "tweets.csv"
+        or file_name == "spam.csv"
+    ):
+        log.info("rejecting data upload for file: %s", file_name)
+        return jsonify(success=False)
+
     # file_lines = re.split('[\n|\r]+', file_text)
     file = StringIO(file_text)
     reader = csv.reader(file, delimiter=",")

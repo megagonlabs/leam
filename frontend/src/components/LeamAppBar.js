@@ -299,14 +299,6 @@ export default function LeamAppBar(props) {
             onChange={onFileChange}
           />
           <label htmlFor="selectedFile">
-            {/* <IconButton
-              color="inherit"
-              aria-label="upload file"
-              component="span"
-              className={classes.uploadButton}
-            >
-              <CloudUpload fontSize="medium" />
-            </IconButton> */}
             <Button
               size="small"
               variant="outlined"
