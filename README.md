@@ -1,5 +1,10 @@
 # Leam
-`Leam` is a research prototype that combinies the strengths of spreadsheets, computational notebooks, and interactive visualizations to facilitate integrated text analytics. `Leam` implements a visual text algebra to facilitate extensible and expressive analysis, supporting diverse tasks ranging from data cleaning to visualization. It also enables declarative specification of interactive coordination across views of data, code, and visualizations. 
+`Leam` is a research prototype that combines the strengths of spreadsheets, computational notebooks, and interactive visualizations to facilitate integrated text analytics. `Leam` implements a visual text algebra to facilitate extensible and expressive analysis, supporting diverse tasks ranging from data cleaning to visualization. It also enables declarative specification of interactive coordination across views of data, code, and visualizations. 
+
+Demo Available At: [http://18.221.197.183/](http://18.221.197.183/)
+
+
+![Leam UI](./images/leam-ui-with-dropdown.png)
 
 ## How to Use
 Once you have selected a dataset, you can clean, featurize, apply models, etc. using either the Operator Dropdown which is the GUI interface at the top or by using the Notebook View which accepts Python code. 
